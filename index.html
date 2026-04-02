@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JS &amp; Playwright - Giáo trình Interactive cho người mới</title>
+<meta name="description" content="Học JavaScript và Playwright từ zero. Giáo trình tương tác miễn phí dành cho người chưa biết gì về code.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+<style>
+:root {
+  --bg: #f8fafc; --bg2: #ffffff; --bg3: #f1f5f9;
+  --text: #1e293b; --text2: #475569; --text3: #64748b;
+  --border: #e2e8f0; --border2: #cbd5e1;
+  --primary: #6366f1; --primary2: #818cf8; --primary-bg: #eef2ff;
+  --green: #22c55e; --green-bg: #f0fdf4; --green-text: #166534;
+  --yellow: #eab308; --yellow-bg: #fefce8; --yellow-text: #854d0e;
+  --red: #ef4444; --red-bg: #fef2f2; --red-text: #991b1b;
+  --blue: #3b82f6; --blue-bg: #eff6ff; --blue-text: #1e40af;
+  --purple: #a855f7; --purple-bg: #faf5ff; --purple-text: #6b21a8;
+  --code-bg: #1e1e2e; --code-text: #cdd6f4;
+  --sidebar-w: 280px;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,.1);
+}
+[data-theme="dark"] {
+  --bg: #0f172a; --bg2: #1e293b; --bg3: #334155;
+  --text: #f1f5f9; --text2: #cbd5e1; --text3: #94a3b8;
+  --border: #334155; --border2: #475569;
+  --primary-bg: #1e1b4b;
+  --green-bg: #052e16; --green-text: #86efac;
+  --yellow-bg: #422006; --yellow-text: #fde047;
+  --red-bg: #450a0a; --red-text: #fca5a5;
+  --blue-bg: #172554; --blue-text: #93c5fd;
+  --purple-bg: #2e1065; --purple-text: #d8b4fe;
+  --code-bg: #0d1117; --code-text: #e6edf3;
+  --shadow: 0 1px 3px rgba(0,0,0,.3);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,.4);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg); color: var(--text);
+  line-height: 1.8; font-size: 16px;
+  transition: background .3s, color .3s;
+}
+.sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0;
+  width: var(--sidebar-w); background: var(--bg2);
+  border-right: 1px solid var(--border);
+  overflow-y: auto; z-index: 200;
+  display: flex; flex-direction: column;
+  transition: transform .3s ease, background .3s;
+}
+.sidebar-header {
+  padding: 20px; border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  color: #fff;
+}
+.sidebar-header h1 { font-size: 18px; font-weight: 800; }
+.sidebar-header p { font-size: 12px; opacity: .8; margin-top: 2px; }
+.sidebar-progress { padding: 12px 20px; border-bottom: 1px solid var(--border); }
+.sidebar-progress .bar { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.sidebar-progress .fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--green)); border-radius: 3px; transition: width .5s; }
+.sidebar-progress span { font-size: 11px; color: var(--text3); display: block; margin-top: 4px; }
+.sidebar-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+.nav-phase { padding: 10px 20px 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 20px; cursor: pointer; font-size: 13.5px;
+  color: var(--text2); transition: all .15s;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { background: var(--primary-bg); color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
+.nav-item .check { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; transition: all .2s; }
+.nav-item .check.done { background: var(--green); border-color: var(--green); color: #fff; }
+.sidebar-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+.sidebar-footer button {
+  flex: 1; padding: 6px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--bg); color: var(--text2); cursor: pointer; font-size: 12px;
+  transition: all .15s;
+}
+.sidebar-footer button:hover { background: var(--bg3); }
+.menu-toggle {
+  display: none; position: fixed; top: 12px; left: 12px; z-index: 300;
+  width: 40px; height: 40px; border-radius: 10px;
+  background: var(--bg2); border: 1px solid var(--border);
+  cursor: pointer; font-size: 18px; color: var(--text);
+  box-shadow: var(--shadow); align-items: center; justify-content: center;
+}
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 190; }
+.main { margin-left: var(--sidebar-w); min-height: 100vh; }
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  padding: 10px 32px; display: flex; align-items: center; justify-content: space-between;
+  backdrop-filter: blur(10px); background: rgba(255,255,255,.85);
+}
+[data-theme="dark"] .topbar { background: rgba(30,41,59,.85); }
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.breadcrumb { font-size: 13px; color: var(--text3); }
+.breadcrumb b { color: var(--text); }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+.topbar-right button {
+  padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--bg); color: var(--text2); cursor: pointer; font-size: 13px;
+  transition: all .15s; display: flex; align-items: center; gap: 4px;
+}
+.topbar-right button:hover { background: var(--bg3); border-color: var(--border2); }
+.search-box {
+  padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--bg); color: var(--text); font-size: 13px; width: 200px;
+  outline: none; transition: all .2s;
+}
+.search-box:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,.15); width: 260px; }
+.content { max-width: 820px; margin: 0 auto; padding: 32px 32px 80px; }
+.module-hero {
+  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  border-radius: var(--radius); padding: 28px 32px; color: #fff;
+  margin-bottom: 32px; position: relative; overflow: hidden;
+}
+.module-hero::after {
+  content: ''; position: absolute; right: -20px; top: -20px;
+  width: 150px; height: 150px; border-radius: 50%;
+  background: rgba(255,255,255,.08);
+}
+.module-hero .num { font-size: 48px; font-weight: 900; opacity: .2; position: absolute; right: 24px; top: 12px; }
+.module-hero h2 { font-size: 22px; font-weight: 700; margin: 0; border: none; color: #fff; padding: 0; }
+.module-hero p { opacity: .85; font-size: 13px; margin-top: 4px; }
+.module-hero .phase-badge {
+  display: inline-block; background: rgba(255,255,255,.2); padding: 3px 12px;
+  border-radius: 20px; font-size: 11px; font-weight: 600; margin-top: 8px;
+}
+.module-hero .complete-btn {
+  position: absolute; bottom: 16px; right: 16px;
+  background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3);
+  color: #fff; padding: 6px 14px; border-radius: 8px; font-size: 12px;
+  cursor: pointer; font-weight: 600; transition: all .2s;
+}
+.module-hero .complete-btn:hover { background: rgba(255,255,255,.3); }
+.module-hero .complete-btn.done { background: var(--green); border-color: var(--green); }
+h2 { font-size: 20px; margin: 36px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--primary); color: var(--primary); }
+h3 { font-size: 17px; margin: 24px 0 10px; color: var(--text); }
+h4 { font-size: 15px; margin: 16px 0 8px; color: var(--text2); }
+p, li { margin-bottom: 10px; color: var(--text2); }
+ul, ol { padding-left: 24px; margin-bottom: 16px; }
+strong { color: var(--text); }
+code {
+  background: var(--bg3); padding: 2px 7px; border-radius: 5px;
+  font-size: 13.5px; font-family: 'JetBrains Mono', Consolas, monospace;
+  color: var(--purple);
+}
+a { color: var(--primary); }
+pre {
+  background: var(--code-bg); color: var(--code-text);
+  padding: 16px 20px; border-radius: var(--radius);
+  overflow-x: auto; margin: 10px 0 20px;
+  font-size: 13px; line-height: 1.7;
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  position: relative;
+}
+.code-wrap { position: relative; margin: 10px 0 20px; }
+.code-wrap pre { margin: 0; }
+.code-actions {
+  position: absolute; top: 8px; right: 8px;
+  display: flex; gap: 4px; opacity: 0; transition: opacity .2s;
+}
+.code-wrap:hover .code-actions { opacity: 1; }
+.code-actions button {
+  padding: 4px 10px; border-radius: 6px; border: none;
+  background: rgba(255,255,255,.12); color: #94a3b8;
+  cursor: pointer; font-size: 11px; font-weight: 600;
+  transition: all .15s;
+}
+.code-actions button:hover { background: rgba(255,255,255,.2); color: #fff; }
+.b { border-radius: var(--radius); padding: 14px 18px; margin: 14px 0; font-size: 14.5px; line-height: 1.75; }
+.idea { background: var(--purple-bg); border: 1px solid rgba(168,85,247,.2); color: var(--purple-text); }
+.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue-text); }
+.warn { background: var(--yellow-bg); border-left: 4px solid var(--yellow); color: var(--yellow-text); }
+.ok { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green-text); }
+.err { background: var(--red-bg); border-left: 4px solid var(--red); color: var(--red-text); }
+.term { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; margin: 12px 0; font-size: 14px; }
+.term strong { color: var(--primary); }
+table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
+th, td { border: 1px solid var(--border); padding: 9px 13px; text-align: left; }
+th { background: var(--bg3); font-weight: 700; }
+.ex { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin: 12px 0; box-shadow: var(--shadow); }
+.mini {
+  background: var(--purple-bg); border: 1px dashed rgba(168,85,247,.3);
+  border-radius: 8px; padding: 12px 16px; margin: 10px 0;
+  font-size: 14px; color: var(--purple-text);
+}
+.mini::before { content: "✏️ Thử ngay: "; font-weight: 700; }
+.tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 99px; margin-bottom: 6px; }
+.tg { background: var(--green-bg); color: var(--green-text); }
+.ty { background: var(--yellow-bg); color: var(--yellow-text); }
+.tr { background: var(--red-bg); color: var(--red-text); }
+details { margin-top: 8px; }
+summary { cursor: pointer; color: var(--primary); font-weight: 600; font-size: 14px; }
+hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
+.playground {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; margin: 16px 0;
+  box-shadow: var(--shadow);
+}
+.playground-header {
+  background: var(--bg3); padding: 8px 16px; display: flex;
+  align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+.playground-header span { font-size: 12px; font-weight: 700; color: var(--text3); }
+.playground-header button {
+  padding: 5px 16px; border: none; border-radius: 6px;
+  background: var(--green); color: #fff; cursor: pointer;
+  font-size: 12px; font-weight: 700; transition: all .15s;
+}
+.playground-header button:hover { opacity: .85; }
+.playground-editor {
+  width: 100%; min-height: 80px; padding: 16px;
+  background: var(--code-bg); color: var(--code-text);
+  border: none; outline: none; resize: vertical;
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 13px; line-height: 1.7; tab-size: 2;
+}
+.playground-output {
+  padding: 12px 16px; min-height: 40px; max-height: 200px; overflow-y: auto;
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 12.5px; background: var(--bg); color: var(--text2);
+  border-top: 1px solid var(--border); white-space: pre-wrap;
+}
+.playground-output .err-line { color: var(--red); }
+.playground-output .log-line { color: var(--text2); }
+.nav-buttons { display: flex; justify-content: space-between; margin: 44px 0 20px; gap: 12px; }
+.nav-buttons button {
+  padding: 10px 22px; border-radius: 8px; cursor: pointer;
+  font-weight: 600; font-size: 14px; transition: all .2s;
+}
+.nav-buttons .pv { border: 1px solid var(--border); background: var(--bg2); color: var(--text); }
+.nav-buttons .pv:hover { border-color: var(--border2); background: var(--bg3); }
+.nav-buttons .nx { border: none; background: var(--primary); color: #fff; }
+.nav-buttons .nx:hover { opacity: .9; }
+.search-overlay {
+  display: none; position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,.5); backdrop-filter: blur(4px);
+  justify-content: center; padding-top: 15vh;
+}
+.search-overlay.open { display: flex; }
+.search-modal {
+  background: var(--bg2); border-radius: var(--radius); width: 560px; max-height: 60vh;
+  box-shadow: var(--shadow-lg); overflow: hidden;
+}
+.search-modal input {
+  width: 100%; padding: 16px 20px; border: none; border-bottom: 1px solid var(--border);
+  font-size: 16px; background: var(--bg2); color: var(--text); outline: none;
+}
+.search-results { overflow-y: auto; max-height: calc(60vh - 56px); }
+.search-result-item {
+  padding: 10px 20px; cursor: pointer; border-bottom: 1px solid var(--border);
+  transition: background .1s;
+}
+.search-result-item:hover { background: var(--bg3); }
+.search-result-item .title { font-size: 14px; font-weight: 600; color: var(--text); }
+.search-result-item .excerpt { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.search-result-item mark { background: var(--yellow-bg); color: var(--yellow-text); border-radius: 2px; padding: 0 2px; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .overlay.open { display: block; }
+  .menu-toggle { display: flex; }
+  .main { margin-left: 0; }
+  .topbar { padding: 10px 16px; padding-left: 56px; }
+  .content { padding: 20px 16px 60px; }
+  .search-box { width: 120px; }
+  .search-box:focus { width: 160px; }
+  .search-modal { width: 95vw; }
+  .module-hero { padding: 20px; }
+  .module-hero .num { font-size: 36px; }
+}
+@media print { .sidebar, .topbar, .menu-toggle { display: none !important; } .main { margin-left: 0; } pre { white-space: pre-wrap; } }
+</style>
+</head>
+<body>
+<button class="menu-toggle" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header"><h1>JS &amp; Playwright</h1><p>Giáo trình Automation Testing</p></div>
+  <div class="sidebar-progress">
+    <div class="bar"><div class="fill" id="progressBar" style="width:0%"></div></div>
+    <span id="progressText">0 / 12 modules hoàn thành</span>
+  </div>
+  <nav class="sidebar-nav" id="sidebarNav"></nav>
+  <div class="sidebar-footer">
+    <button onclick="toggleTheme()" id="themeBtn">🌙 Dark</button>
+    <button onclick="resetProgress()">↺ Reset</button>
+  </div>
+</aside>
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left"><span class="breadcrumb" id="breadcrumb"></span></div>
+    <div class="topbar-right">
+      <input type="text" class="search-box" placeholder="Tìm kiếm... (Ctrl+K)" id="searchInput" onfocus="openSearch()">
+      <button onclick="openPlayground()" title="Mở Code Playground">▶ Code</button>
+    </div>
+  </div>
+  <div class="content" id="ct"></div>
+</div>
+<div class="search-overlay" id="searchOverlay" onclick="if(event.target===this)closeSearch()">
+  <div class="search-modal">
+    <input type="text" placeholder="Tìm nội dung trong giáo trình..." id="searchModalInput" oninput="doSearch(this.value)">
+    <div class="search-results" id="searchResults"></div>
+  </div>
+</div>
+<div id="floatingPlayground" style="display:none; position:fixed; bottom:20px; right:20px; width:480px; z-index:400; border-radius:12px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.3); border:1px solid var(--border);">
+  <div class="playground">
+    <div class="playground-header">
+      <span>💻 Code Playground</span>
+      <div style="display:flex;gap:6px;">
+        <button onclick="runPlayground('floatingEditor','floatingOutput')" style="background:var(--green)">▶ Chạy</button>
+        <button onclick="clearPlayground('floatingEditor','floatingOutput')" style="background:var(--text3)">✕ Xóa</button>
+        <button onclick="closePlayground()" style="background:var(--red)">✕</button>
+      </div>
+    </div>
+    <textarea class="playground-editor" id="floatingEditor" placeholder="// Viết code JavaScript tại đây...&#10;console.log('Xin chao!');" spellcheck="false"></textarea>
+    <div class="playground-output" id="floatingOutput"><span style="color:var(--text3)">// Kết quả sẽ hiện ở đây</span></div>
+  </div>
+</div>
+
+<script>
+var defined_pg = function(label, code, rows) {
+  rows = rows || 4;
+  return '<div class="playground" data-playground>' +
+    '<div class="playground-header"><span>💻 ' + label + '</span><div style="display:flex;gap:6px"><button onclick="runPlayground(this)" style="background:var(--green)">▶ Chạy</button><button onclick="clearPlayground(this)" style="background:var(--text3)">✕ Xóa</button></div></div>' +
+    '<textarea class="playground-editor" spellcheck="false" rows="' + rows + '">' + code + '</textarea>' +
+    '<div class="playground-output"><span style="color:var(--text3)">// Nhấn ▶ Chạy để xem kết quả</span></div></div>';
+};
+
+var D = [];
+
+// =============================================
+// MODULE 0 — GIỚI THIỆU
+// =============================================
+D.push({id:0,title:"Giới thiệu",week:"Trước khi bắt đầu",phase:0,html:[
+'<h2>Khóa học này dành cho ai?</h2>',
+'<p>Dành cho người <strong>chưa từng viết một dòng code nào</strong>. Bạn không cần biết trước bất cứ điều gì. Mọi khái niệm sẽ được giải thích bằng ngôn ngữ đời thường trước, rồi mới đến code.</p>',
+
+'<h2>Bạn sẽ học được gì?</h2>',
+'<p>Sau khóa học, bạn sẽ:</p>',
+'<ul>',
+'<li>Hiểu và viết được <strong>JavaScript</strong> — ngôn ngữ lập trình phổ biến nhất thế giới.</li>',
+'<li>Sử dụng <strong>Playwright</strong> — công cụ để "ra lệnh" cho trình duyệt web tự động click, gõ, kiểm tra trang web thay bạn.</li>',
+'<li>Tự xây dựng được một bộ test tự động hoàn chỉnh cho website thật.</li>',
+'</ul>',
+
+'<h2>Lộ trình học</h2>',
+'<table>',
+'<tr><th>Giai đoạn</th><th>Thời gian</th><th>Nội dung</th></tr>',
+'<tr><td>🟡 Phase 1</td><td>Tuần 1–3</td><td>JavaScript cơ bản: biến, điều kiện, vòng lặp, hàm, mảng, bất đồng bộ</td></tr>',
+'<tr><td>🟢 Phase 2</td><td>Tuần 4–6</td><td>Playwright cơ bản: cài đặt, viết test, tương tác trang web</td></tr>',
+'<tr><td>🔴 Phase 3</td><td>Tuần 7–10</td><td>Nâng cao: POM, API test, CI/CD, dự án thực tế</td></tr>',
+'</table>',
+
+'<h2>Cần chuẩn bị gì?</h2>',
+'<ul>',
+'<li>Máy tính (Windows, Mac, hoặc Linux).</li>',
+'<li>Internet.</li>',
+'<li>1–2 tiếng/ngày.</li>',
+'<li><strong>Không cần</strong> biết trước về lập trình hay tiếng Anh giỏi.</li>',
+'</ul>',
+
+'<h2>Cách học hiệu quả nhất</h2>',
+'<div class="b ok"><strong>Quy tắc vàng:</strong> Đọc lý thuyết → <strong>Gõ lại code bằng tay</strong> (tuyệt đối đừng copy-paste) → Làm bài tập "Thử ngay" → Làm bài tập cuối module → Thử sáng tạo thêm.</div>',
+'<p>Gõ tay giúp não bạn ghi nhớ gấp 3 lần so với chỉ đọc. Kể cả khi gõ sai — sai cũng là học!</p>',
+
+'<h2>Thử ngay Code Playground!</h2>',
+'<p>Bạn có thể viết và chạy code JavaScript ngay trên trang này. Hãy thử gõ và nhấn nút <strong>▶ Chạy</strong>:</p>',
+defined_pg('Thử ngay', 'console.log("Xin chao! Toi dang hoc JavaScript!");\nconsole.log("2 + 3 =", 2 + 3);', 3),
+
+'<h2>Khi gặp lỗi thì làm gì?</h2>',
+'<p>Lỗi là chuyện <strong>bình thường và tốt</strong>. 90% thời gian của lập trình viên là sửa lỗi. Đây là cách xử lý:</p>',
+'<ol>',
+'<li><strong>Đọc thông báo lỗi</strong> — thường ở dòng cuối cùng, có ghi số dòng bị lỗi.</li>',
+'<li><strong>Kiểm tra chính tả</strong> — 80% lỗi của người mới là gõ sai tên biến, thiếu dấu ngoặc, thiếu dấu chấm phẩy.</li>',
+'<li><strong>Copy thông báo lỗi, dán vào Google hoặc hỏi Claude</strong> — gần 100% lỗi bạn gặp đã có người gặp trước.</li>',
+'</ol>',
+
+'<h2>Bảng thuật ngữ</h2>',
+'<p>Bạn sẽ gặp các từ tiếng Anh sau xuyên suốt khóa học. Không cần nhớ hết ngay — quay lại đây tra khi cần:</p>',
+'<table>',
+'<tr><th>Thuật ngữ</th><th>Phát âm gần đúng</th><th>Nghĩa</th></tr>',
+'<tr><td>Variable</td><td>va-ri-ơ-bồ</td><td>Biến — hộp chứa dữ liệu</td></tr>',
+'<tr><td>Function</td><td>phăng-sần</td><td>Hàm — công thức tái sử dụng</td></tr>',
+'<tr><td>Array</td><td>ơ-rây</td><td>Mảng — danh sách</td></tr>',
+'<tr><td>Object</td><td>óp-giéc</td><td>Đối tượng — thẻ thông tin</td></tr>',
+'<tr><td>String</td><td>xì-tring</td><td>Chuỗi — đoạn văn bản</td></tr>',
+'<tr><td>Number</td><td>năm-bờ</td><td>Số</td></tr>',
+'<tr><td>Boolean</td><td>bu-li-ần</td><td>Đúng/Sai (true/false)</td></tr>',
+'<tr><td>Parameter</td><td>pa-ra-mi-tờ</td><td>Tham số — "nguyên liệu" truyền vào hàm</td></tr>',
+'<tr><td>Return</td><td>ri-tơn</td><td>Trả về — hàm "đưa" kết quả ra ngoài</td></tr>',
+'<tr><td>Async</td><td>ây-xinh</td><td>Bất đồng bộ — không chờ, làm tiếp</td></tr>',
+'<tr><td>Await</td><td>ơ-guết</td><td>Chờ — dừng lại đợi kết quả</td></tr>',
+'<tr><td>Locator</td><td>lâu-kây-tờ</td><td>Bộ tìm — địa chỉ phần tử trên web</td></tr>',
+'<tr><td>Assertion</td><td>ơ-sơ-sần</td><td>Kiểm tra — so sánh kết quả thực tế vs mong đợi</td></tr>',
+'<tr><td>Test case</td><td>tét-kêi-s</td><td>Ca kiểm thử — 1 kịch bản test</td></tr>',
+'</table>',
+].join('\n')});
+
+// =============================================
+// MODULE 1 — BIẾN & KIỂU DỮ LIỆU
+// =============================================
+D.push({id:1,title:"Biến & Kiểu dữ liệu",week:"Tuần 1 (phần 1)",phase:1,html:[
+
+'<h2>1. Lập trình là gì?</h2>',
+'<p>Lập trình là viết <strong>từng bước hướng dẫn</strong> cho máy tính thực hiện công việc. Giống viết công thức nấu ăn: rõ ràng, đúng thứ tự, không mập mờ.</p>',
+
+'<div class="b idea">💡 <strong>Hình dung:</strong> Máy tính giống đầu bếp robot — cực kỳ giỏi nhưng cực kỳ "ngốc". Nó làm <em>chính xác</em> những gì bạn viết. Viết "cho 10 muỗng muối" thay vì 1 muỗng? Nó sẽ cho đúng 10 muỗng mà không hỏi lại.</div>',
+
+'<h2>2. Cài đặt môi trường</h2>',
+'<p>Trước khi nấu ăn, cần có bếp và dụng cụ. Trước khi code, cần cài 2 thứ:</p>',
+
+'<h3>2.1. Node.js — "cái bếp" để chạy JavaScript</h3>',
+'<div class="term"><strong>Node.js</strong> = phần mềm cho phép máy tính hiểu và chạy code JavaScript. Không có Node.js, máy tính không hiểu JS.</div>',
+'<ol>',
+'<li>Mở trình duyệt, vào <strong>https://nodejs.org</strong></li>',
+'<li>Nhấn nút xanh <strong>LTS</strong> (viết tắt của Long Term Support — bản ổn định).</li>',
+'<li>Mở file vừa tải → nhấn Next → Next → Install → Finish.</li>',
+'<li>Kiểm tra: mở <strong>Command Prompt</strong>:</li>',
+'</ol>',
+
+'<div class="b info"><strong>Cách mở Command Prompt:</strong> Nhấn phím <strong>Windows</strong> trên bàn phím → gõ <strong>cmd</strong> → nhấn Enter. Trên Mac: mở app <strong>Terminal</strong>.</div>',
+
+'<p>Gõ lệnh sau rồi nhấn Enter:</p>',
+'<pre>node --version</pre>',
+'<p>Nếu thấy số phiên bản (ví dụ: <code>v20.11.0</code>) → thành công! ✅</p>',
+'<p>Nếu thấy lỗi → thử tắt máy, bật lại, mở cmd gõ lại.</p>',
+
+'<h3>2.2. VS Code — "cái bàn" để viết code</h3>',
+'<div class="term"><strong>VS Code</strong> (Visual Studio Code) = trình soạn thảo code miễn phí. Giống Microsoft Word nhưng dành cho code — tự tô màu, gợi ý, báo lỗi.</div>',
+'<ol>',
+'<li>Vào <strong>https://code.visualstudio.com</strong> → tải → cài đặt.</li>',
+'<li>Mở VS Code lên.</li>',
+'</ol>',
+
+'<h3>2.3. Chạy chương trình đầu tiên</h3>',
+'<ol>',
+'<li>Tạo thư mục mới trên máy tính, đặt tên <code>hoc-js</code>.</li>',
+'<li>Mở VS Code → <strong>File → Open Folder</strong> → chọn thư mục <code>hoc-js</code>.</li>',
+'<li>Ở thanh bên trái, nhấn biểu tượng <strong>New File</strong> → đặt tên <code>bai1.js</code></li>',
+'<li>Gõ đúng dòng này vào file (gõ tay, đừng copy!):</li>',
+'</ol>',
+'<pre>console.log("Xin chao, toi dang hoc JavaScript!");</pre>',
+
+'<p><strong>Giải thích từng phần:</strong></p>',
+'<table>',
+'<tr><th>Phần</th><th>Nghĩa</th></tr>',
+'<tr><td><code>console.log()</code></td><td>Lệnh "hiển thị nội dung ra màn hình". Bạn sẽ dùng lệnh này cả ngàn lần.</td></tr>',
+'<tr><td><code>"Xin chao..."</code></td><td>Nội dung muốn hiển thị. Phải nằm trong dấu ngoặc kép.</td></tr>',
+'<tr><td><code>;</code></td><td>Kết thúc câu lệnh. Giống dấu chấm cuối câu tiếng Việt.</td></tr>',
+'</table>',
+
+'<p>Hoặc thử luôn trên trang này:</p>',
+defined_pg('Chương trình đầu tiên', 'console.log("Xin chao, toi dang hoc JavaScript!");', 2),
+
+'<p>5. Mở Terminal trong VS Code: nhấn <strong>Ctrl + `</strong> (phím nằm góc trái trên bàn phím, cạnh phím 1 và phím Esc).</p>',
+'<p>6. Gõ lệnh sau rồi nhấn Enter:</p>',
+'<pre>node bai1.js</pre>',
+'<p>7. Kết quả hiện ra:</p>',
+'<pre>Xin chao, toi dang hoc JavaScript!</pre>',
+
+'<div class="b ok">🎉 <strong>Chúc mừng!</strong> Bạn vừa viết và chạy thành công chương trình đầu tiên!</div>',
+
+'<h4>Nếu bị lỗi thì sao?</h4>',
+'<div class="b err"><strong>Lỗi thường gặp #1:</strong> <code>SyntaxError: Unexpected token</code><br>Nguyên nhân: gõ sai cú pháp — thiếu dấu ngoặc, thiếu dấu nháy, gõ sai tên lệnh.<br><strong>Cách sửa:</strong> Kiểm tra lại từng ký tự. So sánh với code mẫu.</div>',
+'<div class="b err"><strong>Lỗi thường gặp #2:</strong> <code>node: command not found</code><br>Nguyên nhân: Node.js chưa cài xong hoặc chưa restart terminal.<br><strong>Cách sửa:</strong> Đóng terminal, mở lại. Nếu vẫn lỗi → cài lại Node.js.</div>',
+
+'<hr class="sep">',
+
+'<h2>3. Biến (Variable) — "Hộp chứa" dữ liệu</h2>',
+
+'<div class="b idea">💡 <strong>Hình dung:</strong> Biến giống <strong>chiếc hộp có dán nhãn tên</strong>.<br>- Bạn đặt tên cho hộp (tên biến).<br>- Bỏ đồ vào trong (giá trị).<br>- Khi cần, gọi tên hộp là lấy được đồ bên trong.</div>',
+
+'<p>Ví dụ ngoài đời:</p>',
+'<ul>',
+'<li>Hộp dán nhãn <strong>"ten"</strong> → bên trong chứa <strong>"Minh"</strong></li>',
+'<li>Hộp dán nhãn <strong>"tuoi"</strong> → bên trong chứa <strong>25</strong></li>',
+'<li>Hộp dán nhãn <strong>"dangOnline"</strong> → bên trong chứa <strong>true</strong> (đúng) hoặc <strong>false</strong> (sai)</li>',
+'</ul>',
+
+'<h3>3.1. Tạo biến bằng <code>let</code></h3>',
+'<div class="term"><strong>let</strong> = tạo hộp <strong>có thể thay đổi</strong> đồ bên trong.</div>',
+defined_pg('Thử let', 'let ten = "Minh";\nconsole.log(ten);  // Hiện ra: Minh\n\nten = "Hung";      // Thay đổi đồ trong hộp\nconsole.log(ten);  // Hiện ra: Hung', 5),
+
+'<p>Giải thích từng dòng:</p>',
+'<ul>',
+'<li><code>let ten = "Minh";</code> → Tạo hộp tên "ten", bỏ "Minh" vào.</li>',
+'<li><code>console.log(ten);</code> → Mở hộp "ten" ra xem, hiện ra "Minh".</li>',
+'<li><code>ten = "Hung";</code> → Lấy "Minh" ra, bỏ "Hung" vào thay. (Không cần viết <code>let</code> lại vì hộp đã tồn tại.)</li>',
+'</ul>',
+
+'<div class="mini">Tạo biến <code>let monan = "Pho";</code> rồi in ra. Sau đó đổi thành "Bun" và in lại.</div>',
+
+'<h3>3.2. Tạo biến bằng <code>const</code></h3>',
+'<div class="term"><strong>const</strong> = tạo hộp <strong>bị khóa</strong> — một khi bỏ đồ vào thì KHÔNG đổi được.</div>',
+defined_pg('Thử const', 'const PI = 3.14159;\nconsole.log(PI);  // 3.14159\n\n// PI = 3.14;  ← THỬ BỎ COMMENT DÒNG NÀY → SẼ BÁO LỖI!\n// Lỗi: TypeError: Assignment to constant variable.', 5),
+
+'<div class="b idea">💡 <code>let</code> = hộp nắp mở, thay đồ thoải mái.<br><code>const</code> = hộp dán keo, bỏ vào rồi thì thôi.</div>',
+
+'<div class="b ok"><strong>Quy tắc đơn giản cho người mới:</strong><br>1. Luôn dùng <code>const</code> trước.<br>2. Khi nào cần thay đổi giá trị → đổi sang <code>let</code>.<br>3. <strong>Không bao giờ dùng <code>var</code></strong> (cách cũ, hay gây bug).</div>',
+
+'<div class="mini">Tạo <code>const TEN_APP = "AutoTest";</code> và in ra. Thử gán lại giá trị mới xem lỗi gì.</div>',
+
+'<h3>3.3. Cách đặt tên biến</h3>',
+'<pre>// ✅ ĐÚNG:\nlet hoTen = "Nguyen Van A";  // camelCase\nlet soLuong = 10;\nlet _riengTu = "bi mat";\nlet $gia = 50000;\n\n// ❌ SAI:\n// let 1ten = "abc";     ← bắt đầu bằng số\n// let ho ten = "abc";   ← có dấu cách\n// let let = "abc";      ← trùng từ khóa JS</pre>',
+
+'<div class="term"><strong>camelCase</strong> = quy ước đặt tên: chữ đầu viết thường, mỗi từ tiếp theo viết HOA chữ cái đầu. Ví dụ: <code>hoTen</code>, <code>ngaySinh</code>, <code>diaChiNha</code>.</div>',
+
+'<hr class="sep">',
+
+'<h2>4. Kiểu dữ liệu — "Đồ trong hộp" là loại gì?</h2>',
+'<p>Hộp (biến) có thể chứa nhiều loại đồ khác nhau. JavaScript có các loại chính sau:</p>',
+
+'<h3>4.1. String (Chuỗi) — Văn bản</h3>',
+'<div class="term"><strong>String</strong> = bất cứ đoạn văn bản nào nằm trong dấu ngoặc kép <code>"..."</code> hoặc ngoặc đơn <code>\'...\'</code>.</div>',
+'<pre>let ten = "Minh";          // dấu nháy kép ✅\nlet loi = \'Xin chao\';     // dấu nháy đơn ✅ (giống nhau)\nlet so = "42";             // ĐÂY LÀ CHUỖI, không phải số!\n                            // Vì nằm trong ngoặc kép</pre>',
+
+'<div class="b warn"><strong>Bẫy phổ biến:</strong> <code>"42"</code> là CHUỖI (string), còn <code>42</code> (không có ngoặc) mới là SỐ (number). Chúng khác nhau hoàn toàn!</div>',
+
+'<div class="mini">Tạo biến <code>let diaChi = "123 Le Loi";</code> và in ra. Thử tạo thêm biến <code>let sdt = "0901234567";</code> — số điện thoại nên là string hay number?</div>',
+
+'<h3>4.2. Number (Số)</h3>',
+'<div class="term"><strong>Number</strong> = số, viết trực tiếp KHÔNG có ngoặc kép. Bao gồm số nguyên và số thập phân.</div>',
+'<pre>let tuoi = 25;       // số nguyên\nlet diem = 8.5;      // số thập phân\nlet nhietDo = -5;    // số âm</pre>',
+
+'<div class="mini">Tạo 2 biến: <code>let a = 10;</code> và <code>let b = 3;</code>. In ra <code>a + b</code>, <code>a - b</code>, <code>a * b</code>, <code>a / b</code>.</div>',
+
+'<h3>4.3. Boolean — Đúng hoặc Sai</h3>',
+'<div class="term"><strong>Boolean</strong> = chỉ có đúng 2 giá trị: <code>true</code> (đúng) hoặc <code>false</code> (sai). Không có giá trị thứ 3.</div>',
+'<pre>let daDangNhap = true;   // đã đăng nhập → đúng\nlet laAdmin = false;      // là admin → sai</pre>',
+'<div class="b idea">💡 Boolean giống <strong>công tắc đèn</strong>: chỉ có BẬT hoặc TẮT, không có "hơi bật".</div>',
+
+'<div class="mini">Tạo biến <code>let troiMua = true;</code>. In ra. Đổi thành <code>false</code>, in lại.</div>',
+
+'<h3>4.4. null và undefined</h3>',
+'<pre>let ketQua = null;   // "Hộp rỗng, tôi CỐ Ý để trống"\n\nlet diaChi;          // Chưa bỏ gì vào hộp\nconsole.log(diaChi); // undefined — "chưa được gán giá trị"</pre>',
+
+'<div class="b idea">💡 <code>null</code> = bạn mở tủ lạnh, thấy trống, vì bạn <em>chủ đích</em> chưa mua đồ.<br><code>undefined</code> = bạn tạo tủ lạnh nhưng <em>quên</em> bỏ đồ vào.</div>',
+
+'<h3>4.5. Kiểm tra kiểu — typeof</h3>',
+'<p>Muốn biết "đồ trong hộp" là loại gì? Dùng <code>typeof</code>:</p>',
+defined_pg('Thử typeof', 'console.log(typeof "hello");    // "string"\nconsole.log(typeof 42);         // "number"\nconsole.log(typeof true);       // "boolean"\nconsole.log(typeof undefined);  // "undefined"\nconsole.log(typeof null);       // "object" ← bug lịch sử của JS!', 6),
+
+'<div class="mini">Tạo 4 biến khác kiểu, dùng typeof kiểm tra từng biến.</div>',
+
+'<hr class="sep">',
+
+'<h2>5. Toán tử — "Phép tính" trong code</h2>',
+
+'<h3>5.1. Toán tử số học</h3>',
+defined_pg('Thử toán tử', 'let a = 10, b = 3;\n\nconsole.log(a + b);   // 13  (cộng)\nconsole.log(a - b);   // 7   (trừ)\nconsole.log(a * b);   // 30  (nhân — dùng dấu *)\nconsole.log(a / b);   // 3.33 (chia — dùng dấu /)\nconsole.log(a % b);   // 1   (chia lấy DƯ)\nconsole.log(a ** b);  // 1000 (lũy thừa — 10 mũ 3)', 9),
+
+'<div class="b idea">💡 <code>%</code> (modulo/chia lấy dư) rất hữu ích!<br>Số chẵn hay lẻ? → <code>so % 2</code>. Dư 0 = chẵn, dư 1 = lẻ.<br>Chia hết cho 3? → <code>so % 3 === 0</code></div>',
+
+'<div class="mini">Tính: <code>17 % 5</code> bằng bao nhiêu? <code>20 % 4</code> bằng bao nhiêu? Thử đoán trước rồi kiểm tra bằng code.</div>',
+
+'<h3>5.2. Toán tử so sánh — kết quả là true/false</h3>',
+defined_pg('Thử so sánh', 'console.log(5 === 5);     // true  ← BẰNG (3 dấu =)\nconsole.log(5 === "5");   // false ← số 5 khác chuỗi "5"\nconsole.log(5 !== 3);     // true  ← KHÔNG BẰNG\nconsole.log(10 > 5);      // true  ← lớn hơn\nconsole.log(10 < 5);      // false ← nhỏ hơn\nconsole.log(10 >= 10);    // true  ← lớn hơn HOẶC bằng', 7),
+
+'<div class="b warn"><strong>SAI LẦM PHỔ BIẾN NHẤT CỦA NGƯỜI MỚI:</strong><br><br>Dùng <code>=</code> để so sánh → SAI! <code>=</code> là GÁN giá trị.<br>Dùng <code>==</code> (2 dấu bằng) → TRÁNH! Nó tự ý chuyển kiểu, gây kết quả bất ngờ.<br><br>✅ Luôn dùng <code>===</code> (3 dấu bằng) và <code>!==</code> để so sánh.</div>',
+
+'<pre>// Ví dụ tại sao == nguy hiểm:\nconsole.log(0 == "");     // true  ← WTF? Số 0 bằng chuỗi rỗng?!\nconsole.log(0 === "");    // false ← Đúng! Số 0 khác chuỗi rỗng.</pre>',
+
+'<div class="mini">So sánh: <code>10 === 10</code>, <code>"10" === 10</code>, <code>true === 1</code>. Đoán kết quả trước rồi kiểm tra.</div>',
+
+'<h3>5.3. Toán tử logic — VÀ, HOẶC, KHÔNG</h3>',
+'<pre>// &amp;&amp; nghĩa là VÀ — cả 2 phải đúng mới đúng\nconsole.log(true &amp;&amp; true);   // true\nconsole.log(true &amp;&amp; false);  // false\n\n// || nghĩa là HOẶC — 1 trong 2 đúng là đủ\nconsole.log(true || false);  // true\nconsole.log(false || false); // false\n\n// ! nghĩa là KHÔNG — đảo ngược\nconsole.log(!true);   // false\nconsole.log(!false);  // true</pre>',
+
+'<div class="b idea">💡 <strong>Ví dụ đời thường:</strong><br><code>&amp;&amp;</code> (VÀ): "Trên 18 tuổi VÀ có CMND" → phải thỏa cả 2 mới vào bar.<br><code>||</code> (HOẶC): "Có thẻ VIP HOẶC có thiệp mời" → chỉ cần 1.<br><code>!</code> (KHÔNG): "KHÔNG phải admin" → đảo ngược kết quả.</div>',
+
+'<pre>// Ví dụ thực tế:\nlet tuoi = 20;\nlet coCMND = true;\n\nconsole.log(tuoi >= 18 &amp;&amp; coCMND); // true → đủ điều kiện\nconsole.log(tuoi >= 18 &amp;&amp; !coCMND); // false → có tuổi nhưng không CMND</pre>',
+
+'<hr class="sep">',
+
+'<h2>6. Template Literal — Chèn biến vào chuỗi</h2>',
+'<p>Thay vì nối chuỗi phức tạp bằng <code>+</code>, dùng <strong>backtick</strong> (phím ` bên trái số 1) và <code>${...}</code>:</p>',
+
+defined_pg('Thử template literal', 'let ten = "Minh";\nlet tuoi = 25;\n\n// CÁCH CŨ (khó đọc):\nconsole.log("Toi la " + ten + ", " + tuoi + " tuoi.");\n\n// CÁCH MỚI (dễ đọc):\nconsole.log(`Toi la ${ten}, ${tuoi} tuoi.`);\n\n// Tính toán bên trong ${}:\nconsole.log(`Nam sinh: ${2026 - tuoi}`); // "Nam sinh: 2001"', 10),
+
+'<div class="b ok"><strong>Mẹo:</strong> Luôn dùng backtick + <code>${}</code>. Quên nháy kép đi — backtick làm được mọi thứ và dễ đọc hơn.</div>',
+
+'<div class="mini">Tạo biến ten, tuoi, thanhPho. In ra: "Xin chao! Toi la [ten], [tuoi] tuoi, song tai [thanhPho]." bằng template literal.</div>',
+
+'<hr class="sep">',
+
+'<h2>7. Phương thức chuỗi — "Kỹ năng" có sẵn</h2>',
+'<div class="b idea">💡 Mỗi chuỗi trong JS tự có sẵn nhiều "kỹ năng" (gọi là phương thức/method). Giống điện thoại mua về đã có sẵn app Camera, Đồng hồ — không cần cài thêm.</div>',
+
+defined_pg('Thử string methods', 'let s = "  Xin Chao JavaScript!  ";\n\nconsole.log(s.length);            // 25 (đếm ký tự, kể cả dấu cách)\nconsole.log(s.toUpperCase());     // "  XIN CHAO JAVASCRIPT!  "\nconsole.log(s.toLowerCase());     // "  xin chao javascript!  "\nconsole.log(s.trim());            // "Xin Chao JavaScript!" (xóa cách đầu/cuối)\nconsole.log(s.includes("Java"));  // true (có chứa "Java" không?)\n\nconsole.log("JavaScript".slice(0, 4)); // "Java" (cắt từ vị trí 0 đến 3)\nconsole.log("I love Java".replace("Java", "JS")); // "I love JS"\nconsole.log("a,b,c".split(","));  // ["a", "b", "c"] (tách thành mảng)', 11),
+
+'<div class="mini">Tạo biến <code>let email = "  MINH@Gmail.Com  ";</code>. Dùng <code>.trim()</code> và <code>.toLowerCase()</code> để chuẩn hóa thành "minh@gmail.com".</div>',
+
+'<hr class="sep">',
+
+'<h2>8. Chuyển đổi kiểu dữ liệu</h2>',
+defined_pg('Thử chuyển kiểu', '// Chuỗi → Số\nlet tuoiStr = "25";\nlet tuoiNum = Number(tuoiStr);  // 25 (kiểu number)\n\nconsole.log(Number("abc"));     // NaN (Not a Number — không chuyển được)\nconsole.log(Number(""));        // 0\nconsole.log(Number(true));      // 1\nconsole.log(Number(false));     // 0\n\n// Số → Chuỗi\nlet so = 42;\nlet chuoi = String(so);          // "42"\nconsole.log(typeof chuoi);       // "string"', 13),
+
+'<div class="term"><strong>NaN</strong> (Not a Number) = kết quả khi cố chuyển thứ không phải số thành số. Ví dụ: <code>Number("hello")</code> → NaN.</div>',
+
+'<hr class="sep">',
+
+'<h2>Bài tập cuối Module 1</h2>',
+
+'<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
+'<p>Tạo biến <code>namSinh</code>, tính tuổi, in ra: "Ban [tuoi] tuoi."</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>const namSinh = 2000;\nconst tuoi = 2026 - namSinh;\nconsole.log(`Ban ${tuoi} tuoi.`);</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag tg">🟢 Bài 2</span>',
+'<p>Chuyển 37°C sang °F. Công thức: F = C * 9/5 + 32</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>const c = 37;\nconst f = c * 9/5 + 32;\nconsole.log(`${c} do C = ${f} do F`); // 37 do C = 98.6 do F</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag ty">🟡 Bài 3</span>',
+'<p>Cho <code>so = 7</code>. In ra "7 la so le" hoặc "7 la so chan". Gợi ý: dùng <code>%</code> và toán tử 3 ngôi <code>? :</code></p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>const so = 7;\nconst loai = so % 2 === 0 ? "chan" : "le";\nconsole.log(`${so} la so ${loai}`);</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag ty">🟡 Bài 4</span>',
+'<p>Tạo biến email = "  MINH@Gmail.Com  ". Chuẩn hóa: xóa cách thừa, chuyển thường. In kết quả.</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>let email = "  MINH@Gmail.Com  ";\nemail = email.trim().toLowerCase();\nconsole.log(email); // "minh@gmail.com"</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag tr">🔴 Bài 5</span>',
+'<p>Cho chuỗi <code>"Hello World"</code>. In ra: (a) số ký tự không tính dấu cách, (b) số từ, (c) chuỗi viết ngược.</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>const s = "Hello World";\nconsole.log("Ky tu:", s.replace(/ /g, "").length); // 10\nconsole.log("So tu:", s.split(" ").length);         // 2\nconsole.log("Dao:", s.split("").reverse().join("")); // dlroW olleH</pre>',
+'</details></div>',
+
+defined_pg('Làm bài tập tại đây', '// Viết code bài tập tại đây\n', 4),
+].join('\n')});
+
+// =============================================
+// MODULE 2 — ĐIỀU KIỆN & VÒNG LẶP
+// =============================================
+D.push({id:2,title:"Điều kiện & Vòng lặp",week:"Tuần 1 (phần 2)",phase:1,html:[
+'<h2>1. Câu lệnh điều kiện — "NẾU ... THÌ ..."</h2>',
+'<div class="b idea">💡 Đời thường: "NẾU trời mưa THÌ mang ô. NẾU KHÔNG THÌ mang kính."<br>Trong code: dùng <code>if / else</code> y hệt vậy.</div>',
+
+'<h3>1.1. if / else</h3>',
+defined_pg('Thử if/else', 'let nhietDo = 38;\n\nif (nhietDo >= 38) {\n  console.log("Ban bi sot! Nen di kham.");\n} else {\n  console.log("Nhiet do binh thuong.");\n}\n// Kết quả: "Ban bi sot! Nen di kham."', 8),
+
+'<p><strong>Cách đọc:</strong> "NẾU nhietDo lớn hơn hoặc bằng 38 THÌ in ra bị sốt. KHÔNG THÌ in ra bình thường."</p>',
+
+'<div class="b warn"><strong>Lỗi phổ biến:</strong> Dùng <code>=</code> thay vì <code>===</code> trong if.<br><code>if (x = 5)</code> ← SAI! Đây là GÁN x = 5, không phải so sánh.<br><code>if (x === 5)</code> ← ĐÚNG! So sánh x có bằng 5 không.</div>',
+
+'<div class="mini">Tạo biến <code>let tuoi = 15;</code>. Viết if/else: tuoi >= 18 thì in "Nguoi lon", ngược lại in "Tre em".</div>',
+
+'<h3>1.2. else if — nhiều trường hợp</h3>',
+defined_pg('Thử else if', 'let diem = 75;\n\nif (diem >= 90) {\n  console.log("Xuat sac");\n} else if (diem >= 70) {\n  console.log("Kha");         // ← chạy dòng này (75 >= 70)\n} else if (diem >= 50) {\n  console.log("Trung binh");\n} else {\n  console.log("Yeu");\n}', 10),
+'<p>JS kiểm tra từ trên xuống. Gặp điều kiện đúng đầu tiên → chạy, rồi bỏ qua tất cả bên dưới.</p>',
+
+'<div class="mini">Viết chương trình xếp loại BMI: dưới 18.5 = "Gay", 18.5-24.9 = "Binh thuong", 25-29.9 = "Thua can", 30+ = "Beo phi".</div>',
+
+'<h3>1.3. Toán tử 3 ngôi — if/else viết tắt 1 dòng</h3>',
+'<pre>let tuoi = 20;\nlet loai = tuoi >= 18 ? "Nguoi lon" : "Tre em";\nconsole.log(loai); // "Nguoi lon"\n\n// Cú pháp: điều_kiện ? giá_trị_nếu_đúng : giá_trị_nếu_sai</pre>',
+
+'<hr class="sep">',
+
+'<h2>2. Vòng lặp — "Lặp đi lặp lại"</h2>',
+'<div class="b idea">💡 <strong>Hình dung:</strong> Vòng lặp giống tập thể dục: "Hít đất 10 cái".<br>Bạn lặp hành động "hít đất" 10 lần. Trong code, thay vì viết 10 dòng giống nhau, dùng vòng lặp.</div>',
+
+'<h3>2.1. for — khi biết trước số lần</h3>',
+defined_pg('Thử for', 'for (let i = 1; i <= 5; i++) {\n  console.log("Lan thu " + i);\n}\n// Lan thu 1\n// Lan thu 2\n// ...\n// Lan thu 5', 7),
+
+'<p><strong>3 phần trong ngoặc <code>for</code>:</strong></p>',
+'<table>',
+'<tr><th>Phần</th><th>Ví dụ</th><th>Nghĩa</th></tr>',
+'<tr><td>Khởi tạo</td><td><code>let i = 1</code></td><td>Bắt đầu đếm từ 1</td></tr>',
+'<tr><td>Điều kiện</td><td><code>i &lt;= 5</code></td><td>Lặp chừng nào i còn ≤ 5</td></tr>',
+'<tr><td>Bước nhảy</td><td><code>i++</code></td><td>Mỗi lần lặp xong, tăng i lên 1</td></tr>',
+'</table>',
+
+'<div class="term"><strong>i++</strong> là viết tắt của <code>i = i + 1</code>. Tương tự: <code>i--</code> nghĩa là <code>i = i - 1</code>.</div>',
+
+'<div class="b err"><strong>Lỗi phổ biến:</strong> Quên <code>i++</code> → vòng lặp chạy mãi không dừng (lặp vô hạn) → treo máy! Nếu máy bị treo, nhấn <strong>Ctrl + C</strong> trong terminal để dừng.</div>',
+
+'<div class="mini">Viết vòng for in ra các số chẵn từ 2 đến 20. Gợi ý: <code>i += 2</code> hoặc dùng <code>if (i % 2 === 0)</code>.</div>',
+
+'<h3>2.2. while — khi không biết trước số lần</h3>',
+'<pre>let dem = 1;\nwhile (dem &lt;= 3) {\n  console.log("Dem: " + dem);\n  dem++;  // PHẢI tăng biến! Quên = lặp vô hạn!\n}\n// Dem: 1, Dem: 2, Dem: 3</pre>',
+
+'<h3>2.3. for...of — duyệt mảng/chuỗi (học mảng ở Module 3)</h3>',
+'<pre>let ten = "Minh";\nfor (let kyTu of ten) {\n  console.log(kyTu);  // M, i, n, h (từng ký tự)\n}</pre>',
+
+'<h3>2.4. break &amp; continue</h3>',
+defined_pg('Thử break & continue', '// break — DỪNG vòng lặp ngay\nfor (let i = 1; i <= 10; i++) {\n  if (i === 5) break;   // gặp 5 thì dừng\n  console.log(i);       // in: 1, 2, 3, 4\n}\n\nconsole.log("---");\n\n// continue — BỎ QUA lần hiện tại, chạy lần tiếp\nfor (let i = 1; i <= 5; i++) {\n  if (i === 3) continue; // bỏ qua số 3\n  console.log(i);        // in: 1, 2, 4, 5\n}', 13),
+
+'<div class="mini">Viết vòng lặp in số từ 1 đến 20, nhưng bỏ qua các số chia hết cho 3. Dùng <code>continue</code>.</div>',
+
+'<hr class="sep">',
+
+'<h2>Bài tập cuối Module 2</h2>',
+
+'<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
+'<p>In ra bảng cửu chương 7 (7x1=7, 7x2=14, ..., 7x10=70).</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>for (let i = 1; i &lt;= 10; i++) {\n  console.log(`7 x ${i} = ${7 * i}`);\n}</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag ty">🟡 Bài 2</span>',
+'<p>In tất cả số nguyên tố từ 1 đến 50. Gợi ý: viết hàm kiểm tra ở Module 3, hoặc dùng vòng lặp lồng.</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>for (let n = 2; n &lt;= 50; n++) {\n  let laSNT = true;\n  for (let i = 2; i * i &lt;= n; i++) {\n    if (n % i === 0) { laSNT = false; break; }\n  }\n  if (laSNT) console.log(n);\n}</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag tr">🔴 Bài 3</span>',
+'<p>FizzBuzz: In 1→100. Chia hết 3 → "Fizz". Chia hết 5 → "Buzz". Cả hai → "FizzBuzz".</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>for (let i = 1; i &lt;= 100; i++) {\n  if (i % 15 === 0) console.log("FizzBuzz");\n  else if (i % 3 === 0) console.log("Fizz");\n  else if (i % 5 === 0) console.log("Buzz");\n  else console.log(i);\n}</pre>',
+'</details></div>',
+
+defined_pg('Làm bài tập tại đây', '// Viết code bài tập tại đây\n', 4),
+].join('\n')});
+
+// =============================================
+// MODULE 3 — HÀM
+// =============================================
+D.push({id:3,title:"Hàm (Function)",week:"Tuần 2 (phần 1)",phase:1,html:[
+'<h2>1. Hàm là gì?</h2>',
+'<div class="b idea">💡 <strong>Hình dung:</strong> Hàm giống <strong>công thức nấu ăn</strong>.<br>- Bạn viết công thức 1 lần (định nghĩa hàm).<br>- Nấu nhiều lần với nguyên liệu khác nhau (gọi hàm với tham số khác nhau).<br>- Mỗi lần nấu cho ra món khác (return kết quả khác).</div>',
+
+'<h3>1.1. Tạo và gọi hàm</h3>',
+defined_pg('Thử function', '// BƯỚC 1: Viết công thức (định nghĩa hàm)\nfunction chao(ten) {\n  return "Xin chao " + ten + "!";\n}\n\n// BƯỚC 2: Sử dụng công thức (gọi hàm)\nconsole.log(chao("Minh"));   // "Xin chao Minh!"\nconsole.log(chao("Hung"));   // "Xin chao Hung!"\nconsole.log(chao("Lan"));    // "Xin chao Lan!"', 10),
+
+'<p><strong>Giải thích từng phần:</strong></p>',
+'<table>',
+'<tr><th>Code</th><th>Nghĩa</th><th>Ví dụ đời thường</th></tr>',
+'<tr><td><code>function chao</code></td><td>Tạo hàm tên "chao"</td><td>Viết công thức "Nước cam"</td></tr>',
+'<tr><td><code>(ten)</code></td><td>Tham số — "nguyên liệu" cần truyền vào</td><td>Nguyên liệu: cam</td></tr>',
+'<tr><td><code>{ ... }</code></td><td>Thân hàm — các bước thực hiện</td><td>Bước: vắt cam, thêm đường, khuấy</td></tr>',
+'<tr><td><code>return ...</code></td><td>Trả về kết quả</td><td>Bưng ly nước cam ra cho khách</td></tr>',
+'<tr><td><code>chao("Minh")</code></td><td>Gọi hàm, truyền "Minh" vào</td><td>"Pha nước cam cho Minh"</td></tr>',
+'</table>',
+
+'<div class="b warn"><strong>return vs console.log — KHÁC NHAU!</strong><br><code>return</code> = hàm "đưa" kết quả ra ngoài để dùng tiếp.<br><code>console.log</code> = chỉ in ra màn hình, không "đưa" gì cả.<br><br>Hàm KHÔNG có return sẽ trả về <code>undefined</code>.</div>',
+
+'<pre>// Ví dụ KHÔNG return:\nfunction chaoSai(ten) {\n  console.log("Xin chao " + ten);  // chỉ in, không return\n}\nlet kq = chaoSai("Minh");  // In "Xin chao Minh"\nconsole.log(kq);            // undefined! Vì hàm không return gì.\n\n// Ví dụ CÓ return:\nfunction chaoDung(ten) {\n  return "Xin chao " + ten;\n}\nlet kq2 = chaoDung("Minh");\nconsole.log(kq2);            // "Xin chao Minh" ← có giá trị!</pre>',
+
+'<div class="mini">Viết hàm <code>tinhDienTichHCN(dai, rong)</code> trả về diện tích. Gọi hàm với dai=5, rong=3.</div>',
+
+'<h3>1.2. Hàm nhiều tham số</h3>',
+'<pre>function tinhTong(a, b) {\n  return a + b;\n}\nconsole.log(tinhTong(3, 5));   // 8\nconsole.log(tinhTong(10, 20)); // 30</pre>',
+
+'<h3>1.3. Tham số mặc định</h3>',
+'<pre>function chao(ten = "ban") {\n  return "Xin chao " + ten + "!";\n}\nconsole.log(chao("Minh")); // "Xin chao Minh!"\nconsole.log(chao());        // "Xin chao ban!" ← dùng giá trị mặc định</pre>',
+
+'<h3>1.4. Arrow Function — cách viết ngắn gọn</h3>',
+defined_pg('Thử arrow function', '// Hàm thường\nfunction cong(a, b) {\n  return a + b;\n}\n\n// Arrow function — viết tắt\nconst cong2 = (a, b) => a + b;\n\n// 1 tham số — bỏ ngoặc\nconst gap2 = x => x * 2;\n\nconsole.log(cong(3, 5));  // 8\nconsole.log(cong2(3, 5));  // 8\nconsole.log(gap2(4));       // 8', 13),
+
+'<div class="b info">Arrow function thường dùng khi viết hàm ngắn (1 dòng). Hàm dài vẫn nên dùng <code>function</code> cho dễ đọc.</div>',
+
+'<hr class="sep">',
+
+'<h2>2. Scope — Phạm vi của biến</h2>',
+'<div class="b idea">💡 Biến tạo trong hàm giống <strong>đồ trong phòng riêng</strong> — chỉ dùng trong phòng đó.<br>Biến tạo ngoài hàm giống <strong>đồ ở phòng khách</strong> — ai cũng thấy.</div>',
+
+'<pre>let x = "toan cuc"; // ngoài hàm — mọi nơi thấy\n\nfunction test() {\n  let y = "cuc bo"; // trong hàm — chỉ hàm này thấy\n  console.log(x);   // ✅ OK — thấy biến bên ngoài\n  console.log(y);   // ✅ OK\n}\n\ntest();\n// console.log(y);  ← ❌ LỖI! Ngoài hàm không thấy y</pre>',
+
+'<hr class="sep">',
+
+'<h2>Bài tập cuối Module 3</h2>',
+
+'<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
+'<p>Viết hàm <code>giaiThua(n)</code>. Giai thừa 5 = 5 x 4 x 3 x 2 x 1 = 120.</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>function giaiThua(n) {\n  let kq = 1;\n  for (let i = 2; i &lt;= n; i++) {\n    kq = kq * i;\n  }\n  return kq;\n}\nconsole.log(giaiThua(5)); // 120\nconsole.log(giaiThua(0)); // 1</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag tg">🟢 Bài 2</span>',
+'<p>Viết hàm <code>laSoNguyenTo(n)</code> trả về true nếu n là số nguyên tố.</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>function laSoNguyenTo(n) {\n  if (n &lt; 2) return false;\n  for (let i = 2; i * i &lt;= n; i++) {\n    if (n % i === 0) return false;\n  }\n  return true;\n}\nconsole.log(laSoNguyenTo(7));  // true\nconsole.log(laSoNguyenTo(10)); // false\nconsole.log(laSoNguyenTo(1));  // false</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag ty">🟡 Bài 3</span>',
+'<p>Viết hàm <code>daoChuoi(s)</code> đảo ngược chuỗi KHÔNG dùng <code>.reverse()</code>.</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>function daoChuoi(s) {\n  let kq = "";\n  for (let i = s.length - 1; i >= 0; i--) {\n    kq = kq + s[i];\n  }\n  return kq;\n}\nconsole.log(daoChuoi("hello")); // "olleh"</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag tr">🔴 Bài 4</span>',
+'<p>Viết hàm <code>demTu(s)</code> đếm số từ trong chuỗi. Xử lý cả trường hợp nhiều dấu cách liên tiếp.</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>function demTu(s) {\n  return s.trim().split(/\\s+/).length;\n}\nconsole.log(demTu("Hello World"));       // 2\nconsole.log(demTu("  Xin   chao  ban ")); // 3</pre>',
+'</details></div>',
+
+defined_pg('Làm bài tập tại đây', '// Viết code bài tập tại đây\n', 4),
+].join('\n')});
+
+// =============================================
+// MODULE 4 — ARRAY & OBJECT
+// =============================================
+D.push({id:4,title:"Array & Object",week:"Tuần 2 (phần 2)",phase:1,html:[
+'<h2>1. Array (Mảng) — "Danh sách có số thứ tự"</h2>',
+'<div class="b idea">💡 <strong>Hình dung:</strong> Array giống <strong>danh sách mua sắm</strong> được đánh số. Mỗi món có vị trí (index) bắt đầu từ <strong>0</strong> (không phải 1!).</div>',
+
+'<h3>1.1. Tạo mảng</h3>',
+'<pre>let fruits = ["Tao", "Cam", "Chuoi"];\n//  vị trí:    [0]    [1]    [2]</pre>',
+
+'<h3>1.2. Đọc phần tử</h3>',
+defined_pg('Thử Array', 'let fruits = ["Tao", "Cam", "Chuoi"];\nconsole.log(fruits[0]);     // "Tao"  ← phần tử ĐẦU TIÊN = index 0\nconsole.log(fruits[1]);     // "Cam"\nconsole.log(fruits[2]);     // "Chuoi"\nconsole.log(fruits[3]);     // undefined ← không tồn tại!\nconsole.log(fruits.length); // 3 ← có 3 phần tử', 7),
+
+'<div class="b warn"><strong>Bẫy phổ biến:</strong> Index bắt đầu từ 0. Mảng 3 phần tử → index là 0, 1, 2 (không phải 1, 2, 3). <code>fruits[3]</code> sẽ là <code>undefined</code>!</div>',
+
+'<div class="mini">Tạo mảng <code>let mau = ["do", "xanh", "vang"];</code>. In ra phần tử thứ 2 (index 1). In ra <code>.length</code>.</div>',
+
+'<h3>1.3. Thêm / Xóa phần tử</h3>',
+defined_pg('Thử push/pop', 'let a = [1, 2, 3];\nconsole.log("Ban dau:", a);\n\na.push(4);      // Thêm vào CUỐI  → [1,2,3,4]\nconsole.log("push(4):", a);\n\na.unshift(0);   // Thêm vào ĐẦU   → [0,1,2,3,4]\nconsole.log("unshift(0):", a);\n\na.pop();        // Xóa phần tử CUỐI → [0,1,2,3]\nconsole.log("pop():", a);\n\na.shift();      // Xóa phần tử ĐẦU  → [1,2,3]\nconsole.log("shift():", a);', 12),
+
+'<div class="b idea">💡 Mẹo nhớ: <strong>push/pop</strong> = cuối mảng (giống xếp đĩa). <strong>unshift/shift</strong> = đầu mảng.</div>',
+
+'<div class="mini">Tạo mảng rỗng <code>let giohang = [];</code>. Push "Sua", "Banh", "Trung" vào. In ra. Pop bỏ phần tử cuối. In lại.</div>',
+
+'<hr class="sep">',
+
+'<h2>2. Array Methods — "Kỹ năng" của mảng</h2>',
+
+'<h3>2.1. forEach — duyệt từng phần tử</h3>',
+'<div class="b idea">💡 Giống đọc từng món trong danh sách mua sắm, từ trên xuống dưới.</div>',
+'<pre>let fruits = ["Tao", "Cam", "Chuoi"];\n\nfruits.forEach(function(item, index) {\n  console.log(index + ": " + item);\n});\n// 0: Tao\n// 1: Cam\n// 2: Chuoi</pre>',
+'<p><code>forEach</code> nhận 1 hàm, hàm đó được gọi lần lượt cho từng phần tử. Tham số <code>item</code> = phần tử hiện tại, <code>index</code> = vị trí.</p>',
+
+'<h3>2.2. map — biến đổi mảng (tạo mảng mới)</h3>',
+'<div class="b idea">💡 Giống <strong>nhà máy chế biến</strong>: nguyên liệu đưa vào → thành phẩm đi ra. Mỗi phần tử được "chế biến" thành phần tử mới. Mảng gốc KHÔNG bị thay đổi.</div>',
+defined_pg('Thử map', 'let nums = [1, 2, 3, 4];\nlet doubled = nums.map(function(n) {\n  return n * 2;\n});\n// Viết ngắn bằng arrow function:\n// let doubled = nums.map(n => n * 2);\n\nconsole.log(doubled); // [2, 4, 6, 8]\nconsole.log(nums);    // [1, 2, 3, 4] ← KHÔNG đổi!', 9),
+
+'<div class="mini">Cho <code>let ten = ["minh", "hung", "lan"];</code>. Dùng map để tạo mảng mới với mỗi tên viết HOA chữ cái đầu. Gợi ý: <code>s[0].toUpperCase() + s.slice(1)</code></div>',
+
+'<h3>2.3. filter — lọc mảng</h3>',
+'<div class="b idea">💡 Giống <strong>rây bột</strong>: chỉ giữ lại những phần tử thỏa điều kiện, bỏ phần còn lại.</div>',
+defined_pg('Thử filter', 'let ages = [12, 25, 8, 30, 16];\nlet adults = ages.filter(function(age) {\n  return age >= 18;  // giữ lại nếu >= 18\n});\n// Viết ngắn: ages.filter(a => a >= 18)\n\nconsole.log(adults); // [25, 30]', 7),
+
+'<div class="mini">Cho <code>let nums = [5, 12, 3, 8, 20, 1];</code>. Lọc ra những số lớn hơn 10.</div>',
+
+'<h3>2.4. find — tìm phần tử ĐẦU TIÊN khớp</h3>',
+'<pre>let users = [\n  { ten: "An", tuoi: 20 },\n  { ten: "Binh", tuoi: 17 },\n  { ten: "Cuong", tuoi: 25 }\n];\nlet found = users.find(u => u.ten === "Binh");\nconsole.log(found); // { ten: "Binh", tuoi: 17 }</pre>',
+'<p>Khác <code>filter</code>: <code>find</code> trả về 1 phần tử (hoặc <code>undefined</code>), còn <code>filter</code> trả về mảng.</p>',
+
+'<h3>2.5. reduce — gộp mảng thành 1 giá trị</h3>',
+'<div class="b idea">💡 Giống <strong>cộng dồn hóa đơn</strong>: bắt đầu từ 0, cộng từng món vào.</div>',
+defined_pg('Thử reduce', 'let nums = [10, 20, 30];\n\nlet tong = nums.reduce(function(congDon, so) {\n  console.log(`congDon=${congDon}, so=${so}`);\n  return congDon + so;\n}, 0);  // 0 = giá trị bắt đầu\n\n// Quá trình:\n// Lần 1: congDon=0,  so=10 → 10\n// Lần 2: congDon=10, so=20 → 30\n// Lần 3: congDon=30, so=30 → 60\n\nconsole.log("Tong:", tong); // 60', 12),
+
+'<div class="b info"><strong>reduce</strong> là method khó nhất. Nếu chưa hiểu ngay — bình thường! Hãy thử chạy code, thêm <code>console.log</code> bên trong để xem từng bước.</div>',
+
+'<h3>2.6. Chuỗi methods hữu ích khác</h3>',
+'<pre>let a = [3, 1, 4, 1, 5];\nconsole.log(a.includes(4));        // true (có chứa 4?)\nconsole.log(a.indexOf(1));         // 1 (vị trí đầu tiên của 1)\nconsole.log(a.join(" - "));        // "3 - 1 - 4 - 1 - 5"\nconsole.log([...a].sort());        // [1, 1, 3, 4, 5] (sắp xếp)\nconsole.log([...a].reverse());     // [5, 1, 4, 1, 3] (đảo ngược)</pre>',
+
+'<div class="b warn"><strong>Lưu ý:</strong> <code>.sort()</code> và <code>.reverse()</code> THAY ĐỔI mảng gốc. Dùng <code>[...a]</code> (spread) để tạo bản sao trước khi sort/reverse nếu muốn giữ mảng gốc.</div>',
+
+'<hr class="sep">',
+
+'<h2>3. Object — "Thẻ thông tin"</h2>',
+'<div class="b idea">💡 Object giống <strong>thẻ căn cước</strong>: có nhiều trường (key) và giá trị (value).<br>- key "ten" → value "Minh"<br>- key "tuoi" → value 25<br><br>Khác array: array dùng SỐ THỨ TỰ (0,1,2...) để truy cập. Object dùng TÊN (key).</div>',
+
+'<h3>3.1. Tạo và đọc</h3>',
+defined_pg('Thử Object', 'let user = {\n  ten: "Minh",         // key: "ten", value: "Minh"\n  tuoi: 25,            // key: "tuoi", value: 25\n  thanhPho: "HCMC",\n  dangLamViec: true\n};\n\n// Đọc giá trị — 2 cách:\nconsole.log(user.ten);        // "Minh"   ← cách 1: dấu chấm\nconsole.log(user["tuoi"]);    // 25       ← cách 2: ngoặc vuông', 10),
+
+'<h3>3.2. Thêm / Sửa / Xóa</h3>',
+'<pre>user.email = "minh@test.com";  // Thêm trường mới\nuser.tuoi = 26;                 // Sửa giá trị\ndelete user.dangLamViec;        // Xóa trường</pre>',
+
+'<div class="mini">Tạo object <code>let sach = { ten: "Harry Potter", gia: 150000, conHang: true };</code>. In ra tên sách. Thêm trường <code>tacGia</code>. Sửa giá thành 180000.</div>',
+
+'<h3>3.3. Object methods</h3>',
+'<pre>console.log(Object.keys(user));   // ["ten","tuoi","thanhPho","email"]\nconsole.log(Object.values(user)); // ["Minh", 26, "HCMC", "minh@test.com"]\nconsole.log(Object.entries(user));\n// [["ten","Minh"], ["tuoi",26], ...]</pre>',
+
+'<h3>3.4. Duyệt object bằng for...in</h3>',
+'<pre>for (let key in user) {\n  console.log(key + ": " + user[key]);\n}\n// ten: Minh\n// tuoi: 26\n// thanhPho: HCMC\n// email: minh@test.com</pre>',
+
+'<hr class="sep">',
+
+'<h2>4. Destructuring & Spread</h2>',
+
+'<h3>4.1. Destructuring — "Mở hộp" nhanh</h3>',
+defined_pg('Thử destructuring', '// Array destructuring\nconst [a, b, c] = [1, 2, 3];\nconsole.log(a, b, c); // 1 2 3\n\n// Object destructuring\nconst user = { ten: "Minh", tuoi: 25, tp: "HCMC" };\nconst { ten, tuoi } = user;\nconsole.log(ten);  // "Minh"\nconsole.log(tuoi); // 25', 9),
+
+'<h3>4.2. Spread operator (...) — Trải phần tử</h3>',
+'<pre>// Gộp mảng\nconst arr1 = [1, 2];\nconst arr2 = [3, 4];\nconst arr3 = [...arr1, ...arr2]; // [1, 2, 3, 4]\n\n// Copy mảng (tạo bản sao)\nconst copy = [...arr1]; // [1, 2]\n\n// Gộp object\nconst base = { a: 1, b: 2 };\nconst extra = { ...base, c: 3 }; // { a: 1, b: 2, c: 3 }</pre>',
+
+'<hr class="sep">',
+
+'<h2>5. JSON — Ngôn ngữ trao đổi dữ liệu</h2>',
+'<div class="term"><strong>JSON</strong> (JavaScript Object Notation) = cách viết dữ liệu mà cả người và máy đều đọc được. API gửi/nhận dữ liệu bằng JSON.</div>',
+defined_pg('Thử JSON', '// Object → chuỗi JSON\nconst user = { ten: "Minh", tuoi: 25 };\nconst jsonStr = JSON.stringify(user);\nconsole.log(jsonStr);       // \'{"ten":"Minh","tuoi":25}\'\nconsole.log(typeof jsonStr); // "string"\n\n// Chuỗi JSON → Object\nconst obj = JSON.parse(jsonStr);\nconsole.log(obj.ten);  // "Minh"\nconsole.log(typeof obj); // "object"', 10),
+
+'<hr class="sep">',
+
+'<h2>Bài tập cuối Module 4</h2>',
+
+'<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
+'<p>Cho mảng <code>[8, 3, 9, 5, 7, 2, 10, 6]</code>. Tìm số lớn nhất, nhỏ nhất, và tổng.</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>const arr = [8, 3, 9, 5, 7, 2, 10, 6];\nconsole.log("Max:", Math.max(...arr));  // 10\nconsole.log("Min:", Math.min(...arr));  // 2\nconsole.log("Tong:", arr.reduce((s,n) => s+n, 0)); // 50</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag ty">🟡 Bài 2</span>',
+'<p>Cho mảng điểm. Lọc điểm >= 5, sắp xếp giảm dần, in ra.</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>const diem = [8, 3, 9, 5, 7, 2, 10, 6];\nconst kq = diem.filter(d => d >= 5).sort((a,b) => b - a);\nconsole.log(kq); // [10, 9, 8, 7, 6, 5]</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag tr">🔴 Bài 3</span>',
+'<p>Cho mảng users. Đếm số người trên 18 tuổi, tìm người lớn tuổi nhất, tạo mảng chỉ chứa tên.</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>const users = [\n  { ten: "An", tuoi: 20 },\n  { ten: "Binh", tuoi: 17 },\n  { ten: "Cuong", tuoi: 25 },\n  { ten: "Dao", tuoi: 15 }\n];\nconsole.log("Tren 18:", users.filter(u => u.tuoi >= 18).length);\nconsole.log("Lon nhat:", users.reduce((max, u) => u.tuoi > max.tuoi ? u : max));\nconsole.log("Ten:", users.map(u => u.ten));</pre>',
+'</details></div>',
+
+defined_pg('Làm bài tập tại đây', '// Viết code bài tập tại đây\n', 4),
+].join('\n')});
+
+// =============================================
+// MODULE 5 — ASYNC/AWAIT & TRY/CATCH
+// =============================================
+D.push({id:5,title:"Async/Await & Try/Catch",week:"Tuần 3",phase:1,html:[
+'<h2>1. Bất đồng bộ (Asynchronous) là gì?</h2>',
+'<div class="b idea">💡 <strong>Đồng bộ (Sync)</strong> = xếp hàng mua trà sữa: phải chờ người trước xong mới đến lượt bạn.<br><strong>Bất đồng bộ (Async)</strong> = order trên app: gửi đơn rồi làm việc khác, khi nào xong app báo.</div>',
+
+'<p>JavaScript là ngôn ngữ <strong>single-thread</strong> (chỉ làm 1 việc cùng lúc), nhưng nó xử lý bất đồng bộ rất giỏi nhờ <strong>callback, Promise, và async/await</strong>.</p>',
+
+'<p>Các tác vụ bất đồng bộ phổ biến:</p>',
+'<ul>',
+'<li>Gọi API (đợi server trả dữ liệu)</li>',
+'<li>Đọc/ghi file</li>',
+'<li>Chờ người dùng thao tác</li>',
+'<li>setTimeout (đặt hẹn giờ)</li>',
+'</ul>',
+
+'<h3>1.1. setTimeout — "Đặt hẹn giờ"</h3>',
+defined_pg('Thử setTimeout', 'console.log("Buoc 1: Bat dau");\n\nsetTimeout(function() {\n  console.log("Buoc 2: Sau 2 giay");\n}, 2000); // 2000ms = 2 giây\n\nconsole.log("Buoc 3: Khong doi, chay luon!");\n\n// Thứ tự in ra: Buoc 1 → Buoc 3 → Buoc 2', 9),
+
+'<div class="b warn"><strong>Bất ngờ!</strong> Bước 3 in TRƯỚC bước 2 vì JS không chờ setTimeout xong. Nó "đặt hẹn" rồi chạy tiếp ngay.</div>',
+
+'<h3>1.2. Callback — "Gọi lại khi xong"</h3>',
+'<div class="term"><strong>Callback</strong> = một hàm được truyền vào hàm khác, sẽ được gọi lại sau khi tác vụ hoàn tất.</div>',
+'<pre>function layDuLieu(callback) {\n  setTimeout(function() {\n    const data = "Du lieu tu server";\n    callback(data);  // gọi hàm callback khi xong\n  }, 1000);\n}\n\nlayDuLieu(function(ketQua) {\n  console.log("Nhan duoc:", ketQua);\n});\nconsole.log("Dang cho...");</pre>',
+
+'<div class="b err"><strong>Callback Hell:</strong> Khi có nhiều callback lồng nhau → code thụt vào sâu hoắm, cực khó đọc. Đây là lý do ra đời Promise.</div>',
+
+'<hr class="sep">',
+
+'<h2>2. Promise — "Lời hứa"</h2>',
+'<div class="b idea">💡 Promise giống <strong>phiếu hẹn lấy đồ</strong>:<br>- Bạn đưa đồ sửa → nhận phiếu hẹn (Promise).<br>- Kết quả: <strong>resolve</strong> (sửa xong) hoặc <strong>reject</strong> (không sửa được).<br>- Bạn dùng <strong>.then()</strong> để nhận đồ khi xong, <strong>.catch()</strong> để xử lý lỗi.</div>',
+
+defined_pg('Thử Promise', '// Tạo Promise\nfunction layDuLieu() {\n  return new Promise(function(resolve, reject) {\n    setTimeout(function() {\n      const thanhCong = true; // thử đổi thành false\n      if (thanhCong) {\n        resolve("Du lieu da tai xong!");\n      } else {\n        reject("Loi: khong tai duoc!");\n      }\n    }, 1000);\n  });\n}\n\n// Sử dụng Promise\nlayDuLieu()\n  .then(function(data) {\n    console.log("Thanh cong:", data);\n  })\n  .catch(function(err) {\n    console.log("That bai:", err);\n  });\n\nconsole.log("Dang cho...");', 20),
+
+'<h3>3 trạng thái của Promise:</h3>',
+'<table>',
+'<tr><th>Trạng thái</th><th>Nghĩa</th><th>Chuyển sang</th></tr>',
+'<tr><td><strong>pending</strong></td><td>Đang chờ</td><td>→ fulfilled hoặc rejected</td></tr>',
+'<tr><td><strong>fulfilled</strong></td><td>Thành công (resolve)</td><td>.then() được gọi</td></tr>',
+'<tr><td><strong>rejected</strong></td><td>Thất bại (reject)</td><td>.catch() được gọi</td></tr>',
+'</table>',
+
+'<hr class="sep">',
+
+'<h2>3. async/await — Cách viết dễ đọc hơn</h2>',
+'<div class="b idea">💡 <code>async/await</code> là "đường" bọc ngoài Promise, giúp code bất đồng bộ trông giống code đồng bộ — dễ đọc hơn rất nhiều!</div>',
+
+defined_pg('Thử async/await', 'function doi(ms) {\n  return new Promise(resolve => setTimeout(resolve, ms));\n}\n\nasync function main() {\n  console.log("Bat dau...");\n  \n  await doi(1000);  // chờ 1 giây\n  console.log("1 giay da troi qua!");\n  \n  await doi(500);   // chờ thêm 0.5 giây\n  console.log("Them 0.5 giay nua!");\n  \n  console.log("Xong!");\n}\n\nmain();', 14),
+
+'<div class="b ok"><strong>Quy tắc vàng:</strong><br>1. Hàm có <code>await</code> bên trong → PHẢI có <code>async</code> phía trước.<br>2. <code>await</code> = "chờ Promise xong rồi mới tiếp".<br>3. <code>async function</code> luôn trả về Promise.</div>',
+
+'<div class="b warn"><strong>Lỗi phổ biến:</strong><br><code>await</code> ngoài hàm <code>async</code> → báo lỗi!<br><pre>// ❌ SAI:\nawait doi(1000); // SyntaxError!\n\n// ✅ ĐÚNG:\nasync function main() {\n  await doi(1000);\n}\nmain();</pre></div>',
+
+'<hr class="sep">',
+
+'<h2>4. try/catch — "Lưới an toàn" bắt lỗi</h2>',
+'<div class="b idea">💡 <code>try/catch</code> giống <strong>lưới an toàn khi đi trên dây</strong>: nếu ngã (lỗi), lưới đỡ bạn thay vì rơi tự do (crash chương trình).</div>',
+
+defined_pg('Thử try/catch', 'try {\n  // Thử chạy code có thể lỗi\n  let data = JSON.parse("day khong phai JSON");\n  console.log(data); // dòng này KHÔNG chạy vì dòng trên lỗi\n} catch (error) {\n  // Bắt lỗi, xử lý\n  console.log("Bi loi roi!");\n  console.log("Loi:", error.message);\n} finally {\n  // LUÔN chạy dù có lỗi hay không\n  console.log("Luon chay du co loi hay khong.");\n}', 12),
+
+'<h3>try/catch với async/await</h3>',
+'<pre>async function layDuLieu() {\n  try {\n    const response = await fetch("https://api.example.com/data");\n    const data = await response.json();\n    console.log("Du lieu:", data);\n  } catch (error) {\n    console.log("Loi khi goi API:", error.message);\n  }\n}</pre>',
+
+'<div class="b ok"><strong>Quy tắc:</strong> Luôn dùng try/catch khi gọi API hoặc tương tác bên ngoài. Lỗi mạng, server sập, dữ liệu sai... đều có thể xảy ra.</div>',
+
+'<hr class="sep">',
+
+'<h2>Bài tập cuối Module 5</h2>',
+
+'<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
+'<p>Viết hàm <code>doiVaIn(message, ms)</code> — chờ ms mili giây rồi in message.</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>function doiVaIn(message, ms) {\n  return new Promise(resolve => {\n    setTimeout(() => {\n      console.log(message);\n      resolve();\n    }, ms);\n  });\n}\n\nasync function main() {\n  await doiVaIn("Xin chao!", 1000);\n  await doiVaIn("Ban khoe khong?", 500);\n  console.log("Xong!");\n}\nmain();</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag ty">🟡 Bài 2</span>',
+'<p>Viết hàm <code>async</code> giả lập login: chờ 1 giây, nếu username = "admin" → resolve, ngược lại → reject. Dùng try/catch để bắt lỗi.</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>function login(username) {\n  return new Promise((resolve, reject) => {\n    setTimeout(() => {\n      if (username === "admin") resolve("Dang nhap thanh cong!");\n      else reject("Sai ten dang nhap!");\n    }, 1000);\n  });\n}\n\nasync function main() {\n  try {\n    const kq = await login("admin");\n    console.log(kq);\n  } catch (err) {\n    console.log("Loi:", err);\n  }\n}\nmain();</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag tr">🔴 Bài 3</span>',
+'<p>Viết 3 hàm async giả lập: layUser(), layDonHang(userId), layChiTiet(orderId). Gọi tuần tự: lấy user → lấy đơn hàng của user → lấy chi tiết đơn hàng.</p>',
+'</div>',
+
+defined_pg('Làm bài tập tại đây', '// Viết code bài tập tại đây\n', 4),
+].join('\n')});
+
+// =============================================
+// MODULE 6 — PLAYWRIGHT CƠ BẢN
+// =============================================
+D.push({id:6,title:"Playwright Cơ bản",week:"Tuần 4",phase:2,html:[
+'<h2>1. Playwright là gì?</h2>',
+'<div class="b idea">💡 Playwright giống <strong>robot ngồi trước máy tính</strong>: tự mở trình duyệt, gõ text, click nút, kiểm tra kết quả — thay bạn. Nhanh hơn, không mệt, không sai sót.</div>',
+
+'<table>',
+'<tr><th>Test thủ công</th><th>Playwright</th></tr>',
+'<tr><td>Mở Chrome bằng tay</td><td>Mở Chrome bằng code</td></tr>',
+'<tr><td>Gõ URL bằng tay</td><td><code>page.goto(url)</code></td></tr>',
+'<tr><td>Nhìn mắt kiểm tra</td><td><code>expect(...).toBeVisible()</code></td></tr>',
+'<tr><td>Lặp 50 lần mệt muốn chết</td><td>Chạy 50 test trong 30 giây</td></tr>',
+'<tr><td>Test 1 trình duyệt</td><td>Test Chrome + Firefox + Safari cùng lúc</td></tr>',
+'</table>',
+
+'<div class="b ok"><strong>Tại sao Playwright?</strong><br>- Microsoft phát triển, miễn phí, open-source.<br>- Hỗ trợ Chrome, Firefox, Safari.<br>- Auto-wait thông minh — không cần sleep().<br>- Codegen — tự viết code khi bạn thao tác.</div>',
+
+'<h2>2. Cài đặt Playwright</h2>',
+'<pre># Tạo thư mục dự án\nmkdir hoc-playwright\ncd hoc-playwright\n\n# Khởi tạo Playwright (trả lời các câu hỏi)\nnpm init playwright@latest</pre>',
+
+'<div class="b info"><strong>Khi được hỏi:</strong><br>- TypeScript or JavaScript? → chọn <strong>JavaScript</strong><br>- Where to put your end-to-end tests? → <strong>tests</strong><br>- Add a GitHub Actions workflow? → <strong>No</strong> (thêm sau)<br>- Install Playwright browsers? → <strong>Yes</strong></div>',
+
+'<h3>Cấu trúc thư mục sau khi cài</h3>',
+'<pre>hoc-playwright/\n├── tests/              ← viết test ở đây\n│   └── example.spec.js ← test mẫu\n├── playwright.config.js ← file cấu hình\n├── package.json\n└── node_modules/</pre>',
+
+'<h2>3. Test đầu tiên</h2>',
+'<p>Tạo file <code>tests/bai1.spec.js</code>:</p>',
+'<pre>const { test, expect } = require("@playwright/test");\n\ntest("Mo trang Google", async ({ page }) => {\n  // Bước 1: Mở Google\n  await page.goto("https://www.google.com");\n\n  // Bước 2: Kiểm tra tiêu đề có chứa "Google"\n  await expect(page).toHaveTitle(/Google/);\n});</pre>',
+
+'<p><strong>Giải thích từng dòng:</strong></p>',
+'<table>',
+'<tr><th>Code</th><th>Nghĩa</th></tr>',
+'<tr><td><code>const { test, expect }</code></td><td>Import 2 hàm từ Playwright</td></tr>',
+'<tr><td><code>test("Mo trang...", ...)</code></td><td>Khai báo 1 test case, đặt tên</td></tr>',
+'<tr><td><code>async ({ page })</code></td><td>Playwright tự tạo trang trình duyệt cho bạn</td></tr>',
+'<tr><td><code>await page.goto(...)</code></td><td>Mở URL (phải có await!)</td></tr>',
+'<tr><td><code>await expect(page)</code></td><td>Kiểm tra kết quả</td></tr>',
+'</table>',
+
+'<h2>4. Chạy test</h2>',
+'<pre># Chạy tất cả test\nnpx playwright test\n\n# Chạy 1 file cụ thể\nnpx playwright test bai1.spec.js\n\n# Chạy và MỞ TRÌNH DUYỆT cho xem\nnpx playwright test --headed\n\n# Mở UI mode (siêu đẹp, dễ debug)\nnpx playwright test --ui\n\n# Xem báo cáo sau khi chạy\nnpx playwright show-report</pre>',
+
+'<div class="b ok"><strong>Mẹo:</strong> Luôn chạy <code>--headed</code> lần đầu để thấy robot thao tác. Sau đó chạy không headed (nhanh hơn).</div>',
+
+'<h2>5. Codegen — Tự động viết code</h2>',
+'<pre>npx playwright codegen https://the-internet.herokuapp.com</pre>',
+'<div class="b idea">💡 Codegen mở trình duyệt, bạn thao tác bình thường (click, gõ, chọn...) → Playwright <strong>tự viết code cho bạn</strong>! Copy code đó vào file test. Tuyệt vời để bắt đầu.</div>',
+
+'<h2>6. Ví dụ: Test Login hoàn chỉnh</h2>',
+'<pre>const { test, expect } = require("@playwright/test");\n\ntest("Login thanh cong", async ({ page }) => {\n  // Mở trang login\n  await page.goto("https://the-internet.herokuapp.com/login");\n\n  // Gõ username và password\n  await page.fill("#username", "tomsmith");\n  await page.fill("#password", "SuperSecretPassword!");\n\n  // Click nút Login\n  await page.click(\'button[type="submit"]\');\n\n  // Kiểm tra kết quả\n  await expect(page.locator(".flash.success")).toBeVisible();\n  await expect(page).toHaveURL(/\\/secure/);\n});</pre>',
+
+'<hr class="sep">',
+
+'<h2>Bài tập cuối Module 6</h2>',
+'<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
+'<p>Viết test mở <code>https://the-internet.herokuapp.com</code>, kiểm tra title chứa "The Internet".</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>test("Trang chu", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com");\n  await expect(page).toHaveTitle(/The Internet/);\n});</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag ty">🟡 Bài 2</span>',
+'<p>Viết test login trên /login với tomsmith / SuperSecretPassword!. Kiểm tra thấy "secure area".</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>test("Login OK", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/login");\n  await page.fill("#username", "tomsmith");\n  await page.fill("#password", "SuperSecretPassword!");\n  await page.click(\'button[type="submit"]\');\n  await expect(page.locator(".flash")).toContainText("secure area");\n});</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag tr">🔴 Bài 3</span>',
+'<p>Viết test login SAI (username sai). Kiểm tra thấy thông báo lỗi.</p>',
+'</div>',
+].join('\n')});
+
+// =============================================
+// MODULE 7 — LOCATOR & ACTIONS
+// =============================================
+D.push({id:7,title:"Locator & Actions",week:"Tuần 4-5",phase:2,html:[
+'<h2>1. Locator — "Địa chỉ" phần tử trên trang</h2>',
+'<div class="b idea">💡 Muốn robot click nút → phải chỉ cho nó biết nút ở đâu. <strong>Locator = "địa chỉ"</strong> của phần tử trên trang web.</div>',
+
+'<h3>🥇 getByRole — tốt nhất, dùng đầu tiên</h3>',
+'<div class="term"><strong>Role</strong> = vai trò của phần tử: button (nút), link (đường link), heading (tiêu đề), checkbox (ô tích)...</div>',
+'<pre>page.getByRole("button", { name: "Dang nhap" });\npage.getByRole("link", { name: "Trang chu" });\npage.getByRole("heading", { name: "Chao mung" });\npage.getByRole("checkbox", { name: "Dong y" });</pre>',
+
+'<h3>🥈 getByLabel — dùng cho input có label</h3>',
+'<pre>// Khi HTML có: &lt;label&gt;Email&lt;/label&gt;&lt;input ...&gt;\npage.getByLabel("Email");\npage.getByLabel("Mat khau");</pre>',
+
+'<h3>🥉 getByPlaceholder — dùng cho input có placeholder</h3>',
+'<pre>// Khi HTML có: &lt;input placeholder="Nhap email..."&gt;\npage.getByPlaceholder("Nhap email...");</pre>',
+
+'<h3>getByText — theo nội dung chữ</h3>',
+'<pre>page.getByText("Xin chao");\npage.getByText("Dang ky ngay", { exact: true }); // khớp chính xác</pre>',
+
+'<h3>getByTestId — khi dev thêm data-testid</h3>',
+'<pre>// HTML: &lt;button data-testid="submit-btn"&gt;Gui&lt;/button&gt;\npage.getByTestId("submit-btn");</pre>',
+
+'<h3>CSS Selector — khi không có cách nào khác</h3>',
+'<pre>page.locator("#username");            // theo id\npage.locator(".btn-primary");          // theo class\npage.locator(\'input[name="email"]\');  // theo thuộc tính</pre>',
+
+'<div class="b ok"><strong>Thứ tự ưu tiên khi chọn locator:</strong><br>getByRole → getByLabel → getByPlaceholder → getByText → getByTestId → CSS → XPath (cuối cùng)</div>',
+
+'<hr class="sep">',
+
+'<h2>3. Tương tác (Actions)</h2>',
+'<pre>// CLICK vào phần tử\nawait page.getByRole("button", { name: "Gui" }).click();\n\n// GÕ TEXT vào ô input\nawait page.getByLabel("Email").fill("test@gmail.com");\n\n// XÓA nội dung ô input\nawait page.getByLabel("Email").clear();\n\n// TICK checkbox\nawait page.getByRole("checkbox", { name: "Dong y" }).check();\nawait page.getByRole("checkbox", { name: "Dong y" }).uncheck();\n\n// CHỌN dropdown\nawait page.selectOption("select#country", "vn");\n\n// HOVER (di chuột lên)\nawait page.getByText("Menu").hover();\n\n// NHẤN PHÍM\nawait page.keyboard.press("Enter");\nawait page.keyboard.press("Control+a");</pre>',
+
+'<h2>4. Auto-wait — Tự động chờ</h2>',
+'<div class="b ok"><strong>Tin vui:</strong> Playwright TỰ ĐỘNG CHỜ phần tử sẵn sàng trước khi tương tác. Không cần viết <code>sleep(3000)</code> như Selenium! Playwright đủ thông minh để biết khi nào nút đã load xong.</div>',
+
+'<p>Khi cần chờ thủ công:</p>',
+'<pre>await page.waitForURL("**/dashboard"); // chờ URL chuyển trang\nawait page.waitForSelector(".loading", { state: "hidden" }); // chờ loading biến mất</pre>',
+
+'<h2>5. Xử lý Dialog (Alert/Confirm)</h2>',
+'<pre>// Đăng ký listener TRƯỚC khi dialog xuất hiện\npage.on("dialog", async function(dialog) {\n  console.log("Noi dung:", dialog.message());\n  await dialog.accept();   // nhấn OK\n  // await dialog.dismiss(); // nhấn Cancel\n});\n\nawait page.getByText("Show Alert").click();</pre>',
+
+'<h2>6. iframe &amp; Tab mới</h2>',
+'<pre>// Tương tác trong iframe\nconst frame = page.frameLocator("#my-iframe");\nawait frame.getByRole("button", { name: "Click me" }).click();\n\n// Chờ tab mới mở\nconst [newPage] = await Promise.all([\n  page.context().waitForEvent("page"),\n  page.getByText("Open new tab").click()\n]);\nconsole.log(await newPage.title());</pre>',
+
+'<hr class="sep">',
+
+'<h2>Bài tập cuối Module 7</h2>',
+'<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
+'<p>Test dropdown trên the-internet.herokuapp.com/dropdown: chọn "Option 1", kiểm tra đã chọn.</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>test("Dropdown", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/dropdown");\n  await page.selectOption("#dropdown", "1");\n  await expect(page.locator("#dropdown")).toHaveValue("1");\n});</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag ty">🟡 Bài 2</span>',
+'<p>Test checkbox: mở /checkboxes, tick checkbox đầu tiên, kiểm tra đã tick.</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>test("Checkbox", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/checkboxes");\n  const cb = page.locator(\'input[type="checkbox"]\').first();\n  await cb.check();\n  await expect(cb).toBeChecked();\n});</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag tr">🔴 Bài 3</span>',
+'<p>Test JavaScript Alert: mở /javascript_alerts, click nút, nhấn OK, kiểm tra kết quả.</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>test("JS Alert", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/javascript_alerts");\n  page.on("dialog", d => d.accept());\n  await page.getByText("Click for JS Alert").click();\n  await expect(page.locator("#result"))\n    .toHaveText("You successfully clicked an alert");\n});</pre>',
+'</details></div>',
+].join('\n')});
+
+// =============================================
+// MODULE 8 — ASSERTIONS & TỔ CHỨC TEST
+// =============================================
+D.push({id:8,title:"Assertions & Tổ chức Test",week:"Tuần 5-6",phase:2,html:[
+'<h2>1. Assertions — "Giám khảo chấm thi"</h2>',
+'<div class="b idea">💡 Robot (Playwright) thao tác xong → Assertion kiểm tra: "Kết quả có đúng như mong đợi không?" Giống giám khảo chấm thi sau khi thí sinh làm bài.</div>',
+
+'<h3>Assertions phổ biến</h3>',
+'<pre>// Kiểm tra TRANG\nawait expect(page).toHaveTitle(/Dashboard/);  // title khớp\nawait expect(page).toHaveURL("https://example.com"); // URL đúng\n\n// Kiểm tra PHẦN TỬ\nawait expect(page.locator(".msg")).toBeVisible();     // hiển thị\nawait expect(page.locator(".msg")).toBeHidden();      // ẩn\nawait expect(page.locator(".msg")).toHaveText("Xong!"); // text đúng\nawait expect(page.locator(".msg")).toContainText("ong"); // chứa text\nawait expect(page.locator("input")).toHaveValue("hello"); // giá trị\nawait expect(page.locator("li")).toHaveCount(5);       // đếm\nawait expect(page.locator(".btn")).toBeEnabled();       // bấm được\nawait expect(page.locator(".btn")).toBeDisabled();      // bị vô hiệu\nawait expect(page.locator("input")).toBeChecked();      // đã tick</pre>',
+
+'<h3>Soft Assertions — không dừng test khi fail</h3>',
+'<pre>await expect.soft(page.locator(".a")).toHaveText("X");\nawait expect.soft(page.locator(".b")).toHaveText("Y");\n// Test vẫn chạy tiếp dù assertion trên fail\n// Báo cáo cuối cùng sẽ liệt kê TẤT CẢ lỗi</pre>',
+
+'<hr class="sep">',
+
+'<h2>2. test.describe — Nhóm test</h2>',
+'<pre>test.describe("Trang Login", function() {\n\n  test.describe("Truong hop dung", function() {\n    test("login thanh cong", async ({ page }) => { });\n    test("chuyen sang dashboard", async ({ page }) => { });\n  });\n\n  test.describe("Truong hop sai", function() {\n    test("sai password", async ({ page }) => { });\n    test("username trong", async ({ page }) => { });\n  });\n\n});</pre>',
+
+'<h2>3. Hooks — beforeEach / afterEach</h2>',
+'<div class="b idea">💡 <code>beforeEach</code> = "việc phải làm TRƯỚC mỗi test" (mở trang, login sẵn...).<br><code>afterEach</code> = "việc phải làm SAU mỗi test" (chụp ảnh, dọn dẹp...).</div>',
+
+'<pre>test.describe("Login", function() {\n\n  test.beforeEach(async ({ page }) => {\n    await page.goto("https://the-internet.herokuapp.com/login");\n  });\n\n  test.afterEach(async ({ page }, testInfo) => {\n    if (testInfo.status === "failed") {\n      await page.screenshot({ path: "fail-" + testInfo.title + ".png" });\n    }\n  });\n\n  test("login dung", async ({ page }) => {\n    await page.fill("#username", "tomsmith");\n    await page.fill("#password", "SuperSecretPassword!");\n    await page.click(\'button[type="submit"]\');\n    await expect(page.locator(".flash.success")).toBeVisible();\n  });\n\n  test("login sai", async ({ page }) => {\n    await page.fill("#username", "sai");\n    await page.fill("#password", "sai");\n    await page.click(\'button[type="submit"]\');\n    await expect(page.locator(".flash.error")).toBeVisible();\n  });\n});</pre>',
+
+'<h2>4. Parameterized Tests — Test nhiều bộ dữ liệu</h2>',
+'<pre>const cases = [\n  { user: "tomsmith", pass: "SuperSecretPassword!", ok: true },\n  { user: "wrong", pass: "wrong", ok: false },\n  { user: "", pass: "", ok: false },\n  { user: "tomsmith", pass: "", ok: false },\n  { user: "", pass: "SuperSecretPassword!", ok: false },\n];\n\nfor (const c of cases) {\n  test("Login: " + (c.user || "(trong)") + " -> " + (c.ok ? "OK" : "Fail"),\n    async ({ page }) => {\n      await page.goto("https://the-internet.herokuapp.com/login");\n      await page.fill("#username", c.user);\n      await page.fill("#password", c.pass);\n      await page.click(\'button[type="submit"]\');\n      if (c.ok) {\n        await expect(page.locator(".flash.success")).toBeVisible();\n      } else {\n        await expect(page.locator(".flash.error")).toBeVisible();\n      }\n    });\n}</pre>',
+
+'<h2>5. Tags &amp; Skip</h2>',
+'<pre>test("test quan trong @smoke", async ({ page }) => { });\ntest("test chi tiet @regression", async ({ page }) => { });\ntest.skip("test chua viet xong", async ({ page }) => { });\ntest.fixme("test co bug", async ({ page }) => { });</pre>',
+'<pre># Chạy theo tag\nnpx playwright test --grep @smoke</pre>',
+
+'<hr class="sep">',
+'<h2>Bài tập cuối Module 8</h2>',
+'<div class="ex"><span class="tag ty">🟡 Bài 1</span>',
+'<p>Viết test suite: beforeEach mở trang login, afterEach screenshot khi fail. Test 5 bộ credentials bằng parameterized test.</p></div>',
+'<div class="ex"><span class="tag tr">🔴 Bài 2</span>',
+'<p>Viết helper kiểm tra toast notification: xuất hiện → chứa text → biến mất sau vài giây.</p></div>',
+].join('\n')});
+
+// =============================================
+// MODULE 9 — PAGE OBJECT MODEL
+// =============================================
+D.push({id:9,title:"Page Object Model (POM)",week:"Tuần 7",phase:3,html:[
+'<h2>1. Vấn đề khi KHÔNG dùng POM</h2>',
+'<div class="b idea">💡 Bạn có 50 file test, mỗi file viết <code>page.fill("#username",...)</code>. Một ngày dev đổi id thành <code>#user-name</code>. Bạn phải sửa 50 file! 😱<br><br><strong>POM giải quyết:</strong> gom tất cả locator vào 1 file. Đổi UI → sửa 1 file duy nhất.</div>',
+
+'<table>',
+'<tr><th>Không POM</th><th>Có POM</th></tr>',
+'<tr><td>Locator rải rác 50 file</td><td>Locator tập trung 1 file</td></tr>',
+'<tr><td>Đổi UI → sửa 50 file</td><td>Đổi UI → sửa 1 file</td></tr>',
+'<tr><td>Code lặp lại nhiều</td><td>Gọi hàm gọn gàng</td></tr>',
+'</table>',
+
+'<h2>2. Cấu trúc POM</h2>',
+'<pre>my-automation/\n├── pages/               ← MỖI TRANG = 1 FILE\n│   ├── BasePage.js\n│   ├── LoginPage.js\n│   └── DashboardPage.js\n├── tests/               ← Test gọi hàm từ pages/\n│   └── login.spec.js\n└── playwright.config.js</pre>',
+
+'<h2>3. Viết POM</h2>',
+
+'<h3>BasePage.js — class cha (dùng chung)</h3>',
+'<pre>class BasePage {\n  constructor(page) {\n    this.page = page;\n  }\n\n  async goto(url) {\n    await this.page.goto(url);\n  }\n\n  async screenshot(name) {\n    await this.page.screenshot({ path: "screenshots/" + name + ".png" });\n  }\n}\nmodule.exports = BasePage;</pre>',
+
+'<h3>LoginPage.js</h3>',
+'<pre>const BasePage = require("./BasePage");\n\nclass LoginPage extends BasePage {\n  constructor(page) {\n    super(page); // gọi constructor cha\n\n    // TẤT CẢ locator ở đây\n    this.usernameInput = page.locator("#username");\n    this.passwordInput = page.locator("#password");\n    this.submitBtn = page.locator(\'button[type="submit"]\');\n    this.flashMsg = page.locator("#flash");\n  }\n\n  async goto() {\n    await super.goto("https://the-internet.herokuapp.com/login");\n  }\n\n  async login(username, password) {\n    await this.usernameInput.fill(username);\n    await this.passwordInput.fill(password);\n    await this.submitBtn.click();\n  }\n}\nmodule.exports = LoginPage;</pre>',
+
+'<h3>Test dùng POM — gọn gàng!</h3>',
+'<pre>const { test, expect } = require("@playwright/test");\nconst LoginPage = require("../pages/LoginPage");\n\ntest.describe("Login (POM)", function() {\n  let loginPage;\n\n  test.beforeEach(async ({ page }) => {\n    loginPage = new LoginPage(page);\n    await loginPage.goto();\n  });\n\n  test("Login thanh cong", async () => {\n    await loginPage.login("tomsmith", "SuperSecretPassword!");\n    await expect(loginPage.flashMsg).toContainText("secure area");\n  });\n\n  test("Login sai password", async () => {\n    await loginPage.login("tomsmith", "sai");\n    await expect(loginPage.flashMsg).toContainText("invalid");\n  });\n});</pre>',
+
+'<div class="b ok">So sánh: test ngắn gọn, dễ đọc, không có locator nào lộ ra. UI đổi → chỉ sửa LoginPage.js!</div>',
+
+'<hr class="sep">',
+'<h2>Bài tập cuối Module 9</h2>',
+'<div class="ex"><span class="tag ty">🟡 Bài 1</span><p>Refactor tất cả test login từ Module 6-8 sang POM.</p></div>',
+'<div class="ex"><span class="tag tr">🔴 Bài 2</span><p>Tạo POM cho saucedemo.com: LoginPage, InventoryPage, CartPage, CheckoutPage.</p></div>',
+].join('\n')});
+
+// =============================================
+// MODULE 10 — API TESTING
+// =============================================
+D.push({id:10,title:"API Testing & Mock",week:"Tuần 8",phase:3,html:[
+'<h2>1. API Testing là gì?</h2>',
+'<div class="b idea">💡 <strong>UI Test</strong> = đi nhà hàng, gọi món, chờ bưng ra, kiểm tra. Chậm nhưng sát thực tế.<br><strong>API Test</strong> = vào thẳng bếp, kiểm tra nguyên liệu và quy trình. <strong>Nhanh hơn rất nhiều.</strong></div>',
+
+'<p>Trong Playwright, API test dùng <code>request</code> thay vì <code>page</code> — không cần mở trình duyệt.</p>',
+
+'<h2>2. GET — Lấy dữ liệu</h2>',
+'<pre>const { test, expect } = require("@playwright/test");\n\ntest("GET danh sach users", async ({ request }) => {\n  const res = await request.get("https://reqres.in/api/users?page=1");\n\n  // Kiểm tra status code\n  expect(res.status()).toBe(200); // 200 = OK\n\n  // Kiểm tra body\n  const body = await res.json();\n  expect(body.data.length).toBeGreaterThan(0);\n  expect(body.data[0]).toHaveProperty("email");\n});</pre>',
+
+'<div class="term"><strong>Status code phổ biến:</strong><br>200 = OK | 201 = Created | 204 = No Content (deleted) | 400 = Bad Request | 401 = Unauthorized | 404 = Not Found | 500 = Server Error</div>',
+
+'<h2>3. POST — Tạo dữ liệu mới</h2>',
+'<pre>test("POST tao user", async ({ request }) => {\n  const res = await request.post("https://reqres.in/api/users", {\n    data: { name: "Minh", job: "Tester" }\n  });\n\n  expect(res.status()).toBe(201);\n  const body = await res.json();\n  expect(body.name).toBe("Minh");\n  expect(body).toHaveProperty("id");\n});</pre>',
+
+'<h2>4. PUT &amp; DELETE</h2>',
+'<pre>test("PUT update", async ({ request }) => {\n  const res = await request.put("https://reqres.in/api/users/2", {\n    data: { name: "Updated", job: "Lead" }\n  });\n  expect(res.status()).toBe(200);\n});\n\ntest("DELETE user", async ({ request }) => {\n  const res = await request.delete("https://reqres.in/api/users/2");\n  expect(res.status()).toBe(204);\n});</pre>',
+
+'<h2>5. CRUD Flow — Test toàn bộ vòng đời</h2>',
+'<pre>test("CRUD flow", async ({ request }) => {\n  // CREATE\n  const createRes = await request.post("https://reqres.in/api/users", {\n    data: { name: "Test", job: "QA" }\n  });\n  expect(createRes.status()).toBe(201);\n  const user = await createRes.json();\n\n  // READ\n  const getRes = await request.get("https://reqres.in/api/users/" + user.id);\n\n  // UPDATE\n  const putRes = await request.put("https://reqres.in/api/users/" + user.id, {\n    data: { name: "Updated" }\n  });\n  expect(putRes.status()).toBe(200);\n\n  // DELETE\n  const delRes = await request.delete("https://reqres.in/api/users/" + user.id);\n  expect(delRes.status()).toBe(204);\n});</pre>',
+
+'<hr class="sep">',
+
+'<h2>6. Mock API — "Giả lập" response</h2>',
+'<div class="b idea">💡 Mock giống <strong>diễn viên đóng thế</strong>: thay vì gọi API thật (chậm, không kiểm soát được), bạn "giả" response để test UI khi API lỗi, trả dữ liệu trống, hay chậm.</div>',
+
+'<pre>test("Mock API loi 500", async ({ page }) => {\n  // Chặn mọi request đến /api/users\n  await page.route("**/api/users", function(route) {\n    route.fulfill({\n      status: 500,\n      contentType: "application/json",\n      body: JSON.stringify({ error: "Server Error" })\n    });\n  });\n\n  await page.goto("https://example.com/users");\n  // Kiểm tra UI hiển thị thông báo lỗi\n});\n\ntest("Mock API du lieu rong", async ({ page }) => {\n  await page.route("**/api/users", function(route) {\n    route.fulfill({\n      status: 200,\n      contentType: "application/json",\n      body: JSON.stringify({ data: [] }) // mảng rỗng\n    });\n  });\n  // Kiểm tra UI hiển thị "Không có dữ liệu"\n});</pre>',
+
+'<h2>7. Intercept &amp; Modify — Chặn và sửa response</h2>',
+'<pre>test("Sua gia san pham", async ({ page }) => {\n  await page.route("**/api/products", async function(route) {\n    const response = await route.fetch(); // gọi API thật\n    const body = await response.json();\n    body.products[0].price = 0;           // sửa giá = 0\n    await route.fulfill({\n      response: response,\n      body: JSON.stringify(body)\n    });\n  });\n  await page.goto("https://example.com/products");\n  // Kiểm tra UI hiện giá = 0\n});</pre>',
+
+'<hr class="sep">',
+'<h2>Bài tập cuối Module 10</h2>',
+'<div class="ex"><span class="tag tg">🟢 Bài 1</span><p>GET /api/users từ reqres.in, kiểm tra status 200 và có ít nhất 1 user.</p></div>',
+'<div class="ex"><span class="tag ty">🟡 Bài 2</span><p>CRUD: POST tạo → verify → PUT update → DELETE → verify đã xóa.</p></div>',
+'<div class="ex"><span class="tag tr">🔴 Bài 3</span><p>Mock API trả lỗi 500 và dữ liệu rỗng. Kiểm tra UI từng trường hợp.</p></div>',
+].join('\n')});
+
+// =============================================
+// MODULE 11 — CONFIG, CI/CD & CAPSTONE
+// =============================================
+D.push({id:11,title:"Config, CI/CD & Capstone",week:"Tuần 9-10",phase:3,html:[
+'<h2>PHẦN A: Config &amp; CI/CD</h2>',
+
+'<h2>1. playwright.config.js — "Bảng điều khiển"</h2>',
+'<div class="b idea">💡 File config giống bảng điều khiển: thiết lập mọi thứ — chạy trình duyệt nào, retry mấy lần, chụp ảnh khi nào...</div>',
+
+'<pre>const { defineConfig } = require("@playwright/test");\n\nmodule.exports = defineConfig({\n  testDir: "./tests",\n  timeout: 30000,          // mỗi test tối đa 30 giây\n  retries: 2,              // fail thì thử lại 2 lần\n  workers: 4,              // chạy 4 test song song\n\n  use: {\n    baseURL: "https://the-internet.herokuapp.com",\n    headless: true,                     // chạy ẩn\n    screenshot: "only-on-failure",      // chụp ảnh khi fail\n    video: "retain-on-failure",         // quay video khi fail\n    trace: "retain-on-failure",         // ghi trace khi fail\n  },\n\n  projects: [\n    { name: "chromium", use: { browserName: "chromium" } },\n    { name: "firefox", use: { browserName: "firefox" } },\n    { name: "webkit", use: { browserName: "webkit" } },\n  ],\n\n  reporter: [["html"], ["list"]],\n});</pre>',
+
+'<h2>2. HTML Report</h2>',
+'<pre>npx playwright test          # chạy test\nnpx playwright show-report   # mở báo cáo đẹp</pre>',
+
+'<h2>3. Multi-Environment</h2>',
+'<pre>// Dùng biến môi trường\nmodule.exports = defineConfig({\n  use: {\n    baseURL: process.env.BASE_URL || "https://dev.example.com",\n  },\n});</pre>',
+'<pre># Chạy trên staging\nBASE_URL=https://staging.example.com npx playwright test</pre>',
+
+'<h2>4. GitHub Actions CI/CD</h2>',
+'<div class="b idea">💡 CI/CD giống <strong>bảo vệ cổng</strong>: mỗi lần push code, hệ thống TỰ ĐỘNG chạy test. Fail → báo ngay, không cho merge code lỗi.</div>',
+
+'<p>Tạo file <code>.github/workflows/playwright.yml</code>:</p>',
+'<pre>name: Playwright Tests\non:\n  push:\n    branches: [main]\n  pull_request:\n    branches: [main]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 20\n      - run: npm ci\n      - run: npx playwright install --with-deps\n      - run: npx playwright test\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: playwright-report\n          path: playwright-report/</pre>',
+
+'<hr class="sep">',
+
+'<h2>PHẦN B: DỰ ÁN CAPSTONE</h2>',
+
+'<h2>Đề bài: Test SauceDemo.com</h2>',
+'<p>Áp dụng MỌI THỨ đã học để xây framework test cho <strong>https://www.saucedemo.com</strong></p>',
+
+'<h3>Tài khoản test</h3>',
+'<pre>Username: standard_user\nPassword: secret_sauce</pre>',
+
+'<h3>Cấu trúc yêu cầu</h3>',
+'<pre>saucedemo-tests/\n├── pages/\n│   ├── BasePage.js\n│   ├── LoginPage.js\n│   ├── InventoryPage.js\n│   ├── CartPage.js\n│   └── CheckoutPage.js\n├── tests/\n│   ├── login.spec.js\n│   ├── inventory.spec.js\n│   ├── cart.spec.js\n│   └── checkout.spec.js\n├── playwright.config.js\n├── .github/workflows/playwright.yml\n└── README.md</pre>',
+
+'<h3>Test Cases cần viết</h3>',
+
+'<h4>Login (5 test)</h4>',
+'<ul><li>Login thành công → chuyển trang inventory</li><li>Sai password → hiện lỗi</li><li>Username trống → hiện lỗi</li><li>User bị khóa (locked_out_user) → hiện lỗi</li><li>Logout → về trang login</li></ul>',
+
+'<h4>Inventory (4 test)</h4>',
+'<ul><li>Hiển thị danh sách sản phẩm (>= 1)</li><li>Sắp xếp theo giá thấp → cao</li><li>Sắp xếp theo tên A → Z</li><li>Click sản phẩm → xem chi tiết</li></ul>',
+
+'<h4>Cart (3 test)</h4>',
+'<ul><li>Thêm sản phẩm → badge hiện số lượng</li><li>Xóa sản phẩm khỏi giỏ</li><li>Giỏ hàng hiện đúng tên + giá</li></ul>',
+
+'<h4>Checkout (3 test)</h4>',
+'<ul><li>Checkout thành công (điền info → finish)</li><li>Thiếu thông tin → hiện lỗi</li><li>Tổng tiền hiển thị đúng</li></ul>',
+
+'<h2>Gợi ý LoginPage.js</h2>',
+'<pre>const BasePage = require("./BasePage");\n\nclass LoginPage extends BasePage {\n  constructor(page) {\n    super(page);\n    this.username = page.locator("#user-name");\n    this.password = page.locator("#password");\n    this.loginBtn = page.locator("#login-button");\n    this.error = page.locator(\'[data-test="error"]\');\n  }\n\n  async goto() {\n    await this.page.goto("https://www.saucedemo.com");\n  }\n\n  async login(user, pass) {\n    await this.username.fill(user);\n    await this.password.fill(pass);\n    await this.loginBtn.click();\n  }\n}\nmodule.exports = LoginPage;</pre>',
+
+'<h2>Checklist hoàn thành</h2>',
+'<table>',
+'<tr><th>Hạng mục</th><th>Done?</th></tr>',
+'<tr><td>POM cho tất cả trang</td><td>⬜</td></tr>',
+'<tr><td>Login tests (5+)</td><td>⬜</td></tr>',
+'<tr><td>Inventory tests (4+)</td><td>⬜</td></tr>',
+'<tr><td>Cart tests (3+)</td><td>⬜</td></tr>',
+'<tr><td>Checkout tests (3+)</td><td>⬜</td></tr>',
+'<tr><td>Multi-browser config</td><td>⬜</td></tr>',
+'<tr><td>Screenshot + video on failure</td><td>⬜</td></tr>',
+'<tr><td>HTML report</td><td>⬜</td></tr>',
+'<tr><td>GitHub Actions CI/CD</td><td>⬜</td></tr>',
+'<tr><td>README.md (hướng dẫn setup + chạy)</td><td>⬜</td></tr>',
+'</table>',
+
+'<div class="b ok">🎉 <strong>Chúc mừng!</strong> Hoàn thành Capstone = bạn đã có đủ kỹ năng làm Automation Tester.<br><br><strong>Bước tiếp theo:</strong><br>1. Push project lên GitHub.<br>2. Thêm link GitHub vào CV.<br>3. Viết README.md thật đẹp (giới thiệu, hướng dẫn cài đặt, cách chạy test).<br>4. Tự tin đi phỏng vấn! 💪</div>',
+].join('\n')});
+
+
+// ============================================
+// ===== APP LOGIC =====
+// ============================================
+var active = 0;
+var completed = JSON.parse(localStorage.getItem('pw-progress') || '{}');
+var darkMode = localStorage.getItem('pw-theme') === 'dark';
+if (darkMode) document.documentElement.setAttribute('data-theme', 'dark');
+
+function renderSidebar() {
+  var nav = document.getElementById('sidebarNav');
+  var phases = {0:'Giới thiệu', 1:'Phase 1: JS Cơ bản', 2:'Phase 2: Playwright', 3:'Phase 3: Nâng cao'};
+  var lastPhase = -1, html = '';
+  for (var j = 0; j < D.length; j++) {
+    var m = D[j];
+    if (m.phase !== lastPhase) {
+      html += '<div class="nav-phase">' + phases[m.phase] + '</div>';
+      lastPhase = m.phase;
+    }
+    var isDone = completed[m.id], isActive = m.id === active;
+    html += '<div class="nav-item' + (isActive ? ' active' : '') + '" onclick="goTo(' + m.id + ')">';
+    html += '<div class="check' + (isDone ? ' done' : '') + '">' + (isDone ? '✓' : '') + '</div>';
+    html += '<span>' + (m.id === 0 ? 'Intro' : 'M' + m.id + ': ') + m.title + '</span></div>';
+  }
+  nav.innerHTML = html;
+  updateProgress();
+}
+function updateProgress() {
+  var done = 0;
+  for (var j = 0; j < D.length; j++) if (completed[D[j].id]) done++;
+  var pct = Math.round(done / D.length * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressText').textContent = done + ' / ' + D.length + ' modules hoàn thành (' + pct + '%)';
+}
+function render() {
+  var m = null;
+  for (var k = 0; k < D.length; k++) if (D[k].id === active) { m = D[k]; break; }
+  var pn = {0:'Giới thiệu', 1:'Phase 1: JS Cơ bản', 2:'Phase 2: Playwright', 3:'Phase 3: Nâng cao'};
+  var label = active === 0 ? 'Giới thiệu khóa học' : 'Module ' + m.id + ': ' + m.title;
+  document.getElementById('breadcrumb').innerHTML = pn[m.phase] + ' / <b>' + label + '</b>';
+  var heroHtml = '<div class="module-hero"><div class="num">' + (active === 0 ? '📖' : ('0' + m.id).slice(-2)) + '</div><h2>' + label + '</h2><p>' + m.week + '</p><span class="phase-badge">' + pn[m.phase] + '</span><button class="complete-btn' + (completed[m.id] ? ' done' : '') + '" onclick="toggleComplete(' + m.id + ')">' + (completed[m.id] ? '✓ Đã hoàn thành' : '○ Đánh dấu hoàn thành') + '</button></div>';
+  var prev = '<div></div>', next = '<div></div>';
+  if (active > 0) prev = '<button class="pv" onclick="goTo(' + (active - 1) + ')">← ' + (active === 1 ? 'Intro' : 'Module ' + (active - 1)) + '</button>';
+  if (active < D.length - 1) next = '<button class="nx" onclick="goTo(' + (active + 1) + ')">Module ' + (active + 1) + ' →</button>';
+  document.getElementById('ct').innerHTML = heroHtml + m.html + '<div class="nav-buttons">' + prev + next + '</div>';
+  addCodeFeatures();
+}
+function addCodeFeatures() {
+  document.querySelectorAll('#ct pre').forEach(function(pre) {
+    if (pre.closest('[data-playground]')) return;
+    if (pre.parentElement.classList.contains('code-wrap')) return;
+    var wrapper = document.createElement('div');
+    wrapper.className = 'code-wrap';
+    pre.parentNode.insertBefore(wrapper, pre);
+    wrapper.appendChild(pre);
+    var actions = document.createElement('div');
+    actions.className = 'code-actions';
+    actions.innerHTML = '<button onclick="copyCode(this)">📋 Copy</button>';
+    wrapper.appendChild(actions);
+  });
+}
+function copyCode(btn) {
+  var pre = btn.closest('.code-wrap').querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent).then(function() {
+    btn.textContent = '✓ Copied!';
+    setTimeout(function() { btn.textContent = '📋 Copy'; }, 1500);
+  });
+}
+function goTo(id) {
+  active = id; renderSidebar(); render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+function toggleComplete(id) {
+  completed[id] = !completed[id];
+  localStorage.setItem('pw-progress', JSON.stringify(completed));
+  renderSidebar(); render();
+}
+function resetProgress() {
+  if (confirm('Xóa toàn bộ tiến độ học?')) {
+    completed = {}; localStorage.removeItem('pw-progress');
+    renderSidebar(); render();
+  }
+}
+function toggleTheme() {
+  darkMode = !darkMode;
+  if (darkMode) { document.documentElement.setAttribute('data-theme', 'dark'); localStorage.setItem('pw-theme', 'dark'); }
+  else { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('pw-theme', 'light'); }
+  document.getElementById('themeBtn').textContent = darkMode ? '☀️ Light' : '🌙 Dark';
+}
+document.getElementById('themeBtn').textContent = darkMode ? '☀️ Light' : '🌙 Dark';
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+
+// ===== CODE PLAYGROUND =====
+function runPlayground(btnOrEditorId, outputId) {
+  var editor, output;
+  if (typeof btnOrEditorId === 'string') { editor = document.getElementById(btnOrEditorId); output = document.getElementById(outputId); }
+  else { var pg = btnOrEditorId.closest('[data-playground], .playground'); editor = pg.querySelector('.playground-editor'); output = pg.querySelector('.playground-output'); }
+  var code = editor.value, logs = [];
+  var origLog = console.log, origWarn = console.warn, origError = console.error;
+  console.log = function() { logs.push({ type: 'log', text: Array.from(arguments).map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ') }); };
+  console.warn = function() { logs.push({ type: 'warn', text: Array.from(arguments).map(function(a) { return typeof a === 'object' ? JSON.stringify(a) : String(a); }).join(' ') }); };
+  console.error = function() { logs.push({ type: 'err', text: Array.from(arguments).map(function(a) { return typeof a === 'object' ? JSON.stringify(a) : String(a); }).join(' ') }); };
+  try {
+    var isAsync = code.includes('await') || code.includes('async');
+    if (isAsync) {
+      var fn = new Function('return (async function() {\n' + code + '\n})()');
+      fn().then(function() { renderOutput(output, logs); }).catch(function(e) { logs.push({ type: 'err', text: '❌ ' + e.message }); renderOutput(output, logs); }).finally(function() { console.log = origLog; console.warn = origWarn; console.error = origError; });
+      setTimeout(function() { renderOutput(output, logs); }, 100);
+      return;
+    } else {
+      var result = new Function(code)();
+      if (result !== undefined) logs.push({ type: 'log', text: '→ ' + (typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result)) });
+    }
+  } catch (e) { logs.push({ type: 'err', text: '❌ ' + e.message }); }
+  console.log = origLog; console.warn = origWarn; console.error = origError;
+  renderOutput(output, logs);
+}
+function renderOutput(output, logs) {
+  if (logs.length === 0) { output.innerHTML = '<span style="color:var(--text3)">// Không có output</span>'; return; }
+  output.innerHTML = logs.map(function(l) { return '<div class="' + (l.type === 'err' ? 'err-line' : 'log-line') + '">' + escapeHtml(l.text) + '</div>'; }).join('');
+}
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function clearPlayground(btnOrEditorId, outputId) {
+  var editor, output;
+  if (typeof btnOrEditorId === 'string') { editor = document.getElementById(btnOrEditorId); output = document.getElementById(outputId); }
+  else { var pg = btnOrEditorId.closest('[data-playground], .playground'); editor = pg.querySelector('.playground-editor'); output = pg.querySelector('.playground-output'); }
+  editor.value = ''; output.innerHTML = '<span style="color:var(--text3)">// Đã xóa</span>';
+}
+function openPlayground() { document.getElementById('floatingPlayground').style.display = 'block'; }
+function closePlayground() { document.getElementById('floatingPlayground').style.display = 'none'; }
+
+// ===== SEARCH =====
+function openSearch() {
+  document.getElementById('searchOverlay').classList.add('open');
+  var input = document.getElementById('searchModalInput');
+  input.value = ''; input.focus();
+  document.getElementById('searchResults').innerHTML = '<div style="padding:20px;color:var(--text3);text-align:center">Gõ để tìm kiếm trong giáo trình...</div>';
+}
+function closeSearch() { document.getElementById('searchOverlay').classList.remove('open'); }
+function doSearch(query) {
+  var results = document.getElementById('searchResults');
+  if (query.length < 2) { results.innerHTML = '<div style="padding:20px;color:var(--text3);text-align:center">Gõ ít nhất 2 ký tự...</div>'; return; }
+  var q = query.toLowerCase(), found = [];
+  for (var j = 0; j < D.length; j++) {
+    var m = D[j], text = m.html.replace(/<[^>]+>/g, '');
+    var idx = text.toLowerCase().indexOf(q);
+    if (idx !== -1 || m.title.toLowerCase().includes(q)) {
+      var excerpt = '';
+      if (idx !== -1) {
+        var start = Math.max(0, idx - 40), end = Math.min(text.length, idx + query.length + 40);
+        excerpt = (start > 0 ? '...' : '') + text.substring(start, end) + (end < text.length ? '...' : '');
+        excerpt = excerpt.replace(new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'), '<mark>$1</mark>');
+      }
+      found.push({ id: m.id, title: (m.id === 0 ? 'Intro' : 'Module ' + m.id) + ': ' + m.title, excerpt: excerpt });
+    }
+  }
+  if (found.length === 0) { results.innerHTML = '<div style="padding:20px;color:var(--text3);text-align:center">Không tìm thấy.</div>'; return; }
+  results.innerHTML = found.map(function(f) {
+    return '<div class="search-result-item" onclick="goTo(' + f.id + ');closeSearch()"><div class="title">' + f.title + '</div>' + (f.excerpt ? '<div class="excerpt">' + f.excerpt + '</div>' : '') + '</div>';
+  }).join('');
+}
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); openSearch(); }
+  if (e.key === 'Escape') { closeSearch(); closePlayground(); }
+  if (e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'INPUT') {
+    if (e.key === 'ArrowLeft' && active > 0) goTo(active - 1);
+    if (e.key === 'ArrowRight' && active < D.length - 1) goTo(active + 1);
+  }
+  if (e.key === 'Tab' && e.target.classList.contains('playground-editor')) {
+    e.preventDefault();
+    var start = e.target.selectionStart, end = e.target.selectionEnd;
+    e.target.value = e.target.value.substring(0, start) + '  ' + e.target.value.substring(end);
+    e.target.selectionStart = e.target.selectionEnd = start + 2;
+  }
+});
+
+renderSidebar(); render();
+</script>
+</body>
+</html>
