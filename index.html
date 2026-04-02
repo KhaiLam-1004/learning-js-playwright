@@ -343,6 +343,65 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
 .achievement-toast.show { bottom: 20px; }
 .achievement-toast .ach-icon { font-size: 28px; }
 
+/* ===== EXAM ===== */
+.exam { background: var(--bg2); border: 2px solid #f59e0b; border-radius: var(--radius); padding: 20px; margin: 24px 0; box-shadow: var(--shadow); }
+.exam-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+.exam-title { font-size: 17px; font-weight: 800; color: #f59e0b; display: flex; align-items: center; gap: 8px; }
+.exam-timer { font-size: 13px; font-weight: 700; color: var(--text3); background: var(--bg3); padding: 4px 12px; border-radius: 20px; }
+.exam-timer.urgent { color: var(--red); background: var(--red-bg); }
+.exam-q { margin-bottom: 18px; padding: 14px; background: var(--bg3); border-radius: 10px; border-left: 4px solid var(--border2); transition: border-color .3s; }
+.exam-q.answered { border-left-color: var(--primary); }
+.exam-q.q-correct { border-left-color: var(--green); background: var(--green-bg); }
+.exam-q.q-wrong { border-left-color: var(--red); background: var(--red-bg); }
+.exam-q .q-num { font-size: 12px; font-weight: 700; color: var(--text3); margin-bottom: 4px; }
+.exam-q .q-text { font-weight: 600; color: var(--text); margin-bottom: 10px; font-size: 14.5px; }
+.exam-q .q-opts label {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; margin: 4px 0; border-radius: 8px; cursor: pointer;
+  font-size: 14px; color: var(--text2); transition: all .15s;
+  border: 1px solid transparent;
+}
+.exam-q .q-opts label:hover { background: var(--primary-bg); border-color: var(--primary); }
+.exam-q .q-opts label.selected { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); font-weight: 600; }
+.exam-q .q-opts label.reveal-correct { background: var(--green-bg); border-color: var(--green); color: var(--green-text); font-weight: 600; }
+.exam-q .q-opts label.reveal-wrong { background: var(--red-bg); border-color: var(--red); color: var(--red-text); text-decoration: line-through; }
+.exam-q .q-opts label .radio-dot {
+  width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border2);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .2s;
+}
+.exam-q .q-opts label.selected .radio-dot { border-color: var(--primary); background: var(--primary); }
+.exam-q .q-opts label.selected .radio-dot::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
+.exam-q .q-opts label .opt-letter { font-weight: 700; min-width: 20px; }
+.exam-q .q-explain { display: none; margin-top: 10px; padding: 10px 12px; border-radius: 8px; font-size: 13px; line-height: 1.6; }
+.exam-q .q-explain.show { display: block; }
+.exam-q .q-explain.explain-correct { background: var(--green-bg); color: var(--green-text); }
+.exam-q .q-explain.explain-wrong { background: var(--red-bg); color: var(--red-text); }
+.exam-progress { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+.exam-progress .dot { width: 28px; height: 28px; border-radius: 50%; background: var(--bg3); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--text3); cursor: pointer; transition: all .2s; }
+.exam-progress .dot.filled { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); }
+.exam-progress .dot.dot-correct { background: var(--green); border-color: var(--green); color: #fff; }
+.exam-progress .dot.dot-wrong { background: var(--red); border-color: var(--red); color: #fff; }
+.exam-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.exam-actions button { padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all .2s; }
+.exam-actions .btn-submit { background: #f59e0b; color: #fff; }
+.exam-actions .btn-submit:hover { background: #d97706; }
+.exam-actions .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
+.exam-actions .btn-retry { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+.exam-actions .btn-retry:hover { background: var(--bg); }
+.exam-score { text-align: center; padding: 20px; border-radius: 10px; margin-top: 16px; }
+.exam-score .score-num { font-size: 42px; font-weight: 900; }
+.exam-score .score-label { font-size: 14px; font-weight: 600; margin-top: 4px; }
+.exam-score .score-bar { height: 8px; background: var(--bg3); border-radius: 4px; margin-top: 12px; overflow: hidden; }
+.exam-score .score-fill { height: 100%; border-radius: 4px; transition: width .8s ease; }
+.exam-score.grade-a { background: var(--green-bg); color: var(--green-text); }
+.exam-score.grade-a .score-fill { background: var(--green); }
+.exam-score.grade-b { background: var(--blue-bg); color: var(--blue-text); }
+.exam-score.grade-b .score-fill { background: var(--blue); }
+.exam-score.grade-c { background: var(--yellow-bg); color: var(--yellow-text); }
+.exam-score.grade-c .score-fill { background: var(--yellow); }
+.exam-score.grade-f { background: var(--red-bg); color: var(--red-text); }
+.exam-score.grade-f .score-fill { background: var(--red); }
+
 /* ===== MODULE META ===== */
 .module-meta { display: flex; gap: 12px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
 .module-meta .meta-item { font-size: 11px; color: rgba(255,255,255,.7); display: flex; align-items: center; gap: 4px; }
@@ -721,6 +780,20 @@ buildChallenge('m1_calc', 'Tính tuổi', 'Tạo biến <code>namSinh = 2000</co
 '</details></div>',
 
 defined_pg('Làm bài tập tại đây', '// Viết code bài tập tại đây\n', 4),
+
+'<hr class="sep">',
+buildExam('exam_m1', 'Bài kiểm tra Module 1 — Biến & Kiểu dữ liệu', 10, [
+  {q:'<code>let x = 10; const y = 20;</code> — câu nào đúng?', opts:['x và y đều gán lại được','Chỉ x gán lại được','Chỉ y gán lại được','Cả hai đều không gán lại được'], answer:1, explain:'let cho phép gán lại, const thì không.'},
+  {q:'<code>typeof "123"</code> trả về gì?', opts:['"number"','"string"','"boolean"','"integer"'], answer:1, explain:'"123" nằm trong ngoặc kép nên là string, không phải number.'},
+  {q:'Cách nào tạo template literal?', opts:['Ngoặc kép "..."','Ngoặc đơn \'...\'','Backtick `...`','Ngoặc tròn (...)'], answer:2, explain:'Template literal dùng backtick ` và ${} để chèn biến.'},
+  {q:'<code>let a; console.log(a);</code> in ra gì?', opts:['null','0','undefined','Error'], answer:2, explain:'Biến khai báo nhưng chưa gán giá trị → undefined.'},
+  {q:'<code>"5" + 3</code> cho kết quả gì?', opts:['8','53','"53"','Error'], answer:2, explain:'String + number → JS nối chuỗi: "5"+"3" = "53".'},
+  {q:'Phương thức nào xóa khoảng trắng đầu/cuối?', opts:['.slice()','.trim()','.clean()','.strip()'], answer:1, explain:'.trim() xóa khoảng trắng đầu và cuối chuỗi.'},
+  {q:'<code>10 % 3</code> bằng bao nhiêu?', opts:['3','3.33','1','0'], answer:2, explain:'10 ÷ 3 = 3 dư 1. % lấy phần dư.'},
+  {q:'<code>0 === false</code> kết quả?', opts:['true','false','undefined','Error'], answer:1, explain:'=== so sánh cả kiểu. 0 (number) khác false (boolean) → false.'},
+  {q:'<code>!true</code> cho kết quả gì?', opts:['true','false','null','1'], answer:1, explain:'! đảo ngược boolean. !true = false.'},
+  {q:'<code>Number("abc")</code> trả về gì?', opts:['0','null','NaN','Error'], answer:2, explain:'Không chuyển được "abc" thành số → NaN.'}
+]),
 ].join('\n')});
 
 // =============================================
@@ -812,6 +885,17 @@ buildChallenge('m2_fizz', 'FizzBuzz', 'In số 1→30. Chia hết 3→"Fizz", ch
 '</details></div>',
 
 defined_pg('Làm bài tập tại đây', '// Viết code bài tập tại đây\n', 4),
+
+'<hr class="sep">',
+buildExam('exam_m2', 'Bài kiểm tra Module 2 — Điều kiện & Vòng lặp', 8, [
+  {q:'<code>if (x = 5) { ... }</code> — có gì sai?', opts:['Không sai gì','Dùng = thay vì === (gán thay vì so sánh)','Thiếu else','Thiếu dấu chấm phẩy'], answer:1, explain:'= là gán giá trị, === mới là so sánh. Đây là lỗi rất phổ biến!'},
+  {q:'<code>for(let i=0; i&lt;5; i++)</code> — i lần lượt nhận giá trị nào?', opts:['1,2,3,4,5','0,1,2,3,4','0,1,2,3,4,5','1,2,3,4'], answer:1, explain:'i bắt đầu từ 0, chạy khi i<5, nên i = 0,1,2,3,4.'},
+  {q:'<code>continue</code> làm gì trong vòng lặp?', opts:['Dừng vòng lặp','Bỏ qua lần lặp hiện tại, tiếp tục lần sau','Thoát chương trình','Lặp lại từ đầu'], answer:1, explain:'continue bỏ qua phần còn lại của lần lặp hiện tại, nhảy sang lần tiếp.'},
+  {q:'Quên <code>i++</code> trong for loop sẽ thế nào?', opts:['Không lặp lần nào','Lặp 1 lần','Lặp vô hạn (treo máy)','Báo lỗi'], answer:2, explain:'Không tăng i → điều kiện luôn đúng → lặp mãi. Nhấn Ctrl+C để dừng.'},
+  {q:'<code>let x = 7 > 3 ? "lon" : "nho";</code> — x bằng gì?', opts:['"lon"','"nho"','true','7'], answer:0, explain:'7>3 là true → lấy giá trị sau ? → "lon".'},
+  {q:'Vòng lặp nào phù hợp khi KHÔNG biết trước số lần lặp?', opts:['for','while','for...of','Không vòng nào'], answer:1, explain:'while lặp dựa trên điều kiện, phù hợp khi không biết trước số lần.'},
+  {q:'<code>for(let i=10; i>=0; i-=2)</code> — in ra bao nhiêu số?', opts:['5','6','10','11'], answer:1, explain:'i = 10,8,6,4,2,0 → 6 số.'}
+]),
 ].join('\n')});
 
 // =============================================
@@ -1032,6 +1116,18 @@ defined_pg('Thử JSON', '// Object → chuỗi JSON\nconst user = { ten: "Minh"
 '</details></div>',
 
 defined_pg('Làm bài tập tại đây', '// Viết code bài tập tại đây\n', 4),
+
+'<hr class="sep">',
+buildExam('exam_m4', 'Bài kiểm tra Module 4 — Array & Object', 10, [
+  {q:'Array index bắt đầu từ số mấy?', opts:['0','1','-1','Tùy chọn'], answer:0, explain:'Trong JS (và hầu hết ngôn ngữ), index bắt đầu từ 0.'},
+  {q:'<code>[1,2,3].push(4)</code> — mảng sau đó là gì?', opts:['[4,1,2,3]','[1,2,3,4]','[1,2,3]','[4]'], answer:1, explain:'push() thêm phần tử vào CUỐI mảng.'},
+  {q:'<code>[1,2,3].map(x => x*2)</code> trả về gì?', opts:['6','[2,4,6]','[1,2,3]','undefined'], answer:1, explain:'map() tạo mảng MỚI, mỗi phần tử nhân 2.'},
+  {q:'<code>[5,3,8,1].filter(x => x > 4)</code> trả về?', opts:['[5,8]','[3,1]','8','2'], answer:0, explain:'filter() giữ lại phần tử thỏa điều kiện >4.'},
+  {q:'<code>users.find(u => u.name === "An")</code> trả về?', opts:['Mảng tất cả user tên An','Object user đầu tiên tên An','true/false','Index'], answer:1, explain:'find() trả về PHẦN TỬ ĐẦU TIÊN khớp, không phải mảng.'},
+  {q:'<code>const {a, b} = {a:1, b:2, c:3};</code> — a và b bằng?', opts:['undefined','1 và 2','{a:1} và {b:2}','Error'], answer:1, explain:'Destructuring rút giá trị từ object. a=1, b=2.'},
+  {q:'<code>[...arr1, ...arr2]</code> làm gì?', opts:['So sánh 2 mảng','Gộp 2 mảng thành 1','Nhân 2 mảng','Xóa phần tử trùng'], answer:1, explain:'Spread operator ... trải phần tử. Gộp 2 mảng thành mảng mới.'},
+  {q:'<code>.reduce((sum, n) => sum + n, 0)</code> dùng để?', opts:['Lọc mảng','Biến đổi mảng','Tính tổng (gộp thành 1 giá trị)','Sắp xếp mảng'], answer:2, explain:'reduce gộp mảng thành 1 giá trị. Ở đây là tính tổng.'}
+]),
 ].join('\n')});
 
 // =============================================
@@ -1738,6 +1834,227 @@ function checkChallenge(id, btn) {
   }
   console.log = origLog;
   renderOutput(output, logs.map(function(l){return {type:'log',text:l}}));
+}
+
+// ============================================
+// ===== EXAM SYSTEM (no answers until submit) =
+// ============================================
+function buildExam(examId, title, timeMinutes, questions) {
+  var html = '<div class="exam" id="exam-' + examId + '">';
+  html += '<div class="exam-header"><div class="exam-title">📋 ' + title + '</div>';
+  if (timeMinutes) html += '<div class="exam-timer" id="timer-' + examId + '">⏱ ' + timeMinutes + ':00</div>';
+  html += '</div>';
+  html += '<div class="exam-progress" id="prog-' + examId + '">';
+  questions.forEach(function(q,i) { html += '<div class="dot" onclick="scrollToExamQ(\'' + examId + '\',' + i + ')">' + (i+1) + '</div>'; });
+  html += '</div>';
+  questions.forEach(function(q, qi) {
+    html += '<div class="exam-q" id="eq-' + examId + '-' + qi + '" data-answer="' + q.answer + '">';
+    html += '<div class="q-num">Câu ' + (qi+1) + '/' + questions.length + '</div>';
+    html += '<div class="q-text">' + q.q + '</div>';
+    html += '<div class="q-opts">';
+    q.opts.forEach(function(opt, oi) {
+      html += '<label onclick="selectExamAnswer(\'' + examId + '\',' + qi + ',' + oi + ')">';
+      html += '<span class="radio-dot"></span>';
+      html += '<span class="opt-letter">' + String.fromCharCode(65+oi) + '.</span> ' + opt;
+      html += '</label>';
+    });
+    html += '</div>';
+    html += '<div class="q-explain" id="expl-' + examId + '-' + qi + '">' + (q.explain || '') + '</div>';
+    html += '</div>';
+  });
+  html += '<div class="exam-actions">';
+  html += '<button class="btn-submit" id="submit-' + examId + '" onclick="submitExam(\'' + examId + '\',' + questions.length + ',' + (timeMinutes||0) + ')">📝 Nộp bài</button>';
+  html += '<button class="btn-retry" id="retry-' + examId + '" onclick="retryExam(\'' + examId + '\')" style="display:none">🔄 Làm lại</button>';
+  html += '</div>';
+  html += '<div class="exam-score" id="score-' + examId + '" style="display:none"></div>';
+  html += '</div>';
+  return html;
+}
+
+var examAnswers = {}; // { examId: { 0: chosenIndex, 1: chosenIndex, ... } }
+var examTimers = {};
+
+function selectExamAnswer(examId, qi, oi) {
+  // Check if already submitted
+  var exam = document.getElementById('exam-' + examId);
+  if (exam.classList.contains('submitted')) return;
+
+  if (!examAnswers[examId]) examAnswers[examId] = {};
+  examAnswers[examId][qi] = oi;
+
+  // Update UI
+  var qDiv = document.getElementById('eq-' + examId + '-' + qi);
+  qDiv.classList.add('answered');
+  var labels = qDiv.querySelectorAll('label');
+  labels.forEach(function(l,i) {
+    l.classList.toggle('selected', i === oi);
+  });
+
+  // Update progress dots
+  var dots = document.querySelectorAll('#prog-' + examId + ' .dot');
+  dots[qi].classList.add('filled');
+
+  // Start timer on first answer
+  var timerEl = document.getElementById('timer-' + examId);
+  if (timerEl && !examTimers[examId]) {
+    var timeStr = timerEl.textContent.match(/(\d+):(\d+)/);
+    if (timeStr) {
+      var totalSec = parseInt(timeStr[1]) * 60 + parseInt(timeStr[2]);
+      startExamTimer(examId, totalSec);
+    }
+  }
+}
+
+function startExamTimer(examId, totalSec) {
+  var timerEl = document.getElementById('timer-' + examId);
+  if (!timerEl) return;
+  examTimers[examId] = setInterval(function() {
+    totalSec--;
+    if (totalSec <= 0) {
+      clearInterval(examTimers[examId]);
+      timerEl.textContent = '⏱ Hết giờ!';
+      timerEl.classList.add('urgent');
+      // Auto submit
+      var exam = document.getElementById('exam-' + examId);
+      if (!exam.classList.contains('submitted')) {
+        var total = exam.querySelectorAll('.exam-q').length;
+        submitExam(examId, total, 0);
+      }
+      return;
+    }
+    var m = Math.floor(totalSec/60), s = totalSec%60;
+    timerEl.textContent = '⏱ ' + m + ':' + (s<10?'0':'') + s;
+    if (totalSec <= 60) timerEl.classList.add('urgent');
+  }, 1000);
+}
+
+function scrollToExamQ(examId, qi) {
+  var el = document.getElementById('eq-' + examId + '-' + qi);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function submitExam(examId, total, timeMin) {
+  var exam = document.getElementById('exam-' + examId);
+  var answers = examAnswers[examId] || {};
+
+  // Check unanswered
+  var unanswered = [];
+  for (var i = 0; i < total; i++) {
+    if (answers[i] === undefined) unanswered.push(i + 1);
+  }
+  if (unanswered.length > 0) {
+    if (!confirm('Bạn chưa trả lời câu: ' + unanswered.join(', ') + '.\nVẫn muốn nộp bài?')) return;
+  }
+
+  // Stop timer
+  if (examTimers[examId]) { clearInterval(examTimers[examId]); delete examTimers[examId]; }
+
+  // Mark submitted
+  exam.classList.add('submitted');
+  document.getElementById('submit-' + examId).disabled = true;
+  document.getElementById('submit-' + examId).style.display = 'none';
+  document.getElementById('retry-' + examId).style.display = 'inline-block';
+
+  // Grade
+  var correct = 0;
+  var qs = exam.querySelectorAll('.exam-q');
+  var dots = document.querySelectorAll('#prog-' + examId + ' .dot');
+
+  qs.forEach(function(qDiv, qi) {
+    var correctAns = parseInt(qDiv.getAttribute('data-answer'));
+    var chosen = answers[qi];
+    var labels = qDiv.querySelectorAll('label');
+    var explainDiv = document.getElementById('expl-' + examId + '-' + qi);
+
+    // Disable clicking
+    labels.forEach(function(l) { l.style.pointerEvents = 'none'; });
+
+    // Reveal correct answer
+    labels[correctAns].classList.add('reveal-correct');
+
+    if (chosen === correctAns) {
+      correct++;
+      qDiv.classList.add('q-correct');
+      dots[qi].classList.add('dot-correct');
+      if (explainDiv.textContent) {
+        explainDiv.classList.add('show', 'explain-correct');
+        explainDiv.innerHTML = '✅ Chính xác! ' + explainDiv.textContent;
+      }
+    } else {
+      qDiv.classList.add('q-wrong');
+      dots[qi].classList.add('dot-wrong');
+      if (chosen !== undefined) labels[chosen].classList.add('reveal-wrong');
+      if (explainDiv.textContent) {
+        explainDiv.classList.add('show', 'explain-wrong');
+        explainDiv.innerHTML = '❌ Sai. ' + explainDiv.textContent;
+      }
+    }
+  });
+
+  // Show score
+  var pct = Math.round(correct / total * 100);
+  var scoreDiv = document.getElementById('score-' + examId);
+  var grade, gradeText;
+  if (pct >= 90) { grade = 'grade-a'; gradeText = '🏆 Xuất sắc!'; }
+  else if (pct >= 70) { grade = 'grade-b'; gradeText = '👏 Giỏi lắm!'; }
+  else if (pct >= 50) { grade = 'grade-c'; gradeText = '👍 Khá! Cần ôn thêm.'; }
+  else { grade = 'grade-f'; gradeText = '💪 Chưa đạt. Hãy xem lại bài học!'; }
+
+  scoreDiv.className = 'exam-score ' + grade;
+  scoreDiv.style.display = 'block';
+  scoreDiv.innerHTML = '<div class="score-num">' + correct + '/' + total + '</div>' +
+    '<div class="score-label">' + pct + '% — ' + gradeText + '</div>' +
+    '<div class="score-bar"><div class="score-fill" style="width:0%"></div></div>';
+
+  // Animate score bar
+  setTimeout(function() {
+    scoreDiv.querySelector('.score-fill').style.width = pct + '%';
+  }, 100);
+
+  // XP reward
+  if (pct >= 90) addXP(100);
+  else if (pct >= 70) addXP(60);
+  else if (pct >= 50) addXP(30);
+  else addXP(10);
+
+  // GA tracking
+  if (typeof gtag === 'function') gtag('event', 'submit_exam', { exam_id: examId, score: pct, correct: correct, total: total });
+}
+
+function retryExam(examId) {
+  var exam = document.getElementById('exam-' + examId);
+  exam.classList.remove('submitted');
+  examAnswers[examId] = {};
+
+  // Reset questions
+  var qs = exam.querySelectorAll('.exam-q');
+  qs.forEach(function(qDiv, qi) {
+    qDiv.classList.remove('answered', 'q-correct', 'q-wrong');
+    var labels = qDiv.querySelectorAll('label');
+    labels.forEach(function(l) {
+      l.classList.remove('selected', 'reveal-correct', 'reveal-wrong');
+      l.style.pointerEvents = '';
+    });
+    var expl = document.getElementById('expl-' + examId + '-' + qi);
+    expl.classList.remove('show', 'explain-correct', 'explain-wrong');
+    // Restore original text
+    expl.innerHTML = expl.textContent.replace(/^[✅❌] (Chính xác! |Sai\. )/, '');
+  });
+
+  // Reset progress dots
+  var dots = document.querySelectorAll('#prog-' + examId + ' .dot');
+  dots.forEach(function(d) { d.classList.remove('filled', 'dot-correct', 'dot-wrong'); });
+
+  // Reset buttons
+  document.getElementById('submit-' + examId).disabled = false;
+  document.getElementById('submit-' + examId).style.display = '';
+  document.getElementById('retry-' + examId).style.display = 'none';
+  document.getElementById('score-' + examId).style.display = 'none';
+
+  // Reset timer
+  var timerEl = document.getElementById('timer-' + examId);
+  if (timerEl) { timerEl.classList.remove('urgent'); }
+  if (examTimers[examId]) { clearInterval(examTimers[examId]); delete examTimers[examId]; }
 }
 
 // ============================================
