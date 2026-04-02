@@ -360,9 +360,9 @@ D.push({id:0,title:"Giới thiệu",week:"Trước khi bắt đầu",phase:0,htm
 '<h2>Lộ trình học</h2>',
 '<table>',
 '<tr><th>Giai đoạn</th><th>Thời gian</th><th>Nội dung</th></tr>',
-'<tr><td>🟡 Phase 1</td><td>Tuần 1–3</td><td>JavaScript cơ bản: biến, điều kiện, vòng lặp, hàm, mảng, bất đồng bộ</td></tr>',
-'<tr><td>🟢 Phase 2</td><td>Tuần 4–6</td><td>Playwright cơ bản: cài đặt, viết test, tương tác trang web</td></tr>',
-'<tr><td>🔴 Phase 3</td><td>Tuần 7–10</td><td>Nâng cao: POM, API test, CI/CD, dự án thực tế</td></tr>',
+'<tr><td>🟡 Phase 1</td><td>Tuần 1–4</td><td>JavaScript cơ bản: biến, điều kiện, vòng lặp, hàm, mảng, bất đồng bộ, OOP & HTML</td></tr>',
+'<tr><td>🟢 Phase 2</td><td>Tuần 5–7</td><td>Playwright cơ bản: cài đặt, debug, viết test, tương tác trang web</td></tr>',
+'<tr><td>🔴 Phase 3</td><td>Tuần 8–11</td><td>Nâng cao: POM, API test, data-driven, fixtures, visual test, CI/CD, dự án thực tế</td></tr>',
 '</table>',
 
 '<h2>Cần chuẩn bị gì?</h2>',
@@ -886,7 +886,24 @@ defined_pg('Thử Object', 'let user = {\n  ten: "Minh",         // key: "ten", 
 
 '<hr class="sep">',
 
-'<h2>4. Destructuring & Spread</h2>',
+'<h2>4. Array of Objects — Cấu trúc dữ liệu QUAN TRỌNG nhất</h2>',
+'<div class="b idea">💡 Trong thực tế (API, database, test data), dữ liệu gần như luôn ở dạng <strong>mảng chứa nhiều object</strong>. Đây là cấu trúc bạn sẽ gặp nhiều nhất khi làm automation.</div>',
+
+defined_pg('Thử Array of Objects', 'const users = [\n  { ten: "An", tuoi: 20, role: "user" },\n  { ten: "Binh", tuoi: 17, role: "user" },\n  { ten: "Cuong", tuoi: 25, role: "admin" },\n  { ten: "Dao", tuoi: 30, role: "admin" },\n  { ten: "Em", tuoi: 15, role: "user" }\n];\n\n// Lọc người trên 18 tuổi\nconst adults = users.filter(u => u.tuoi >= 18);\nconsole.log("Tren 18:", adults.map(u => u.ten));\n\n// Tìm tất cả admin\nconst admins = users.filter(u => u.role === "admin");\nconsole.log("Admins:", admins);\n\n// Tính tuổi trung bình\nconst tbTuoi = users.reduce((s, u) => s + u.tuoi, 0) / users.length;\nconsole.log("Tuoi TB:", tbTuoi);\n\n// Sắp xếp theo tuổi giảm dần\nconst sorted = [...users].sort((a, b) => b.tuoi - a.tuoi);\nconsole.log("Sap xep:", sorted.map(u => `${u.ten}(${u.tuoi})`));', 20),
+
+'<h3>4.1. Các pattern thường dùng</h3>',
+'<pre>// Tạo mảng chỉ chứa tên\nconst names = users.map(u => u.ten);\n// ["An", "Binh", "Cuong", "Dao", "Em"]\n\n// Nhóm theo role\nconst grouped = {};\nusers.forEach(u => {\n  if (!grouped[u.role]) grouped[u.role] = [];\n  grouped[u.role].push(u);\n});\n// { user: [...], admin: [...] }\n\n// Kiểm tra có ai tên "Cuong" không?\nconst hasCuong = users.some(u => u.ten === "Cuong"); // true\n\n// Tất cả đều trên 10 tuổi?\nconst allAbove10 = users.every(u => u.tuoi > 10); // true</pre>',
+
+'<div class="b ok"><strong>Mẹo:</strong> <code>.some()</code> = "có ÍT NHẤT 1 phần tử thỏa?". <code>.every()</code> = "TẤT CẢ đều thỏa?"</div>',
+
+'<h3>4.2. Ví dụ thực tế: Xử lý dữ liệu sản phẩm</h3>',
+defined_pg('Xử lý sản phẩm', 'const products = [\n  { name: "Iphone 15", price: 25000000, stock: 10 },\n  { name: "Samsung S24", price: 22000000, stock: 0 },\n  { name: "Pixel 8", price: 18000000, stock: 5 },\n  { name: "Xiaomi 14", price: 12000000, stock: 20 }\n];\n\n// Sản phẩm còn hàng, giá dưới 20 triệu\nconst affordable = products\n  .filter(p => p.stock > 0 && p.price < 20000000)\n  .map(p => `${p.name}: ${(p.price/1000000)}tr`);\nconsole.log("Gia tot, con hang:", affordable);\n\n// Tổng giá trị kho hàng\nconst totalValue = products.reduce((sum, p) => sum + p.price * p.stock, 0);\nconsole.log("Tong gia tri kho:", (totalValue/1000000) + " trieu");', 16),
+
+'<div class="mini">Cho mảng students (ten, diem, lop). Lọc học sinh giỏi (diem >= 8), nhóm theo lớp, tính điểm trung bình mỗi lớp.</div>',
+
+'<hr class="sep">',
+
+'<h2>5. Destructuring & Spread</h2>',
 
 '<h3>4.1. Destructuring — "Mở hộp" nhanh</h3>',
 defined_pg('Thử destructuring', '// Array destructuring\nconst [a, b, c] = [1, 2, 3];\nconsole.log(a, b, c); // 1 2 3\n\n// Object destructuring\nconst user = { ten: "Minh", tuoi: 25, tp: "HCMC" };\nconst { ten, tuoi } = user;\nconsole.log(ten);  // "Minh"\nconsole.log(tuoi); // 25', 9),
@@ -993,6 +1010,20 @@ defined_pg('Thử try/catch', 'try {\n  // Thử chạy code có thể lỗi\n  
 
 '<hr class="sep">',
 
+'<h2>5. Promise.all & Promise.race — Chạy nhiều tác vụ cùng lúc</h2>',
+'<div class="b idea">💡 <strong>Promise.all</strong> = gọi 3 món cùng lúc, chờ TẤT CẢ xong mới ăn.<br><strong>Promise.race</strong> = gọi 3 món, ai xong TRƯỚC thì ăn trước.</div>',
+
+defined_pg('Thử Promise.all', 'function layUser() {\n  return new Promise(r => setTimeout(() => r({ name: "Minh" }), 1000));\n}\nfunction layOrders() {\n  return new Promise(r => setTimeout(() => r([{ id: 1, total: 500000 }]), 800));\n}\nfunction laySettings() {\n  return new Promise(r => setTimeout(() => r({ theme: "dark" }), 600));\n}\n\nasync function main() {\n  console.log("Goi 3 API cung luc...");\n  const start = Date.now();\n\n  // Promise.all — chạy SONG SONG, nhanh hơn nhiều!\n  const [user, orders, settings] = await Promise.all([\n    layUser(), layOrders(), laySettings()\n  ]);\n\n  console.log("Xong sau", Date.now() - start, "ms");\n  console.log("User:", user);\n  console.log("Orders:", orders);\n  console.log("Settings:", settings);\n}\nmain();', 20),
+
+'<div class="b warn"><strong>Lưu ý:</strong> <code>Promise.all</code> fail nếu BẤT KỲ promise nào fail. Dùng <code>Promise.allSettled</code> nếu muốn biết kết quả tất cả (kể cả fail).</div>',
+
+'<pre>// Promise.race — ai xong trước thắng\nconst kq = await Promise.race([\n  fetch("/api/main"),           // server chính\n  fetch("/api/backup"),         // server dự phòng\n]);\n// Trả về response của server nào phản hồi nhanh hơn\n\n// Promise.allSettled — không fail khi 1 promise fail\nconst results = await Promise.allSettled([\n  fetch("/api/users"),\n  fetch("/api/orders"),  // có thể fail\n]);\nresults.forEach(r => {\n  if (r.status === "fulfilled") console.log("OK:", r.value);\n  else console.log("FAIL:", r.reason);\n});</pre>',
+
+'<h3>Ví dụ thực tế: Gọi nhiều API trong Playwright</h3>',
+'<pre>// Trong Playwright test, bạn sẽ thường gặp pattern này:\ntest("Load dashboard data", async ({ page }) => {\n  // Chờ nhiều API response cùng lúc\n  const [usersRes, ordersRes] = await Promise.all([\n    page.waitForResponse("**/api/users"),\n    page.waitForResponse("**/api/orders"),\n    page.goto("https://example.com/dashboard") // trigger cả 2 API\n  ]);\n\n  expect(usersRes.status()).toBe(200);\n  expect(ordersRes.status()).toBe(200);\n});</pre>',
+
+'<hr class="sep">',
+
 '<h2>Bài tập cuối Module 5</h2>',
 
 '<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
@@ -1015,9 +1046,94 @@ defined_pg('Làm bài tập tại đây', '// Viết code bài tập tại đây
 ].join('\n')});
 
 // =============================================
-// MODULE 6 — PLAYWRIGHT CƠ BẢN
+// MODULE 6 — CLASS, OOP & HTML CƠ BẢN (MỚI)
 // =============================================
-D.push({id:6,title:"Playwright Cơ bản",week:"Tuần 4",phase:2,html:[
+D.push({id:6,title:"Class, OOP & HTML",week:"Tuần 3-4",phase:1,html:[
+'<h2>1. Tại sao cần học phần này?</h2>',
+'<div class="b idea">💡 Ở Module 9 (Page Object Model), bạn sẽ viết <code>class LoginPage extends BasePage</code>. Nếu không hiểu class/constructor/extends, bạn sẽ bị "sốc".<br><br>Ngoài ra, để viết locator tốt trong Playwright, bạn cần hiểu HTML cơ bản.</div>',
+
+'<h2>2. Class — "Bản thiết kế"</h2>',
+'<div class="b idea">💡 Class giống <strong>bản thiết kế nhà</strong>. Bạn vẽ bản thiết kế 1 lần, rồi xây nhiều căn nhà từ bản đó. Mỗi căn nhà (object) có cùng cấu trúc nhưng khác dữ liệu.</div>',
+
+defined_pg('Thử Class', 'class Animal {\n  // constructor = "khởi tạo" — chạy khi tạo object mới\n  constructor(ten, tuoi) {\n    this.ten = ten;   // this = chính object này\n    this.tuoi = tuoi;\n  }\n\n  // Method = hàm bên trong class\n  gioi_thieu() {\n    return `Toi la ${this.ten}, ${this.tuoi} tuoi.`;\n  }\n}\n\n// Tạo object từ class (gọi là "instance")\nconst meo = new Animal("Miu", 3);\nconst cho = new Animal("Lucky", 5);\n\nconsole.log(meo.gioi_thieu()); // "Toi la Miu, 3 tuoi."\nconsole.log(cho.gioi_thieu()); // "Toi la Lucky, 5 tuoi."\nconsole.log(meo.ten);          // "Miu"', 18),
+
+'<table>',
+'<tr><th>Khái niệm</th><th>Nghĩa</th><th>Ví dụ</th></tr>',
+'<tr><td><code>class</code></td><td>Bản thiết kế</td><td>Bản vẽ nhà</td></tr>',
+'<tr><td><code>constructor()</code></td><td>Hàm khởi tạo, chạy khi <code>new</code></td><td>Đặt nền móng</td></tr>',
+'<tr><td><code>this</code></td><td>Chính object hiện tại</td><td>"Căn nhà này"</td></tr>',
+'<tr><td><code>new ClassName()</code></td><td>Tạo object mới từ class</td><td>Xây 1 căn nhà</td></tr>',
+'<tr><td>Method</td><td>Hàm bên trong class</td><td>Chức năng của nhà (mở cửa, bật đèn)</td></tr>',
+'</table>',
+
+'<h3>2.1. extends — Kế thừa</h3>',
+'<div class="b idea">💡 <code>extends</code> = "class con thừa hưởng mọi thứ từ class cha, rồi thêm của riêng mình".<br>Giống: Con kế thừa họ của cha, nhưng có tên riêng.</div>',
+
+defined_pg('Thử extends', 'class Animal {\n  constructor(ten) {\n    this.ten = ten;\n  }\n  keu() {\n    return "...";\n  }\n}\n\n// Dog KẾ THỪA từ Animal\nclass Dog extends Animal {\n  constructor(ten, giong) {\n    super(ten);        // gọi constructor CHA\n    this.giong = giong; // thêm thuộc tính riêng\n  }\n  keu() {\n    return "Gau gau!"; // GHI ĐÈ method cha\n  }\n}\n\nconst d = new Dog("Lucky", "Corgi");\nconsole.log(d.ten);    // "Lucky" (từ cha)\nconsole.log(d.giong);  // "Corgi" (riêng)\nconsole.log(d.keu());  // "Gau gau!" (ghi đè)', 22),
+
+'<div class="b warn"><strong>super()</strong> = gọi constructor của class cha. BẮT BUỘC phải gọi <code>super()</code> trong constructor của class con TRƯỚC khi dùng <code>this</code>.</div>',
+
+'<h3>2.2. Tại sao liên quan đến Playwright?</h3>',
+'<pre>// Đây chính xác là cấu trúc Page Object Model:\nclass BasePage {\n  constructor(page) {\n    this.page = page;  // lưu page của Playwright\n  }\n  async goto(url) {\n    await this.page.goto(url);\n  }\n}\n\nclass LoginPage extends BasePage {\n  constructor(page) {\n    super(page);  // truyền page cho BasePage\n    this.username = page.locator("#username");\n    this.password = page.locator("#password");\n  }\n  async login(user, pass) {\n    await this.username.fill(user);\n    await this.password.fill(pass);\n  }\n}\n\n// Bây giờ bạn hiểu POM rồi! 🎉</pre>',
+
+'<hr class="sep">',
+
+'<h2>3. HTML Cơ bản — Hiểu cấu trúc trang web</h2>',
+'<div class="b idea">💡 Để viết locator trong Playwright, bạn cần hiểu HTML. HTML = "bộ xương" của trang web. Mỗi thành phần trên trang (nút, ô input, text...) đều là 1 thẻ HTML.</div>',
+
+'<h3>3.1. Cấu trúc thẻ HTML</h3>',
+'<pre>&lt;!-- Cú pháp: &lt;thẻ thuộc-tính="giá-trị"&gt;Nội dung&lt;/thẻ&gt; --&gt;\n\n&lt;button id="login-btn" class="btn primary"&gt;Đăng nhập&lt;/button&gt;\n│        │              │                    │\n│        │              │                    └── Nội dung (text)\n│        │              └── class = tên nhóm (CSS styling)\n│        └── id = tên DUY NHẤT (giống CMND)\n└── Tên thẻ (button = nút bấm)</pre>',
+
+'<h3>3.2. Các thẻ HTML phổ biến trong testing</h3>',
+'<table>',
+'<tr><th>Thẻ</th><th>Nghĩa</th><th>Playwright locator</th></tr>',
+'<tr><td><code>&lt;button&gt;</code></td><td>Nút bấm</td><td><code>getByRole("button")</code></td></tr>',
+'<tr><td><code>&lt;input&gt;</code></td><td>Ô nhập liệu</td><td><code>getByLabel() / getByPlaceholder()</code></td></tr>',
+'<tr><td><code>&lt;a href="..."&gt;</code></td><td>Đường link</td><td><code>getByRole("link")</code></td></tr>',
+'<tr><td><code>&lt;select&gt;</code></td><td>Dropdown</td><td><code>page.selectOption()</code></td></tr>',
+'<tr><td><code>&lt;h1&gt;–&lt;h6&gt;</code></td><td>Tiêu đề</td><td><code>getByRole("heading")</code></td></tr>',
+'<tr><td><code>&lt;div&gt;, &lt;span&gt;</code></td><td>Khối chứa, inline</td><td><code>page.locator(".class")</code></td></tr>',
+'<tr><td><code>&lt;form&gt;</code></td><td>Form nhập liệu</td><td>Chứa input + button</td></tr>',
+'<tr><td><code>&lt;label&gt;</code></td><td>Nhãn cho input</td><td><code>getByLabel()</code></td></tr>',
+'<tr><td><code>&lt;img&gt;</code></td><td>Hình ảnh</td><td><code>getByRole("img")</code></td></tr>',
+'<tr><td><code>&lt;table&gt;</code></td><td>Bảng</td><td><code>page.locator("table")</code></td></tr>',
+'</table>',
+
+'<h3>3.3. Thuộc tính quan trọng cho testing</h3>',
+'<pre>&lt;input\n  id="email"                    ← DUY NHẤT trên trang\n  class="form-input large"      ← có thể trùng nhiều phần tử\n  name="user_email"             ← tên field trong form\n  type="email"                  ← loại input (text/email/password/checkbox...)\n  placeholder="Nhập email..."   ← gợi ý khi trống\n  data-testid="email-input"     ← dev thêm riêng cho test\n  aria-label="Email address"    ← accessibility label\n/&gt;</pre>',
+
+'<div class="b ok"><strong>Mẹo:</strong> Nhấn <strong>F12</strong> (hoặc Ctrl+Shift+I) trên trình duyệt để mở <strong>DevTools</strong>. Tab <strong>Elements</strong> hiện toàn bộ HTML của trang. Đây là công cụ số 1 khi viết locator!</div>',
+
+'<h3>3.4. DOM Tree — Cấu trúc cây</h3>',
+'<pre>&lt;html&gt;\n  └── &lt;body&gt;\n       ├── &lt;header&gt;\n       │    └── &lt;nav&gt; ... &lt;/nav&gt;\n       ├── &lt;main&gt;\n       │    ├── &lt;form id="login"&gt;\n       │    │    ├── &lt;label&gt;Email&lt;/label&gt;\n       │    │    ├── &lt;input type="email"&gt;\n       │    │    ├── &lt;label&gt;Password&lt;/label&gt;\n       │    │    ├── &lt;input type="password"&gt;\n       │    │    └── &lt;button&gt;Login&lt;/button&gt;\n       │    └── &lt;div class="error"&gt;&lt;/div&gt;\n       └── &lt;footer&gt; ... &lt;/footer&gt;</pre>',
+'<div class="b info">Playwright duyệt cây DOM này để tìm phần tử. Hiểu cấu trúc cây = viết locator chính xác hơn.</div>',
+
+'<hr class="sep">',
+
+'<h2>Bài tập cuối Module 6</h2>',
+'<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
+'<p>Tạo class <code>HinhChuNhat</code> với thuộc tính dai, rong. Thêm method <code>dienTich()</code> và <code>chuVi()</code>.</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>class HinhChuNhat {\n  constructor(dai, rong) {\n    this.dai = dai;\n    this.rong = rong;\n  }\n  dienTich() { return this.dai * this.rong; }\n  chuVi() { return 2 * (this.dai + this.rong); }\n}\nconst h = new HinhChuNhat(5, 3);\nconsole.log("DT:", h.dienTich()); // 15\nconsole.log("CV:", h.chuVi());    // 16</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag ty">🟡 Bài 2</span>',
+'<p>Tạo class <code>NhanVien</code> (ten, luong). Tạo class <code>QuanLy extends NhanVien</code> thêm thuộc tính <code>soPhoiHop</code>. QuanLy có method <code>thuong()</code> trả về luong * 0.2.</p>',
+'<details><summary>Xem đáp án</summary>',
+'<pre>class NhanVien {\n  constructor(ten, luong) {\n    this.ten = ten;\n    this.luong = luong;\n  }\n}\nclass QuanLy extends NhanVien {\n  constructor(ten, luong, soPhoiHop) {\n    super(ten, luong);\n    this.soPhoiHop = soPhoiHop;\n  }\n  thuong() { return this.luong * 0.2; }\n}\nconst ql = new QuanLy("Minh", 20000000, 5);\nconsole.log(ql.ten, "thuong:", ql.thuong());</pre>',
+'</details></div>',
+
+'<div class="ex"><span class="tag tr">🔴 Bài 3</span>',
+'<p>Mở F12 trên trang <code>https://www.saucedemo.com</code>. Tìm id, class, type của ô username, ô password, và nút Login. Viết ra 3 CSS selector cho chúng.</p>',
+'</div>',
+
+defined_pg('Làm bài tập tại đây', '// Viết code bài tập tại đây\n', 4),
+].join('\n')});
+
+// =============================================
+// MODULE 7 — PLAYWRIGHT CƠ BẢN (cũ M6)
+// =============================================
+D.push({id:7,title:"Playwright Cơ bản",week:"Tuần 5",phase:2,html:[
 '<h2>1. Playwright là gì?</h2>',
 '<div class="b idea">💡 Playwright giống <strong>robot ngồi trước máy tính</strong>: tự mở trình duyệt, gõ text, click nút, kiểm tra kết quả — thay bạn. Nhanh hơn, không mệt, không sai sót.</div>',
 
@@ -1068,7 +1184,38 @@ D.push({id:6,title:"Playwright Cơ bản",week:"Tuần 4",phase:2,html:[
 
 '<hr class="sep">',
 
-'<h2>Bài tập cuối Module 6</h2>',
+'<h2>7. Debug — Khi test không chạy đúng</h2>',
+'<div class="b idea">💡 Test fail là bình thường. Quan trọng là biết cách <strong>debug</strong> — tìm ra lỗi ở đâu. Playwright có nhiều công cụ debug cực mạnh.</div>',
+
+'<h3>7.1. --headed — Xem robot thao tác</h3>',
+'<pre>npx playwright test --headed\n# Mở trình duyệt, bạn thấy robot click, gõ từng bước</pre>',
+
+'<h3>7.2. --debug — Debug từng bước</h3>',
+'<pre>npx playwright test --debug\n# Mở Playwright Inspector: chạy từng dòng, xem locator, DOM</pre>',
+'<div class="b ok"><strong>Inspector</strong> là công cụ debug số 1. Bạn có thể:<br>- Nhấn Step Over để chạy từng dòng<br>- Hover lên locator để thấy phần tử được highlight<br>- Pick Locator để tìm locator tốt nhất cho phần tử</div>',
+
+'<h3>7.3. page.pause() — Dừng giữa test</h3>',
+'<pre>test("Debug login", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/login");\n  await page.fill("#username", "tomsmith");\n\n  await page.pause(); // ← DỪNG Ở ĐÂY! Mở Inspector\n\n  await page.fill("#password", "SuperSecretPassword!");\n  await page.click(\'button[type="submit"]\');\n});</pre>',
+
+'<h3>7.4. Trace Viewer — "Camera an ninh" cho test</h3>',
+'<pre># Chạy test với trace\nnpx playwright test --trace on\n\n# Mở trace viewer sau khi chạy\nnpx playwright show-trace trace.zip</pre>',
+'<div class="b info"><strong>Trace Viewer</strong> ghi lại MỌI THỨ: screenshot mỗi bước, network requests, console logs, DOM snapshot. Giống camera an ninh — xem lại chuyện gì đã xảy ra.</div>',
+
+'<h3>7.5. Screenshot khi fail</h3>',
+'<pre>// Trong playwright.config.js:\nuse: {\n  screenshot: "only-on-failure",  // tự chụp khi fail\n  video: "retain-on-failure",     // quay video khi fail\n  trace: "retain-on-failure",     // ghi trace khi fail\n}</pre>',
+
+'<h3>7.6. Lỗi phổ biến và cách fix</h3>',
+'<table>',
+'<tr><th>Lỗi</th><th>Nguyên nhân</th><th>Cách fix</th></tr>',
+'<tr><td><code>Timeout</code></td><td>Phần tử chưa xuất hiện</td><td>Kiểm tra locator, tăng timeout</td></tr>',
+'<tr><td><code>strict mode violation</code></td><td>Locator khớp nhiều phần tử</td><td>Dùng <code>.first()</code> hoặc locator cụ thể hơn</td></tr>',
+'<tr><td><code>Element not visible</code></td><td>Phần tử bị ẩn</td><td>Scroll, hover, hoặc chờ visible</td></tr>',
+'<tr><td><code>Navigation interrupted</code></td><td>Trang chuyển hướng</td><td>Dùng <code>waitForURL()</code></td></tr>',
+'</table>',
+
+'<hr class="sep">',
+
+'<h2>Bài tập cuối Module 7</h2>',
 '<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
 '<p>Viết test mở <code>https://the-internet.herokuapp.com</code>, kiểm tra title chứa "The Internet".</p>',
 '<details><summary>Xem đáp án</summary>',
@@ -1082,14 +1229,14 @@ D.push({id:6,title:"Playwright Cơ bản",week:"Tuần 4",phase:2,html:[
 '</details></div>',
 
 '<div class="ex"><span class="tag tr">🔴 Bài 3</span>',
-'<p>Viết test login SAI (username sai). Kiểm tra thấy thông báo lỗi.</p>',
+'<p>Viết test login SAI. Thêm <code>page.pause()</code> để debug. Chạy với <code>--debug</code> và sử dụng Inspector.</p>',
 '</div>',
 ].join('\n')});
 
 // =============================================
-// MODULE 7 — LOCATOR & ACTIONS
+// MODULE 8 — LOCATOR & ACTIONS (cũ M7)
 // =============================================
-D.push({id:7,title:"Locator & Actions",week:"Tuần 4-5",phase:2,html:[
+D.push({id:8,title:"Locator & Actions",week:"Tuần 5-6",phase:2,html:[
 '<h2>1. Locator — "Địa chỉ" phần tử trên trang</h2>',
 '<div class="b idea">💡 Muốn robot click nút → phải chỉ cho nó biết nút ở đâu. <strong>Locator = "địa chỉ"</strong> của phần tử trên trang web.</div>',
 
@@ -1154,9 +1301,9 @@ D.push({id:7,title:"Locator & Actions",week:"Tuần 4-5",phase:2,html:[
 ].join('\n')});
 
 // =============================================
-// MODULE 8 — ASSERTIONS & TỔ CHỨC TEST
+// MODULE 9 — ASSERTIONS & TỔ CHỨC TEST (cũ M8)
 // =============================================
-D.push({id:8,title:"Assertions & Tổ chức Test",week:"Tuần 5-6",phase:2,html:[
+D.push({id:9,title:"Assertions & Tổ chức Test",week:"Tuần 6-7",phase:2,html:[
 '<h2>1. Assertions — "Giám khảo chấm thi"</h2>',
 '<div class="b idea">💡 Robot (Playwright) thao tác xong → Assertion kiểm tra: "Kết quả có đúng như mong đợi không?" Giống giám khảo chấm thi sau khi thí sinh làm bài.</div>',
 
@@ -1192,9 +1339,9 @@ D.push({id:8,title:"Assertions & Tổ chức Test",week:"Tuần 5-6",phase:2,htm
 ].join('\n')});
 
 // =============================================
-// MODULE 9 — PAGE OBJECT MODEL
+// MODULE 10 — PAGE OBJECT MODEL (cũ M9)
 // =============================================
-D.push({id:9,title:"Page Object Model (POM)",week:"Tuần 7",phase:3,html:[
+D.push({id:10,title:"Page Object Model (POM)",week:"Tuần 8",phase:3,html:[
 '<h2>1. Vấn đề khi KHÔNG dùng POM</h2>',
 '<div class="b idea">💡 Bạn có 50 file test, mỗi file viết <code>page.fill("#username",...)</code>. Một ngày dev đổi id thành <code>#user-name</code>. Bạn phải sửa 50 file! 😱<br><br><strong>POM giải quyết:</strong> gom tất cả locator vào 1 file. Đổi UI → sửa 1 file duy nhất.</div>',
 
@@ -1228,9 +1375,9 @@ D.push({id:9,title:"Page Object Model (POM)",week:"Tuần 7",phase:3,html:[
 ].join('\n')});
 
 // =============================================
-// MODULE 10 — API TESTING
+// MODULE 11 — API TESTING & DATA-DRIVEN (cũ M10)
 // =============================================
-D.push({id:10,title:"API Testing & Mock",week:"Tuần 8",phase:3,html:[
+D.push({id:11,title:"API Testing & Data-driven",week:"Tuần 9",phase:3,html:[
 '<h2>1. API Testing là gì?</h2>',
 '<div class="b idea">💡 <strong>UI Test</strong> = đi nhà hàng, gọi món, chờ bưng ra, kiểm tra. Chậm nhưng sát thực tế.<br><strong>API Test</strong> = vào thẳng bếp, kiểm tra nguyên liệu và quy trình. <strong>Nhanh hơn rất nhiều.</strong></div>',
 
@@ -1261,16 +1408,32 @@ D.push({id:10,title:"API Testing & Mock",week:"Tuần 8",phase:3,html:[
 '<pre>test("Sua gia san pham", async ({ page }) => {\n  await page.route("**/api/products", async function(route) {\n    const response = await route.fetch(); // gọi API thật\n    const body = await response.json();\n    body.products[0].price = 0;           // sửa giá = 0\n    await route.fulfill({\n      response: response,\n      body: JSON.stringify(body)\n    });\n  });\n  await page.goto("https://example.com/products");\n  // Kiểm tra UI hiện giá = 0\n});</pre>',
 
 '<hr class="sep">',
-'<h2>Bài tập cuối Module 10</h2>',
+
+'<h2>8. Data-driven Testing — Test từ file dữ liệu</h2>',
+'<div class="b idea">💡 Thay vì hardcode test data trong code, đọc từ file JSON/CSV. Thêm test case mới = thêm 1 dòng data, không sửa code!</div>',
+
+'<h3>8.1. Test data từ JSON file</h3>',
+'<pre>// test-data/login-data.json\n[\n  { "user": "tomsmith", "pass": "SuperSecretPassword!", "expected": "success" },\n  { "user": "wrong", "pass": "wrong", "expected": "error" },\n  { "user": "", "pass": "", "expected": "error" },\n  { "user": "tomsmith", "pass": "", "expected": "error" },\n  { "user": "", "pass": "SuperSecretPassword!", "expected": "error" }\n]</pre>',
+
+'<pre>// tests/login-data-driven.spec.js\nconst { test, expect } = require("@playwright/test");\nconst loginData = require("../test-data/login-data.json");\n\nfor (const data of loginData) {\n  test(`Login: ${data.user || "(empty)"} → ${data.expected}`,\n    async ({ page }) => {\n      await page.goto("https://the-internet.herokuapp.com/login");\n      await page.fill("#username", data.user);\n      await page.fill("#password", data.pass);\n      await page.click(\'button[type="submit"]\');\n\n      if (data.expected === "success") {\n        await expect(page.locator(".flash.success")).toBeVisible();\n      } else {\n        await expect(page.locator(".flash.error")).toBeVisible();\n      }\n    });\n}</pre>',
+
+'<div class="b ok"><strong>Lợi ích:</strong> Thêm 100 test case = thêm 100 dòng JSON. Code test KHÔNG ĐỔI. QA (không biết code) cũng thêm được test data.</div>',
+
+'<h3>8.2. Test data từ CSV</h3>',
+'<pre>// utils/csv-reader.js\nconst fs = require("fs");\n\nfunction readCSV(filePath) {\n  const content = fs.readFileSync(filePath, "utf-8");\n  const lines = content.trim().split("\\n");\n  const headers = lines[0].split(",");\n  return lines.slice(1).map(line => {\n    const values = line.split(",");\n    const obj = {};\n    headers.forEach((h, i) => obj[h.trim()] = values[i].trim());\n    return obj;\n  });\n}\nmodule.exports = { readCSV };</pre>',
+
+'<hr class="sep">',
+
+'<h2>Bài tập cuối Module 11</h2>',
 '<div class="ex"><span class="tag tg">🟢 Bài 1</span><p>GET /api/users từ reqres.in, kiểm tra status 200 và có ít nhất 1 user.</p></div>',
 '<div class="ex"><span class="tag ty">🟡 Bài 2</span><p>CRUD: POST tạo → verify → PUT update → DELETE → verify đã xóa.</p></div>',
-'<div class="ex"><span class="tag tr">🔴 Bài 3</span><p>Mock API trả lỗi 500 và dữ liệu rỗng. Kiểm tra UI từng trường hợp.</p></div>',
+'<div class="ex"><span class="tag tr">🔴 Bài 3</span><p>Tạo file JSON chứa 5 bộ login data. Viết data-driven test đọc file và chạy tất cả.</p></div>',
 ].join('\n')});
 
 // =============================================
-// MODULE 11 — CONFIG, CI/CD & CAPSTONE
+// MODULE 12 — CONFIG, CI/CD & CAPSTONE (cũ M11)
 // =============================================
-D.push({id:11,title:"Config, CI/CD & Capstone",week:"Tuần 9-10",phase:3,html:[
+D.push({id:12,title:"Config, CI/CD & Capstone",week:"Tuần 10-11",phase:3,html:[
 '<h2>PHẦN A: Config &amp; CI/CD</h2>',
 
 '<h2>1. playwright.config.js — "Bảng điều khiển"</h2>',
@@ -1290,6 +1453,28 @@ D.push({id:11,title:"Config, CI/CD & Capstone",week:"Tuần 9-10",phase:3,html:[
 
 '<p>Tạo file <code>.github/workflows/playwright.yml</code>:</p>',
 '<pre>name: Playwright Tests\non:\n  push:\n    branches: [main]\n  pull_request:\n    branches: [main]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 20\n      - run: npm ci\n      - run: npx playwright install --with-deps\n      - run: npx playwright test\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: playwright-report\n          path: playwright-report/</pre>',
+
+'<hr class="sep">',
+
+'<h2>5. Fixtures — Chia sẻ setup giữa các test</h2>',
+'<div class="b idea">💡 <strong>Fixture</strong> giống "bộ dụng cụ" được chuẩn bị sẵn cho mỗi test. Thay vì mỗi test tự tạo LoginPage, bạn tạo fixture 1 lần → tất cả test dùng chung.</div>',
+
+'<pre>// fixtures.js\nconst { test: base } = require("@playwright/test");\nconst LoginPage = require("./pages/LoginPage");\nconst InventoryPage = require("./pages/InventoryPage");\n\n// Tạo custom fixtures\nconst test = base.extend({\n  // Fixture "loginPage" — tự tạo LoginPage cho mỗi test\n  loginPage: async ({ page }, use) => {\n    const loginPage = new LoginPage(page);\n    await loginPage.goto();\n    await use(loginPage);  // truyền vào test\n  },\n\n  // Fixture "loggedInPage" — đã login sẵn!\n  loggedInPage: async ({ page }, use) => {\n    const loginPage = new LoginPage(page);\n    await loginPage.goto();\n    await loginPage.login("standard_user", "secret_sauce");\n    const inventoryPage = new InventoryPage(page);\n    await use(inventoryPage);\n  },\n});\n\nmodule.exports = { test };</pre>',
+
+'<pre>// tests/cart.spec.js — sử dụng fixture\nconst { test } = require("../fixtures");\nconst { expect } = require("@playwright/test");\n\n// loggedInPage đã login sẵn, không cần viết login lại!\ntest("Them san pham vao gio", async ({ loggedInPage }) => {\n  await loggedInPage.addToCart("Sauce Labs Backpack");\n  await expect(loggedInPage.cartBadge).toHaveText("1");\n});\n\ntest("Xoa san pham khoi gio", async ({ loggedInPage }) => {\n  await loggedInPage.addToCart("Sauce Labs Backpack");\n  await loggedInPage.removeFromCart("Sauce Labs Backpack");\n  await expect(loggedInPage.cartBadge).not.toBeVisible();\n});</pre>',
+
+'<div class="b ok"><strong>Lợi ích Fixture:</strong><br>- Test ngắn gọn hơn (không lặp login)<br>- Thay đổi flow login → sửa 1 chỗ<br>- Tự cleanup sau mỗi test</div>',
+
+'<hr class="sep">',
+
+'<h2>6. Visual Testing — So sánh giao diện bằng screenshot</h2>',
+'<div class="b idea">💡 Visual testing = chụp ảnh trang web → so sánh với ảnh chuẩn. Nếu khác → có bug UI! Phát hiện lỗi mà mắt người hay bỏ sót.</div>',
+
+'<pre>test("Trang login khong doi giao dien", async ({ page }) => {\n  await page.goto("https://www.saucedemo.com");\n\n  // Lần đầu: tạo ảnh chuẩn (baseline)\n  // Lần sau: so sánh với ảnh chuẩn → khác = FAIL\n  await expect(page).toHaveScreenshot("login-page.png");\n});\n\ntest("Form login khong doi", async ({ page }) => {\n  await page.goto("https://www.saucedemo.com");\n\n  // So sánh 1 phần tử cụ thể\n  const form = page.locator(".login-box");\n  await expect(form).toHaveScreenshot("login-form.png");\n});\n\ntest("Cho phep sai lech 5%", async ({ page }) => {\n  await page.goto("https://www.saucedemo.com");\n\n  // Cho phép 5% pixel khác (vì font rendering khác nhau)\n  await expect(page).toHaveScreenshot("login.png", {\n    maxDiffPixelRatio: 0.05\n  });\n});</pre>',
+
+'<pre># Lần đầu: tạo ảnh chuẩn\nnpx playwright test --update-snapshots\n\n# Lần sau: so sánh\nnpx playwright test</pre>',
+
+'<div class="b warn"><strong>Lưu ý:</strong> Visual test phụ thuộc OS và font. Nên chạy trong Docker hoặc CI để kết quả nhất quán. Ảnh baseline lưu trong thư mục <code>tests/*.spec.js-snapshots/</code>.</div>',
 
 '<hr class="sep">',
 
@@ -1321,6 +1506,35 @@ D.push({id:11,title:"Config, CI/CD & Capstone",week:"Tuần 9-10",phase:3,html:[
 '<h2>Gợi ý LoginPage.js</h2>',
 '<pre>const BasePage = require("./BasePage");\n\nclass LoginPage extends BasePage {\n  constructor(page) {\n    super(page);\n    this.username = page.locator("#user-name");\n    this.password = page.locator("#password");\n    this.loginBtn = page.locator("#login-button");\n    this.error = page.locator(\'[data-test="error"]\');\n  }\n\n  async goto() {\n    await this.page.goto("https://www.saucedemo.com");\n  }\n\n  async login(user, pass) {\n    await this.username.fill(user);\n    await this.password.fill(pass);\n    await this.loginBtn.click();\n  }\n}\nmodule.exports = LoginPage;</pre>',
 
+'<h2>Hướng dẫn từng bước (cho người mới)</h2>',
+'<div class="b info"><strong>Đừng hoảng!</strong> Làm theo từng bước dưới đây, mỗi ngày 1-2 bước.</div>',
+
+'<h3>Ngày 1: Setup project</h3>',
+'<pre># 1. Tạo thư mục và khởi tạo Playwright\nmkdir saucedemo-tests\ncd saucedemo-tests\nnpm init playwright@latest\n\n# 2. Tạo thư mục pages\nmkdir pages\n\n# 3. Mở VS Code\ncode .</pre>',
+
+'<h3>Ngày 2: Viết BasePage + LoginPage</h3>',
+'<pre>// 1. Tạo file pages/BasePage.js\nclass BasePage {\n  constructor(page) { this.page = page; }\n  async goto(url) { await this.page.goto(url); }\n}\nmodule.exports = BasePage;\n\n// 2. Tạo file pages/LoginPage.js (copy từ gợi ý ở trên)\n// 3. Chạy thử: npx playwright test --headed</pre>',
+
+'<h3>Ngày 3-4: Viết Login tests</h3>',
+'<pre>// tests/login.spec.js\nconst { test, expect } = require("@playwright/test");\nconst LoginPage = require("../pages/LoginPage");\n\ntest.describe("Login", () => {\n  let loginPage;\n\n  test.beforeEach(async ({ page }) => {\n    loginPage = new LoginPage(page);\n    await loginPage.goto();\n  });\n\n  test("Login thanh cong", async ({ page }) => {\n    await loginPage.login("standard_user", "secret_sauce");\n    await expect(page).toHaveURL(/inventory/);\n  });\n\n  test("Sai password", async () => {\n    await loginPage.login("standard_user", "wrong");\n    await expect(loginPage.error).toBeVisible();\n  });\n\n  // ... thêm 3 test nữa\n});</pre>',
+
+'<h3>Ngày 5-6: InventoryPage + tests</h3>',
+'<p>Tạo <code>pages/InventoryPage.js</code> với locator cho: product list, sort dropdown, product items. Viết 4 test.</p>',
+
+'<h3>Ngày 7: CartPage + tests</h3>',
+'<p>Tạo <code>pages/CartPage.js</code>. Viết 3 test.</p>',
+
+'<h3>Ngày 8: CheckoutPage + tests</h3>',
+'<p>Tạo <code>pages/CheckoutPage.js</code>. Viết 3 test.</p>',
+
+'<h3>Ngày 9: Config + CI/CD</h3>',
+'<p>Cấu hình multi-browser, screenshot on failure. Tạo GitHub Actions workflow.</p>',
+
+'<h3>Ngày 10: Polish + Push</h3>',
+'<p>Viết README.md, push lên GitHub, chạy CI kiểm tra.</p>',
+
+'<hr class="sep">',
+
 '<h2>Checklist hoàn thành</h2>',
 '<table>',
 '<tr><th>Hạng mục</th><th>Done?</th></tr>',
@@ -1350,7 +1564,7 @@ if (darkMode) document.documentElement.setAttribute('data-theme', 'dark');
 
 function renderSidebar() {
   var nav = document.getElementById('sidebarNav');
-  var phases = {0:'Giới thiệu', 1:'Phase 1: JS Cơ bản', 2:'Phase 2: Playwright', 3:'Phase 3: Nâng cao'};
+  var phases = {0:'Giới thiệu', 1:'Phase 1: JS & OOP Cơ bản', 2:'Phase 2: Playwright', 3:'Phase 3: Nâng cao'};
   var lastPhase = -1, html = '';
   for (var j = 0; j < D.length; j++) {
     var m = D[j];
@@ -1376,7 +1590,7 @@ function updateProgress() {
 function render() {
   var m = null;
   for (var k = 0; k < D.length; k++) if (D[k].id === active) { m = D[k]; break; }
-  var pn = {0:'Giới thiệu', 1:'Phase 1: JS Cơ bản', 2:'Phase 2: Playwright', 3:'Phase 3: Nâng cao'};
+  var pn = {0:'Giới thiệu', 1:'Phase 1: JS & OOP Cơ bản', 2:'Phase 2: Playwright', 3:'Phase 3: Nâng cao'};
   var label = active === 0 ? 'Giới thiệu khóa học' : 'Module ' + m.id + ': ' + m.title;
   document.getElementById('breadcrumb').innerHTML = pn[m.phase] + ' / <b>' + label + '</b>';
   var heroHtml = '<div class="module-hero"><div class="num">' + (active === 0 ? '📖' : ('0' + m.id).slice(-2)) + '</div><h2>' + label + '</h2><p>' + m.week + '</p><span class="phase-badge">' + pn[m.phase] + '</span><button class="complete-btn' + (completed[m.id] ? ' done' : '') + '" onclick="toggleComplete(' + m.id + ')">' + (completed[m.id] ? '✓ Đã hoàn thành' : '○ Đánh dấu hoàn thành') + '</button></div>';
