@@ -291,6 +291,61 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
   .module-hero .num { font-size: 36px; }
 }
 @media print { .sidebar, .topbar, .menu-toggle { display: none !important; } .main { margin-left: 0; } pre { white-space: pre-wrap; } }
+
+/* ===== READING PROGRESS BAR ===== */
+.reading-progress { position: fixed; top: 0; left: var(--sidebar-w); right: 0; height: 3px; z-index: 150; background: transparent; }
+.reading-progress .bar { height: 100%; width: 0; background: linear-gradient(90deg, var(--primary), var(--green)); transition: width .1s; }
+@media (max-width: 900px) { .reading-progress { left: 0; } }
+
+/* ===== GAMIFICATION: XP & STREAK ===== */
+.xp-bar { padding: 8px 20px; border-bottom: 1px solid var(--border); }
+.xp-bar .xp-row { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+.xp-bar .xp-row .xp-num { font-weight: 700; color: var(--primary); }
+.xp-bar .xp-track { height: 5px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.xp-bar .xp-fill { height: 100%; background: linear-gradient(90deg, #f59e0b, #ef4444, #8b5cf6); border-radius: 3px; transition: width .5s; }
+.streak-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 700; color: #f59e0b; background: var(--yellow-bg); padding: 2px 8px; border-radius: 12px; }
+.level-badge { font-size: 11px; font-weight: 700; color: var(--primary); background: var(--primary-bg); padding: 2px 8px; border-radius: 12px; }
+
+/* ===== QUIZ ===== */
+.quiz { background: var(--bg2); border: 2px solid var(--primary); border-radius: var(--radius); padding: 20px; margin: 20px 0; box-shadow: var(--shadow); }
+.quiz-title { font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.quiz-q { margin-bottom: 16px; padding: 12px; background: var(--bg3); border-radius: 8px; }
+.quiz-q p { font-weight: 600; color: var(--text); margin-bottom: 8px; }
+.quiz-q label { display: block; padding: 6px 12px; margin: 4px 0; border-radius: 6px; cursor: pointer; font-size: 14px; color: var(--text2); transition: all .15s; }
+.quiz-q label:hover { background: var(--primary-bg); }
+.quiz-q label.correct { background: var(--green-bg); color: var(--green-text); font-weight: 600; }
+.quiz-q label.wrong { background: var(--red-bg); color: var(--red-text); text-decoration: line-through; }
+.quiz-q label.disabled { pointer-events: none; opacity: .7; }
+.quiz-q .explain { display: none; margin-top: 8px; padding: 8px 12px; background: var(--blue-bg); color: var(--blue-text); border-radius: 6px; font-size: 13px; }
+.quiz-q .explain.show { display: block; }
+.quiz-result { text-align: center; padding: 16px; border-radius: 8px; font-weight: 700; font-size: 15px; margin-top: 12px; }
+.quiz-result.good { background: var(--green-bg); color: var(--green-text); }
+.quiz-result.ok { background: var(--yellow-bg); color: var(--yellow-text); }
+.quiz-result.bad { background: var(--red-bg); color: var(--red-text); }
+
+/* ===== CODE CHALLENGE ===== */
+.challenge { background: var(--bg2); border: 2px solid var(--green); border-radius: var(--radius); padding: 20px; margin: 16px 0; box-shadow: var(--shadow); }
+.challenge-title { font-size: 15px; font-weight: 700; color: var(--green-text); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.challenge-desc { font-size: 14px; color: var(--text2); margin-bottom: 12px; }
+.challenge-result { padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-top: 8px; }
+.challenge-result.pass { background: var(--green-bg); color: var(--green-text); }
+.challenge-result.fail { background: var(--red-bg); color: var(--red-text); }
+
+/* ===== ACHIEVEMENT TOAST ===== */
+.achievement-toast {
+  position: fixed; bottom: -100px; right: 20px; z-index: 600;
+  background: linear-gradient(135deg, #f59e0b, #ef4444); color: #fff;
+  padding: 14px 20px; border-radius: var(--radius);
+  box-shadow: 0 10px 30px rgba(0,0,0,.3);
+  transition: bottom .5s ease; font-size: 14px; font-weight: 600;
+  display: flex; align-items: center; gap: 10px;
+}
+.achievement-toast.show { bottom: 20px; }
+.achievement-toast .ach-icon { font-size: 28px; }
+
+/* ===== MODULE META ===== */
+.module-meta { display: flex; gap: 12px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+.module-meta .meta-item { font-size: 11px; color: rgba(255,255,255,.7); display: flex; align-items: center; gap: 4px; }
 </style>
 </head>
 <body>
@@ -302,6 +357,7 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
     <div class="bar"><div class="fill" id="progressBar" style="width:0%"></div></div>
     <span id="progressText">0 / 12 modules hoàn thành</span>
   </div>
+  <div class="xp-bar" id="xpBar"></div>
   <nav class="sidebar-nav" id="sidebarNav"></nav>
   <div class="sidebar-footer">
     <button onclick="toggleTheme()" id="themeBtn">🌙 Dark</button>
@@ -309,6 +365,7 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
   </div>
 </aside>
 <div class="main">
+  <div class="reading-progress"><div class="bar" id="readingBar"></div></div>
   <div class="topbar">
     <div class="topbar-left"><span class="breadcrumb" id="breadcrumb"></span></div>
     <div class="topbar-right">
@@ -324,6 +381,7 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
     <div class="search-results" id="searchResults"></div>
   </div>
 </div>
+<div class="achievement-toast" id="achievementToast"><span class="ach-icon"></span><span class="ach-text"></span></div>
 <div id="floatingPlayground" style="display:none; position:fixed; bottom:20px; right:20px; width:480px; z-index:400; border-radius:12px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.3); border:1px solid var(--border);">
   <div class="playground">
     <div class="playground-header">
@@ -634,6 +692,16 @@ defined_pg('Thử chuyển kiểu', '// Chuỗi → Số\nlet tuoiStr = "25";\nl
 '<pre>const c = 37;\nconst f = c * 9/5 + 32;\nconsole.log(`${c} do C = ${f} do F`); // 37 do C = 98.6 do F</pre>',
 '</details></div>',
 
+buildQuiz('m1', [
+  {q:'<code>let x = 5; x = "hello";</code> — biến x bây giờ có kiểu gì?', opts:['Number','String','Boolean','Error'], answer:1, explain:'JS cho phép đổi kiểu. x ban đầu là Number, sau gán lại thành String.'},
+  {q:'<code>const PI = 3.14; PI = 3;</code> — chuyện gì xảy ra?', opts:['PI = 3','PI vẫn = 3.14','TypeError: Assignment to constant variable','SyntaxError'], answer:2, explain:'const không cho phép gán lại giá trị. Sẽ báo TypeError.'},
+  {q:'<code>typeof null</code> trả về gì?', opts:['"null"','"undefined"','"object"','null'], answer:2, explain:'Đây là bug lịch sử của JS! typeof null trả về "object" thay vì "null".'},
+  {q:'<code>"5" === 5</code> cho kết quả?', opts:['true','false','undefined','Error'], answer:1, explain:'=== so sánh cả kiểu. "5" (string) khác 5 (number) → false.'},
+  {q:'Cách đặt tên biến nào SAI?', opts:['let _name','let $price','let 1stPlace','let camelCase'], answer:2, explain:'Tên biến không được bắt đầu bằng số.'}
+]),
+
+buildChallenge('m1_calc', 'Tính tuổi', 'Tạo biến <code>namSinh = 2000</code>, tính tuổi (năm 2026), in ra bằng template literal: "Ban 26 tuoi."', '// Viết code tại đây\nconst namSinh = 2000;\n', 4),
+
 '<div class="ex"><span class="tag ty">🟡 Bài 3</span>',
 '<p>Cho <code>so = 7</code>. In ra "7 la so le" hoặc "7 la so chan". Gợi ý: dùng <code>%</code> và toán tử 3 ngôi <code>? :</code></p>',
 '<details><summary>Xem đáp án</summary>',
@@ -729,6 +797,14 @@ defined_pg('Thử break & continue', '// break — DỪNG vòng lặp ngay\nfor 
 '<pre>for (let n = 2; n &lt;= 50; n++) {\n  let laSNT = true;\n  for (let i = 2; i * i &lt;= n; i++) {\n    if (n % i === 0) { laSNT = false; break; }\n  }\n  if (laSNT) console.log(n);\n}</pre>',
 '</details></div>',
 
+buildQuiz('m2', [
+  {q:'Vòng lặp <code>for(let i=0; i&lt;3; i++)</code> chạy bao nhiêu lần?', opts:['2 lần','3 lần','4 lần','Vô hạn'], answer:1, explain:'i=0,1,2 → 3 lần. Khi i=3 thì i<3 false → dừng.'},
+  {q:'<code>break</code> làm gì?', opts:['Bỏ qua lần lặp hiện tại','Dừng vòng lặp ngay','Thoát chương trình','Không có tác dụng gì'], answer:1, explain:'break dừng toàn bộ vòng lặp. continue mới là bỏ qua lần hiện tại.'},
+  {q:'<code>10 % 3</code> bằng bao nhiêu?', opts:['3','3.33','1','0'], answer:2, explain:'10 ÷ 3 = 3 dư 1. Toán tử % lấy phần dư.'}
+]),
+
+buildChallenge('m2_fizz', 'FizzBuzz', 'In số 1→30. Chia hết 3→"Fizz", chia hết 5→"Buzz", cả hai→"FizzBuzz".', '// Viết FizzBuzz tại đây\nfor (let i = 1; i <= 30; i++) {\n  // TODO\n}', 6),
+
 '<div class="ex"><span class="tag tr">🔴 Bài 3</span>',
 '<p>FizzBuzz: In 1→100. Chia hết 3 → "Fizz". Chia hết 5 → "Buzz". Cả hai → "FizzBuzz".</p>',
 '<details><summary>Xem đáp án</summary>',
@@ -797,6 +873,14 @@ defined_pg('Thử arrow function', '// Hàm thường\nfunction cong(a, b) {\n  
 '<details><summary>Xem đáp án</summary>',
 '<pre>function laSoNguyenTo(n) {\n  if (n &lt; 2) return false;\n  for (let i = 2; i * i &lt;= n; i++) {\n    if (n % i === 0) return false;\n  }\n  return true;\n}\nconsole.log(laSoNguyenTo(7));  // true\nconsole.log(laSoNguyenTo(10)); // false\nconsole.log(laSoNguyenTo(1));  // false</pre>',
 '</details></div>',
+
+buildQuiz('m3', [
+  {q:'Hàm không có <code>return</code> trả về gì?', opts:['null','0','undefined','Error'], answer:2, explain:'Hàm không return → trả về undefined.'},
+  {q:'<code>const f = x => x * 2;</code> là gì?', opts:['Khai báo biến','Arrow function','Phép nhân','Object'], answer:1, explain:'Arrow function viết tắt: nhận x, trả về x*2.'},
+  {q:'Biến tạo trong hàm có dùng được ngoài hàm không?', opts:['Có','Không','Tùy trường hợp','Chỉ khi dùng var'], answer:1, explain:'Biến let/const trong hàm có scope cục bộ — chỉ dùng trong hàm đó.'}
+]),
+
+buildChallenge('m3_factorial', 'Giai thừa', 'Viết hàm <code>giaiThua(n)</code> trả về n!. In ra giaiThua(5) (kết quả = 120).', 'function giaiThua(n) {\n  // TODO: viết code tại đây\n}\nconsole.log(giaiThua(5));', 5),
 
 '<div class="ex"><span class="tag ty">🟡 Bài 3</span>',
 '<p>Viết hàm <code>daoChuoi(s)</code> đảo ngược chuỗi KHÔNG dùng <code>.reverse()</code>.</p>',
@@ -1563,6 +1647,164 @@ D.push({id:12,title:"Config, CI/CD & Capstone",week:"Tuần 10-11",phase:3,html:
 
 
 // ============================================
+// ===== QUIZ & CHALLENGE HELPERS =====
+// ============================================
+function buildQuiz(quizId, questions) {
+  var html = '<div class="quiz" id="quiz-' + quizId + '">';
+  html += '<div class="quiz-title">📝 Quiz - Kiểm tra kiến thức</div>';
+  questions.forEach(function(q, qi) {
+    html += '<div class="quiz-q" data-answer="' + q.answer + '" data-qi="' + qi + '">';
+    html += '<p>' + (qi+1) + '. ' + q.q + '</p>';
+    q.opts.forEach(function(opt, oi) {
+      html += '<label onclick="checkQuizAnswer(this,' + oi + ')"><input type="radio" name="q' + quizId + '_' + qi + '" style="display:none"> ' + String.fromCharCode(65+oi) + '. ' + opt + '</label>';
+    });
+    html += '<div class="explain">' + (q.explain || '') + '</div>';
+    html += '</div>';
+  });
+  html += '<div class="quiz-result" id="quiz-result-' + quizId + '" style="display:none"></div>';
+  html += '<button onclick="scoreQuiz(\'' + quizId + '\',' + questions.length + ')" style="margin-top:12px;padding:8px 20px;border:none;background:var(--primary);color:#fff;border-radius:8px;cursor:pointer;font-weight:700;font-size:14px">Xem kết quả</button>';
+  html += '</div>';
+  return html;
+}
+function checkQuizAnswer(label, chosen) {
+  var qDiv = label.closest('.quiz-q');
+  if (qDiv.classList.contains('answered')) return;
+  qDiv.classList.add('answered');
+  var correct = parseInt(qDiv.getAttribute('data-answer'));
+  var labels = qDiv.querySelectorAll('label');
+  labels.forEach(function(l,i) {
+    l.classList.add('disabled');
+    if (i === correct) l.classList.add('correct');
+    if (i === chosen && chosen !== correct) l.classList.add('wrong');
+  });
+  qDiv.querySelector('.explain').classList.add('show');
+  if (chosen === correct) addXP(10);
+}
+function scoreQuiz(quizId, total) {
+  var quiz = document.getElementById('quiz-' + quizId);
+  var qs = quiz.querySelectorAll('.quiz-q');
+  var correct = 0;
+  qs.forEach(function(q) {
+    var ans = parseInt(q.getAttribute('data-answer'));
+    var chosen = q.querySelector('label.correct.wrong') ? -1 : (q.querySelector('label.correct') ? ans : -1);
+    var wrongLabel = q.querySelector('label.wrong');
+    if (!wrongLabel && q.querySelector('label.correct')) correct++;
+  });
+  var result = document.getElementById('quiz-result-' + quizId);
+  var pct = Math.round(correct/total*100);
+  result.style.display = 'block';
+  if (pct >= 80) { result.className = 'quiz-result good'; result.textContent = '🎉 ' + correct + '/' + total + ' (' + pct + '%) — Xuất sắc!'; addXP(30); }
+  else if (pct >= 50) { result.className = 'quiz-result ok'; result.textContent = '👍 ' + correct + '/' + total + ' (' + pct + '%) — Khá! Xem lại phần sai nhé.'; addXP(15); }
+  else { result.className = 'quiz-result bad'; result.textContent = '💪 ' + correct + '/' + total + ' (' + pct + '%) — Cần ôn lại. Đừng nản!'; }
+}
+
+function buildChallenge(id, title, desc, startCode, testFn, rows) {
+  return '<div class="challenge" id="challenge-' + id + '">' +
+    '<div class="challenge-title">🏆 Code Challenge: ' + title + '</div>' +
+    '<div class="challenge-desc">' + desc + '</div>' +
+    '<div class="playground" data-playground>' +
+    '<div class="playground-header"><span>💻 Viết code</span><div style="display:flex;gap:6px"><button onclick="runPlayground(this)" style="background:var(--green)">▶ Chạy</button><button onclick="checkChallenge(\'' + id + '\',this)" style="background:var(--primary)">✓ Kiểm tra</button></div></div>' +
+    '<textarea class="playground-editor" spellcheck="false" rows="' + (rows||5) + '">' + startCode + '</textarea>' +
+    '<div class="playground-output"><span style="color:var(--text3)">// Viết code rồi nhấn ✓ Kiểm tra</span></div>' +
+    '</div>' +
+    '<div class="challenge-result" id="cr-' + id + '"></div></div>';
+}
+var challengeTests = {};
+function registerChallenge(id, testFn) { challengeTests[id] = testFn; }
+function checkChallenge(id, btn) {
+  var pg = btn.closest('.challenge').querySelector('[data-playground]');
+  var editor = pg.querySelector('.playground-editor');
+  var output = pg.querySelector('.playground-output');
+  var result = document.getElementById('cr-' + id);
+  var code = editor.value;
+  // Run code and capture logs
+  var logs = [];
+  var origLog = console.log;
+  console.log = function() { logs.push(Array.from(arguments).map(function(a){return typeof a==='object'?JSON.stringify(a):String(a)}).join(' ')); };
+  try {
+    new Function(code)();
+    var testResult = challengeTests[id](logs, code);
+    if (testResult.pass) {
+      result.className = 'challenge-result pass';
+      result.textContent = '✅ ' + testResult.msg;
+      addXP(20);
+    } else {
+      result.className = 'challenge-result fail';
+      result.textContent = '❌ ' + testResult.msg;
+    }
+  } catch(e) {
+    result.className = 'challenge-result fail';
+    result.textContent = '❌ Lỗi: ' + e.message;
+  }
+  console.log = origLog;
+  renderOutput(output, logs.map(function(l){return {type:'log',text:l}}));
+}
+
+// ============================================
+// ===== GAMIFICATION =====
+// ============================================
+var xpData = JSON.parse(localStorage.getItem('pw-xp') || '{"xp":0,"streak":0,"lastDate":"","achievements":[]}');
+var XP_LEVELS = [
+  {name:'Newbie', min:0}, {name:'Beginner', min:50}, {name:'Learner', min:150},
+  {name:'Coder', min:300}, {name:'Developer', min:500}, {name:'Pro', min:800},
+  {name:'Expert', min:1200}, {name:'Master', min:2000}
+];
+function getLevel(xp) {
+  for (var i = XP_LEVELS.length-1; i >= 0; i--) if (xp >= XP_LEVELS[i].min) return {level:i, name:XP_LEVELS[i].name, min:XP_LEVELS[i].min, next: XP_LEVELS[i+1] ? XP_LEVELS[i+1].min : XP_LEVELS[i].min};
+  return {level:0, name:'Newbie', min:0, next:50};
+}
+function addXP(amount) {
+  xpData.xp += amount;
+  // Check streak
+  var today = new Date().toISOString().split('T')[0];
+  if (xpData.lastDate !== today) {
+    var yesterday = new Date(Date.now()-86400000).toISOString().split('T')[0];
+    xpData.streak = (xpData.lastDate === yesterday) ? xpData.streak + 1 : 1;
+    xpData.lastDate = today;
+  }
+  localStorage.setItem('pw-xp', JSON.stringify(xpData));
+  renderXP();
+  checkAchievements();
+}
+function renderXP() {
+  var lv = getLevel(xpData.xp);
+  var pct = lv.next > lv.min ? Math.min(100, Math.round((xpData.xp - lv.min) / (lv.next - lv.min) * 100)) : 100;
+  var bar = document.getElementById('xpBar');
+  bar.innerHTML = '<div class="xp-row"><span class="level-badge">Lv.' + lv.level + ' ' + lv.name + '</span><span class="xp-num">' + xpData.xp + ' XP</span>' + (xpData.streak > 1 ? '<span class="streak-badge">🔥 ' + xpData.streak + ' ngày</span>' : '') + '</div><div class="xp-track"><div class="xp-fill" style="width:' + pct + '%"></div></div>';
+}
+var ACHIEVEMENTS = [
+  {id:'first_run', icon:'🎯', name:'First Code!', desc:'Chạy playground lần đầu', check:function(){return xpData.xp >= 10;}},
+  {id:'module3', icon:'📚', name:'JS Basics', desc:'Hoàn thành 3 modules', check:function(){var c=0;for(var k in completed)if(completed[k])c++;return c>=3;}},
+  {id:'module7', icon:'🎓', name:'Halfway', desc:'Hoàn thành 7 modules', check:function(){var c=0;for(var k in completed)if(completed[k])c++;return c>=7;}},
+  {id:'all', icon:'🏆', name:'Champion', desc:'Hoàn thành tất cả', check:function(){var c=0;for(var k in completed)if(completed[k])c++;return c>=D.length;}},
+  {id:'streak3', icon:'🔥', name:'On Fire', desc:'Streak 3 ngày', check:function(){return xpData.streak >= 3;}},
+  {id:'streak7', icon:'💎', name:'Dedicated', desc:'Streak 7 ngày', check:function(){return xpData.streak >= 7;}},
+  {id:'xp100', icon:'⭐', name:'100 XP', desc:'Đạt 100 XP', check:function(){return xpData.xp >= 100;}},
+  {id:'xp500', icon:'🌟', name:'500 XP', desc:'Đạt 500 XP', check:function(){return xpData.xp >= 500;}}
+];
+function checkAchievements() {
+  ACHIEVEMENTS.forEach(function(a) {
+    if (xpData.achievements.indexOf(a.id) === -1 && a.check()) {
+      xpData.achievements.push(a.id);
+      localStorage.setItem('pw-xp', JSON.stringify(xpData));
+      showAchievement(a);
+    }
+  });
+}
+function showAchievement(a) {
+  var toast = document.getElementById('achievementToast');
+  toast.querySelector('.ach-icon').textContent = a.icon;
+  toast.querySelector('.ach-text').innerHTML = '<strong>Achievement Unlocked!</strong><br>' + a.name + ' — ' + a.desc;
+  toast.classList.add('show');
+  setTimeout(function(){ toast.classList.remove('show'); }, 4000);
+}
+
+// ============================================
+// ===== MODULE TIME ESTIMATES =====
+// ============================================
+var MODULE_TIME = {0:10, 1:45, 2:40, 3:35, 4:45, 5:40, 6:35, 7:30, 8:30, 9:35, 10:30, 11:40, 12:45};
+
+// ============================================
 // ===== APP LOGIC =====
 // ============================================
 var active = 0;
@@ -1601,7 +1843,8 @@ function render() {
   var pn = {0:'Giới thiệu', 1:'Phase 1: JS & OOP Cơ bản', 2:'Phase 2: Playwright', 3:'Phase 3: Nâng cao'};
   var label = active === 0 ? 'Giới thiệu khóa học' : 'Module ' + m.id + ': ' + m.title;
   document.getElementById('breadcrumb').innerHTML = pn[m.phase] + ' / <b>' + label + '</b>';
-  var heroHtml = '<div class="module-hero"><div class="num">' + (active === 0 ? '📖' : ('0' + m.id).slice(-2)) + '</div><h2>' + label + '</h2><p>' + m.week + '</p><span class="phase-badge">' + pn[m.phase] + '</span><button class="complete-btn' + (completed[m.id] ? ' done' : '') + '" onclick="toggleComplete(' + m.id + ')">' + (completed[m.id] ? '✓ Đã hoàn thành' : '○ Đánh dấu hoàn thành') + '</button></div>';
+  var time = MODULE_TIME[m.id] || 30;
+  var heroHtml = '<div class="module-hero"><div class="num">' + (active === 0 ? '📖' : ('0' + m.id).slice(-2)) + '</div><h2>' + label + '</h2><p>' + m.week + '</p><div class="module-meta"><span class="phase-badge">' + pn[m.phase] + '</span><span class="meta-item">⏱ ~' + time + ' phút</span><span class="meta-item">📖 ' + Math.round(m.html.length/500) + ' phần</span></div><button class="complete-btn' + (completed[m.id] ? ' done' : '') + '" onclick="toggleComplete(' + m.id + ')">' + (completed[m.id] ? '✓ Đã hoàn thành' : '○ Đánh dấu hoàn thành') + '</button></div>';
   var prev = '<div></div>', next = '<div></div>';
   if (active > 0) prev = '<button class="pv" onclick="goTo(' + (active - 1) + ')">← ' + (active === 1 ? 'Intro' : 'Module ' + (active - 1)) + '</button>';
   if (active < D.length - 1) next = '<button class="nx" onclick="goTo(' + (active + 1) + ')">Module ' + (active + 1) + ' →</button>';
@@ -1649,11 +1892,14 @@ function toggleComplete(id) {
     var m = D.find(function(x){return x.id===id;});
     gtag('event', completed[id] ? 'complete_module' : 'uncomplete_module', { module_id: id, module_title: m ? m.title : '' });
   }
+  if (completed[id]) addXP(50); // +50 XP khi hoàn thành module
+  checkAchievements();
 }
 function resetProgress() {
-  if (confirm('Xóa toàn bộ tiến độ học?')) {
+  if (confirm('Xóa toàn bộ tiến độ học và XP?')) {
     completed = {}; localStorage.removeItem('pw-progress');
-    renderSidebar(); render();
+    xpData = {xp:0,streak:0,lastDate:'',achievements:[]}; localStorage.removeItem('pw-xp');
+    renderSidebar(); render(); renderXP();
   }
 }
 function toggleTheme() {
@@ -1680,6 +1926,7 @@ function runPlayground(btnOrEditorId, outputId) {
   console.error = function() { logs.push({ type: 'err', text: Array.from(arguments).map(function(a) { return typeof a === 'object' ? JSON.stringify(a) : String(a); }).join(' ') }); };
   // GA: track playground usage
   if (typeof gtag === 'function') gtag('event', 'run_playground', { module_id: active });
+  addXP(5); // +5 XP mỗi lần chạy playground
   try {
     var isAsync = code.includes('await') || code.includes('async');
     if (isAsync) {
@@ -1754,7 +2001,35 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-renderSidebar(); render();
+// ===== READING PROGRESS =====
+window.addEventListener('scroll', function() {
+  var h = document.documentElement;
+  var pct = Math.min(100, Math.round(h.scrollTop / (h.scrollHeight - h.clientHeight) * 100)) || 0;
+  document.getElementById('readingBar').style.width = pct + '%';
+});
+
+// ===== INIT =====
+renderSidebar(); render(); renderXP();
+// Check streak on load
+var today = new Date().toISOString().split('T')[0];
+if (xpData.lastDate !== today) {
+  var yesterday = new Date(Date.now()-86400000).toISOString().split('T')[0];
+  if (xpData.lastDate && xpData.lastDate !== yesterday) xpData.streak = 0;
+}
+
+// ===== REGISTER CHALLENGES =====
+registerChallenge('m1_calc', function(logs) {
+  if (logs.some(function(l){return l.includes('26')})) return {pass:true,msg:'Chính xác! 2026-2000 = 26 tuổi.'};
+  return {pass:false,msg:'Chưa đúng. Hãy tính 2026 - namSinh và in ra.'};
+});
+registerChallenge('m2_fizz', function(logs) {
+  if (logs.length >= 15 && logs.some(function(l){return l==='FizzBuzz'})) return {pass:true,msg:'FizzBuzz hoàn hảo! +20 XP'};
+  return {pass:false,msg:'Chưa đúng. Cần in 1-30, chia hết 3→Fizz, 5→Buzz, cả hai→FizzBuzz.'};
+});
+registerChallenge('m3_factorial', function(logs, code) {
+  if (logs.some(function(l){return l.includes('120')}) && code.includes('function')) return {pass:true,msg:'Giai thừa 5 = 120. Chính xác!'};
+  return {pass:false,msg:'Hàm giaiThua(5) cần trả về 120. Hãy dùng vòng lặp.'};
+});
 </script>
 </body>
 </html>
