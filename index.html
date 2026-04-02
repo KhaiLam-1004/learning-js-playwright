@@ -6,6 +6,14 @@
 <title>JS &amp; Playwright - Giáo trình Interactive cho người mới</title>
 <meta name="description" content="Học JavaScript và Playwright từ zero. Giáo trình tương tác miễn phí dành cho người chưa biết gì về code.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8EL1LCJN47"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-8EL1LCJN47');
+</script>
 <style>
 :root {
   --bg: #f8fafc; --bg2: #ffffff; --bg3: #f1f5f9;
@@ -1626,11 +1634,21 @@ function goTo(id) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('overlay').classList.remove('open');
+  // GA: track module view
+  if (typeof gtag === 'function') {
+    var m = D.find(function(x){return x.id===id;});
+    gtag('event', 'view_module', { module_id: id, module_title: m ? m.title : '' });
+  }
 }
 function toggleComplete(id) {
   completed[id] = !completed[id];
   localStorage.setItem('pw-progress', JSON.stringify(completed));
   renderSidebar(); render();
+  // GA: track module complete/uncomplete
+  if (typeof gtag === 'function') {
+    var m = D.find(function(x){return x.id===id;});
+    gtag('event', completed[id] ? 'complete_module' : 'uncomplete_module', { module_id: id, module_title: m ? m.title : '' });
+  }
 }
 function resetProgress() {
   if (confirm('Xóa toàn bộ tiến độ học?')) {
@@ -1660,6 +1678,8 @@ function runPlayground(btnOrEditorId, outputId) {
   console.log = function() { logs.push({ type: 'log', text: Array.from(arguments).map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ') }); };
   console.warn = function() { logs.push({ type: 'warn', text: Array.from(arguments).map(function(a) { return typeof a === 'object' ? JSON.stringify(a) : String(a); }).join(' ') }); };
   console.error = function() { logs.push({ type: 'err', text: Array.from(arguments).map(function(a) { return typeof a === 'object' ? JSON.stringify(a) : String(a); }).join(' ') }); };
+  // GA: track playground usage
+  if (typeof gtag === 'function') gtag('event', 'run_playground', { module_id: active });
   try {
     var isAsync = code.includes('await') || code.includes('async');
     if (isAsync) {
