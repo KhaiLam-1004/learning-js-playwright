@@ -2417,7 +2417,10 @@ function runPlayground(btnOrEditorId, outputId) {
   console.error = function() { logs.push({ type: 'err', text: Array.from(arguments).map(function(a) { return typeof a === 'object' ? JSON.stringify(a) : String(a); }).join(' ') }); };
   // GA: track playground usage
   if (typeof gtag === 'function') gtag('event', 'run_playground', { module_id: active });
-  addXP(5); // +5 XP mỗi lần chạy playground
+  // Only award XP if user actually modified the code
+  var defaultCode = editor.getAttribute('data-original');
+  if (!defaultCode) { editor.setAttribute('data-original', code); }
+  else if (code.trim() !== defaultCode.trim() && code.trim().length > 10) { addXP(5); }
   try {
     var isAsync = code.includes('await') || code.includes('async');
     if (isAsync) {
@@ -2506,8 +2509,13 @@ function runPopupEditor() {
   console.log = origLog; console.warn = origWarn; console.error = origError;
   renderOutput(output, logs);
   // Sync to source
-  if (popupSource) { popupSource.editor.value = code; popupSource.output.innerHTML = output.innerHTML; }
-  addXP(5);
+  if (popupSource) {
+    popupSource.editor.value = code;
+    popupSource.output.innerHTML = output.innerHTML;
+    // Only XP if code was modified
+    var orig = popupSource.editor.getAttribute('data-original');
+    if (orig && code.trim() !== orig.trim() && code.trim().length > 10) addXP(5);
+  }
 }
 
 function clearPopupEditor() {
