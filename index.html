@@ -460,6 +460,60 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
 .exam-score.grade-f { background: var(--red-bg); color: var(--red-text); }
 .exam-score.grade-f .score-fill { background: var(--red); }
 
+/* ===== TABLE OF CONTENTS ===== */
+.toc {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px 20px; margin-bottom: 28px; box-shadow: var(--shadow);
+}
+.toc-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; user-select: none;
+}
+.toc-toggle h3 {
+  font-size: 14px; font-weight: 700; color: var(--text); margin: 0;
+  display: flex; align-items: center; gap: 8px;
+}
+.toc-toggle .toc-arrow { font-size: 12px; color: var(--text3); transition: transform .2s; }
+.toc-toggle .toc-arrow.open { transform: rotate(180deg); }
+.toc-list {
+  list-style: none; padding: 0; margin: 12px 0 0;
+  max-height: 0; overflow: hidden; transition: max-height .3s ease;
+}
+.toc-list.open { max-height: 800px; }
+.toc-list li {
+  margin: 0; padding: 0;
+}
+.toc-list li a {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px; margin: 2px 0; border-radius: 8px;
+  text-decoration: none; color: var(--text2); font-size: 13.5px;
+  transition: all .15s; border-left: 3px solid transparent;
+}
+.toc-list li a:hover { background: var(--bg3); color: var(--primary); border-left-color: var(--primary); }
+.toc-list li a .toc-num {
+  min-width: 22px; height: 22px; border-radius: 50%;
+  background: var(--bg3); color: var(--text3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; flex-shrink: 0;
+}
+.toc-list li a:hover .toc-num { background: var(--primary-bg); color: var(--primary); }
+.toc-list li.toc-sub a { padding-left: 28px; font-size: 12.5px; color: var(--text3); }
+.toc-list li.toc-highlight a { font-weight: 600; color: var(--primary); }
+.toc-list li.toc-highlight a .toc-num { background: var(--primary); color: #fff; }
+
+/* Back to top button */
+.back-to-toc {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border);
+  background: var(--bg2); color: var(--text2); font-size: 12px; font-weight: 600;
+  cursor: pointer; box-shadow: var(--shadow-lg); z-index: 100;
+  opacity: 0; pointer-events: none; transition: all .3s;
+  margin-left: calc(var(--sidebar-w) / 2);
+}
+.back-to-toc.visible { opacity: 1; pointer-events: all; }
+.back-to-toc:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+@media (max-width: 900px) { .back-to-toc { margin-left: 0; } }
+
 /* ===== MODULE META ===== */
 .module-meta { display: flex; gap: 12px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
 .module-meta .meta-item { font-size: 11px; color: rgba(255,255,255,.7); display: flex; align-items: center; gap: 4px; }
@@ -498,6 +552,7 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
     <div class="search-results" id="searchResults"></div>
   </div>
 </div>
+<button class="back-to-toc" id="backToToc" onclick="scrollToToc()">↑ Mục lục</button>
 <div class="popup-overlay" id="popupOverlay" onclick="if(event.target===this)closePopupEditor()">
   <div class="popup-editor">
     <div class="popup-header">
@@ -2323,7 +2378,42 @@ function render() {
   var prev = '<div></div>', next = '<div></div>';
   if (active > 0) prev = '<button class="pv" onclick="goTo(' + (active - 1) + ')">← ' + (active === 1 ? 'Intro' : 'Module ' + (active - 1)) + '</button>';
   if (active < D.length - 1) next = '<button class="nx" onclick="goTo(' + (active + 1) + ')">Module ' + (active + 1) + ' →</button>';
-  document.getElementById('ct').innerHTML = heroHtml + m.html + '<div class="nav-buttons">' + prev + next + '</div>';
+  // Build Table of Contents from h2/h3 headings
+  var tocHtml = '';
+  var contentHtml = m.html;
+  var headingRegex = /<h([23])>(.*?)<\/h[23]>/g;
+  var match, tocItems = [], hCount = 0;
+  var tempContent = contentHtml;
+  while ((match = headingRegex.exec(contentHtml)) !== null) {
+    var level = match[1];
+    var text = match[2].replace(/<[^>]+>/g, ''); // strip HTML tags
+    if (!text.trim()) continue;
+    hCount++;
+    var hId = 'sec-' + active + '-' + hCount;
+    // Add id to heading in content
+    var origTag = match[0];
+    var newTag = '<h' + level + ' id="' + hId + '">' + match[2] + '</h' + level + '>';
+    tempContent = tempContent.replace(origTag, newTag);
+    tocItems.push({ id: hId, text: text, level: level });
+  }
+  contentHtml = tempContent;
+
+  if (tocItems.length > 2) {
+    tocHtml = '<div class="toc" id="moduleToc"><div class="toc-toggle" onclick="toggleToc()">';
+    tocHtml += '<h3>📑 Mục lục</h3><span class="toc-arrow open" id="tocArrow">▼</span></div>';
+    tocHtml += '<ul class="toc-list open" id="tocList">';
+    tocItems.forEach(function(item, idx) {
+      var isSub = item.level === '3';
+      var isSpecial = item.text.includes('Mini Project') || item.text.includes('Bài tập') || item.text.includes('Bài kiểm tra');
+      tocHtml += '<li class="' + (isSub ? 'toc-sub' : '') + (isSpecial ? ' toc-highlight' : '') + '">';
+      tocHtml += '<a href="#' + item.id + '" onclick="smoothScrollTo(\'' + item.id + '\')">';
+      if (!isSub) tocHtml += '<span class="toc-num">' + (idx + 1) + '</span>';
+      tocHtml += item.text + '</a></li>';
+    });
+    tocHtml += '</ul></div>';
+  }
+
+  document.getElementById('ct').innerHTML = heroHtml + tocHtml + contentHtml + '<div class="nav-buttons">' + prev + next + '</div>';
   addCodeFeatures();
 }
 function addCodeFeatures() {
@@ -2613,11 +2703,41 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-// ===== READING PROGRESS =====
+// ===== TABLE OF CONTENTS =====
+function toggleToc() {
+  var list = document.getElementById('tocList');
+  var arrow = document.getElementById('tocArrow');
+  list.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+function smoothScrollTo(id) {
+  var el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Highlight briefly
+    el.style.transition = 'background .3s';
+    el.style.background = 'var(--primary-bg)';
+    el.style.borderRadius = '8px';
+    el.style.padding = '4px 8px';
+    el.style.margin = '36px 0 16px -8px';
+    setTimeout(function() { el.style.background = ''; el.style.padding = ''; el.style.margin = ''; }, 2000);
+  }
+}
+function scrollToToc() {
+  var toc = document.getElementById('moduleToc');
+  if (toc) toc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  else window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== READING PROGRESS + BACK TO TOC =====
 window.addEventListener('scroll', function() {
   var h = document.documentElement;
   var pct = Math.min(100, Math.round(h.scrollTop / (h.scrollHeight - h.clientHeight) * 100)) || 0;
   document.getElementById('readingBar').style.width = pct + '%';
+  // Show/hide back-to-toc button
+  var btn = document.getElementById('backToToc');
+  if (h.scrollTop > 600) btn.classList.add('visible');
+  else btn.classList.remove('visible');
 });
 
 // ===== INIT =====
