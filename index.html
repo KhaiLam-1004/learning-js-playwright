@@ -392,11 +392,11 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
   font-size: 11px; color: var(--text3); display: flex; justify-content: space-between;
 }
 .expand-btn {
-  padding: 4px 8px; border-radius: 6px; border: none;
-  background: rgba(255,255,255,.1); color: #94a3b8; cursor: pointer;
-  font-size: 11px; transition: all .15s;
+  padding: 5px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,.15);
+  background: rgba(99,102,241,.3); color: #c4b5fd; cursor: pointer;
+  font-size: 12px; font-weight: 700; transition: all .2s; letter-spacing: .5px;
 }
-.expand-btn:hover { background: rgba(255,255,255,.2); color: #fff; }
+.expand-btn:hover { background: rgba(99,102,241,.6); color: #fff; border-color: var(--primary); transform: scale(1.05); }
 @media (max-width: 900px) {
   .popup-editor { width: 100vw; height: 100vh; max-width: none; max-height: none; border-radius: 0; }
 }
@@ -539,7 +539,7 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
 var defined_pg = function(label, code, rows) {
   rows = rows || 4;
   return '<div class="playground" data-playground>' +
-    '<div class="playground-header"><span>💻 ' + label + '</span><div style="display:flex;gap:6px"><button onclick="expandPlayground(this,\'' + label.replace(/'/g,"\\'") + '\')" class="expand-btn" title="Mở rộng">⛶</button><button onclick="runPlayground(this)" style="background:var(--green)">▶ Chạy</button><button onclick="clearPlayground(this)" style="background:var(--text3)">✕ Xóa</button></div></div>' +
+    '<div class="playground-header"><span>💻 ' + label + '</span><div style="display:flex;gap:6px"><button onclick="expandPlayground(this,\'' + label.replace(/'/g,"\\'") + '\')" class="expand-btn" title="Mở rộng">⛶ Phóng to</button><button onclick="runPlayground(this)" style="background:var(--green)">▶ Chạy</button><button onclick="clearPlayground(this)" style="background:var(--text3)">✕ Xóa</button></div></div>' +
     '<textarea class="playground-editor" spellcheck="false" rows="' + rows + '">' + code + '</textarea>' +
     '<div class="playground-output"><span style="color:var(--text3)">// Nhấn ▶ Chạy để xem kết quả</span></div></div>';
 };
@@ -1957,7 +1957,7 @@ function buildChallenge(id, title, desc, startCode, testFn, rows) {
     '<div class="challenge-title">🏆 Code Challenge: ' + title + '</div>' +
     '<div class="challenge-desc">' + desc + '</div>' +
     '<div class="playground" data-playground data-challenge-id="' + id + '">' +
-    '<div class="playground-header"><span>💻 Viết code</span><div style="display:flex;gap:6px"><button onclick="expandPlayground(this,\'' + title.replace(/'/g,"\\'") + '\')" class="expand-btn" title="Mở rộng">⛶</button><button onclick="runPlayground(this)" style="background:var(--green)">▶ Chạy</button><button onclick="checkChallenge(\'' + id + '\',this)" style="background:var(--primary)">✓ Kiểm tra</button></div></div>' +
+    '<div class="playground-header"><span>💻 Viết code</span><div style="display:flex;gap:6px"><button onclick="expandPlayground(this,\'' + title.replace(/'/g,"\\'") + '\')" class="expand-btn" title="Mở rộng">⛶ Phóng to</button><button onclick="runPlayground(this)" style="background:var(--green)">▶ Chạy</button><button onclick="checkChallenge(\'' + id + '\',this)" style="background:var(--primary)">✓ Kiểm tra</button></div></div>' +
     '<textarea class="playground-editor" spellcheck="false" rows="' + (rows||5) + '">' + startCode + '</textarea>' +
     '<div class="playground-output"><span style="color:var(--text3)">// Viết code rồi nhấn ✓ Kiểm tra</span></div>' +
     '</div>' +
@@ -2327,6 +2327,7 @@ function render() {
   addCodeFeatures();
 }
 function addCodeFeatures() {
+  // Add copy buttons to pre blocks
   document.querySelectorAll('#ct pre').forEach(function(pre) {
     if (pre.closest('[data-playground]')) return;
     if (pre.parentElement.classList.contains('code-wrap')) return;
@@ -2338,6 +2339,21 @@ function addCodeFeatures() {
     actions.className = 'code-actions';
     actions.innerHTML = '<button onclick="copyCode(this)">📋 Copy</button>';
     wrapper.appendChild(actions);
+  });
+  // Ensure all playgrounds have expand button
+  document.querySelectorAll('#ct [data-playground]').forEach(function(pg) {
+    var header = pg.querySelector('.playground-header');
+    if (!header) return;
+    if (header.querySelector('.expand-btn')) return; // already has one
+    var titleEl = header.querySelector('span');
+    var title = titleEl ? titleEl.textContent.replace('💻 ', '') : 'Code Editor';
+    var btn = document.createElement('button');
+    btn.className = 'expand-btn';
+    btn.title = 'Mở rộng';
+    btn.textContent = '⛶ Phóng to';
+    btn.onclick = function() { expandPlayground(this, title); };
+    var actionsDiv = header.querySelector('div');
+    if (actionsDiv) actionsDiv.insertBefore(btn, actionsDiv.firstChild);
   });
 }
 function copyCode(btn) {
