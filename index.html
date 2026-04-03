@@ -460,59 +460,71 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
 .exam-score.grade-f { background: var(--red-bg); color: var(--red-text); }
 .exam-score.grade-f .score-fill { background: var(--red); }
 
-/* ===== TABLE OF CONTENTS ===== */
-.toc {
+/* ===== TABLE OF CONTENTS (RIGHT SIDE) ===== */
+.toc-sidebar {
+  position: fixed; right: 0; top: 52px; bottom: 0;
+  width: 220px; padding: 20px 12px 20px 0;
+  overflow-y: auto; z-index: 50;
+  transition: opacity .3s;
+}
+.toc-sidebar .toc-inner {
   background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 16px 20px; margin-bottom: 28px; box-shadow: var(--shadow);
+  padding: 14px; box-shadow: var(--shadow);
 }
-.toc-toggle {
-  display: flex; align-items: center; justify-content: space-between;
-  cursor: pointer; user-select: none;
+.toc-sidebar h4 {
+  font-size: 11px; font-weight: 800; color: var(--text3); margin: 0 0 10px;
+  text-transform: uppercase; letter-spacing: .8px;
+  display: flex; align-items: center; gap: 6px;
 }
-.toc-toggle h3 {
-  font-size: 14px; font-weight: 700; color: var(--text); margin: 0;
-  display: flex; align-items: center; gap: 8px;
+.toc-sidebar .toc-list {
+  list-style: none; padding: 0; margin: 0;
 }
-.toc-toggle .toc-arrow { font-size: 12px; color: var(--text3); transition: transform .2s; }
-.toc-toggle .toc-arrow.open { transform: rotate(180deg); }
-.toc-list {
-  list-style: none; padding: 0; margin: 12px 0 0;
-  max-height: 0; overflow: hidden; transition: max-height .3s ease;
+.toc-sidebar .toc-list li { margin: 0; }
+.toc-sidebar .toc-list li a {
+  display: block; padding: 5px 10px; margin: 1px 0; border-radius: 6px;
+  text-decoration: none; color: var(--text3); font-size: 12px; line-height: 1.5;
+  transition: all .15s; border-left: 2px solid transparent;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.toc-list.open { max-height: 800px; }
-.toc-list li {
-  margin: 0; padding: 0;
-}
-.toc-list li a {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 12px; margin: 2px 0; border-radius: 8px;
-  text-decoration: none; color: var(--text2); font-size: 13.5px;
-  transition: all .15s; border-left: 3px solid transparent;
-}
-.toc-list li a:hover { background: var(--bg3); color: var(--primary); border-left-color: var(--primary); }
-.toc-list li a .toc-num {
-  min-width: 22px; height: 22px; border-radius: 50%;
-  background: var(--bg3); color: var(--text3);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 10px; font-weight: 700; flex-shrink: 0;
-}
-.toc-list li a:hover .toc-num { background: var(--primary-bg); color: var(--primary); }
-.toc-list li.toc-sub a { padding-left: 28px; font-size: 12.5px; color: var(--text3); }
-.toc-list li.toc-highlight a { font-weight: 600; color: var(--primary); }
-.toc-list li.toc-highlight a .toc-num { background: var(--primary); color: #fff; }
+.toc-sidebar .toc-list li a:hover { color: var(--primary); background: var(--primary-bg); border-left-color: var(--primary); }
+.toc-sidebar .toc-list li a.toc-active { color: var(--primary); font-weight: 700; border-left-color: var(--primary); background: var(--primary-bg); }
+.toc-sidebar .toc-list li.toc-sub a { padding-left: 20px; font-size: 11px; }
+.toc-sidebar .toc-list li.toc-highlight a { color: var(--purple-text); }
+.toc-sidebar .toc-list li.toc-highlight a.toc-active { color: var(--primary); }
+.toc-sidebar .toc-progress { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+.toc-sidebar .toc-progress span { font-size: 10px; color: var(--text3); }
+.toc-sidebar .toc-progress .bar { height: 4px; background: var(--bg3); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+.toc-sidebar .toc-progress .fill { height: 100%; background: var(--primary); border-radius: 2px; transition: width .3s; }
+
+/* Adjust main content when TOC sidebar is visible */
+.content.has-toc { max-width: 720px; margin-right: 220px; }
 
 /* Back to top button */
 .back-to-toc {
-  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  position: fixed; bottom: 20px; right: 240px;
   padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border);
   background: var(--bg2); color: var(--text2); font-size: 12px; font-weight: 600;
   cursor: pointer; box-shadow: var(--shadow-lg); z-index: 100;
   opacity: 0; pointer-events: none; transition: all .3s;
-  margin-left: calc(var(--sidebar-w) / 2);
 }
 .back-to-toc.visible { opacity: 1; pointer-events: all; }
 .back-to-toc:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
-@media (max-width: 900px) { .back-to-toc { margin-left: 0; } }
+
+/* Hide right TOC on smaller screens, show inline TOC instead */
+.toc-inline { display: none; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 24px; }
+.toc-inline summary { font-size: 13px; font-weight: 700; color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.toc-inline .toc-list { list-style: none; padding: 0; margin: 10px 0 0; }
+.toc-inline .toc-list li a { display: block; padding: 5px 10px; text-decoration: none; color: var(--text2); font-size: 13px; border-radius: 6px; }
+.toc-inline .toc-list li a:hover { background: var(--bg3); color: var(--primary); }
+.toc-inline .toc-list li.toc-sub a { padding-left: 24px; font-size: 12px; color: var(--text3); }
+
+@media (max-width: 1200px) {
+  .toc-sidebar { display: none; }
+  .content.has-toc { max-width: 820px; margin-right: auto; }
+  .toc-inline { display: block; }
+  .back-to-toc { right: 20px; }
+}
+@media (max-width: 900px) { .back-to-toc { right: 16px; bottom: 16px; } }
 
 /* ===== MODULE META ===== */
 .module-meta { display: flex; gap: 12px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
@@ -545,6 +557,7 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
     </div>
   </div>
   <div class="content" id="ct"></div>
+  <div class="toc-sidebar" id="tocSidebar"></div>
 </div>
 <div class="search-overlay" id="searchOverlay" onclick="if(event.target===this)closeSearch()">
   <div class="search-modal">
@@ -2379,41 +2392,59 @@ function render() {
   if (active > 0) prev = '<button class="pv" onclick="goTo(' + (active - 1) + ')">← ' + (active === 1 ? 'Intro' : 'Module ' + (active - 1)) + '</button>';
   if (active < D.length - 1) next = '<button class="nx" onclick="goTo(' + (active + 1) + ')">Module ' + (active + 1) + ' →</button>';
   // Build Table of Contents from h2/h3 headings
-  var tocHtml = '';
   var contentHtml = m.html;
   var headingRegex = /<h([23])>(.*?)<\/h[23]>/g;
   var match, tocItems = [], hCount = 0;
   var tempContent = contentHtml;
   while ((match = headingRegex.exec(contentHtml)) !== null) {
     var level = match[1];
-    var text = match[2].replace(/<[^>]+>/g, ''); // strip HTML tags
+    var text = match[2].replace(/<[^>]+>/g, '');
     if (!text.trim()) continue;
     hCount++;
     var hId = 'sec-' + active + '-' + hCount;
-    // Add id to heading in content
     var origTag = match[0];
     var newTag = '<h' + level + ' id="' + hId + '">' + match[2] + '</h' + level + '>';
     tempContent = tempContent.replace(origTag, newTag);
     tocItems.push({ id: hId, text: text, level: level });
   }
   contentHtml = tempContent;
+  window._tocItems = tocItems; // store for scroll spy
 
+  // Right-side TOC sidebar
+  var tocSidebar = document.getElementById('tocSidebar');
+  var ct = document.getElementById('ct');
   if (tocItems.length > 2) {
-    tocHtml = '<div class="toc" id="moduleToc"><div class="toc-toggle" onclick="toggleToc()">';
-    tocHtml += '<h3>📑 Mục lục</h3><span class="toc-arrow open" id="tocArrow">▼</span></div>';
-    tocHtml += '<ul class="toc-list open" id="tocList">';
-    tocItems.forEach(function(item, idx) {
+    var tocListHtml = '<ul class="toc-list">';
+    tocItems.forEach(function(item) {
       var isSub = item.level === '3';
       var isSpecial = item.text.includes('Mini Project') || item.text.includes('Bài tập') || item.text.includes('Bài kiểm tra');
-      tocHtml += '<li class="' + (isSub ? 'toc-sub' : '') + (isSpecial ? ' toc-highlight' : '') + '">';
-      tocHtml += '<a href="#' + item.id + '" onclick="smoothScrollTo(\'' + item.id + '\')">';
-      if (!isSub) tocHtml += '<span class="toc-num">' + (idx + 1) + '</span>';
-      tocHtml += item.text + '</a></li>';
+      tocListHtml += '<li class="' + (isSub ? 'toc-sub' : '') + (isSpecial ? ' toc-highlight' : '') + '">';
+      tocListHtml += '<a href="#' + item.id + '" data-toc-id="' + item.id + '" onclick="event.preventDefault();smoothScrollTo(\'' + item.id + '\')">' + item.text + '</a></li>';
     });
-    tocHtml += '</ul></div>';
-  }
+    tocListHtml += '</ul>';
+    tocListHtml += '<div class="toc-progress"><span>Tiến độ đọc</span><div class="bar"><div class="fill" id="tocReadFill" style="width:0%"></div></div></div>';
 
-  document.getElementById('ct').innerHTML = heroHtml + tocHtml + contentHtml + '<div class="nav-buttons">' + prev + next + '</div>';
+    tocSidebar.innerHTML = '<div class="toc-inner"><h4>📑 Mục lục</h4>' + tocListHtml + '</div>';
+    tocSidebar.style.display = '';
+    ct.classList.add('has-toc');
+
+    // Inline TOC for mobile
+    var inlineTocHtml = '<details class="toc-inline" id="moduleToc"><summary>📑 Mục lục (' + tocItems.length + ' phần)</summary>';
+    inlineTocHtml += '<ul class="toc-list">';
+    tocItems.forEach(function(item) {
+      var isSub = item.level === '3';
+      inlineTocHtml += '<li class="' + (isSub ? 'toc-sub' : '') + '">';
+      inlineTocHtml += '<a href="#' + item.id + '" onclick="event.preventDefault();smoothScrollTo(\'' + item.id + '\')">' + item.text + '</a></li>';
+    });
+    inlineTocHtml += '</ul></details>';
+
+    document.getElementById('ct').innerHTML = heroHtml + inlineTocHtml + contentHtml + '<div class="nav-buttons">' + prev + next + '</div>';
+  } else {
+    tocSidebar.innerHTML = '';
+    tocSidebar.style.display = 'none';
+    ct.classList.remove('has-toc');
+    document.getElementById('ct').innerHTML = heroHtml + contentHtml + '<div class="nav-buttons">' + prev + next + '</div>';
+  }
   addCodeFeatures();
 }
 function addCodeFeatures() {
@@ -2704,40 +2735,50 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ===== TABLE OF CONTENTS =====
-function toggleToc() {
-  var list = document.getElementById('tocList');
-  var arrow = document.getElementById('tocArrow');
-  list.classList.toggle('open');
-  arrow.classList.toggle('open');
-}
 function smoothScrollTo(id) {
   var el = document.getElementById(id);
   if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    var offset = 60; // topbar height
+    var y = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top: y, behavior: 'smooth' });
     // Highlight briefly
-    el.style.transition = 'background .3s';
+    el.style.transition = 'background .3s, padding .3s';
     el.style.background = 'var(--primary-bg)';
     el.style.borderRadius = '8px';
-    el.style.padding = '4px 8px';
-    el.style.margin = '36px 0 16px -8px';
-    setTimeout(function() { el.style.background = ''; el.style.padding = ''; el.style.margin = ''; }, 2000);
+    el.style.paddingLeft = '8px';
+    setTimeout(function() { el.style.background = ''; el.style.paddingLeft = ''; }, 2000);
   }
 }
 function scrollToToc() {
-  var toc = document.getElementById('moduleToc');
-  if (toc) toc.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  else window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ===== READING PROGRESS + BACK TO TOC =====
+// ===== SCROLL SPY + READING PROGRESS =====
 window.addEventListener('scroll', function() {
   var h = document.documentElement;
   var pct = Math.min(100, Math.round(h.scrollTop / (h.scrollHeight - h.clientHeight) * 100)) || 0;
   document.getElementById('readingBar').style.width = pct + '%';
-  // Show/hide back-to-toc button
+
+  // Back to top button
   var btn = document.getElementById('backToToc');
   if (h.scrollTop > 600) btn.classList.add('visible');
   else btn.classList.remove('visible');
+
+  // TOC reading progress
+  var tocFill = document.getElementById('tocReadFill');
+  if (tocFill) tocFill.style.width = pct + '%';
+
+  // Scroll spy: highlight current section in TOC
+  var items = window._tocItems || [];
+  if (!items.length) return;
+  var currentId = '';
+  for (var i = items.length - 1; i >= 0; i--) {
+    var el = document.getElementById(items[i].id);
+    if (el && el.getBoundingClientRect().top <= 80) { currentId = items[i].id; break; }
+  }
+  document.querySelectorAll('.toc-sidebar a[data-toc-id]').forEach(function(a) {
+    a.classList.toggle('toc-active', a.getAttribute('data-toc-id') === currentId);
+  });
 });
 
 // ===== INIT =====
