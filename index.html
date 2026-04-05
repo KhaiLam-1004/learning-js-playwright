@@ -529,6 +529,59 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
 /* ===== MODULE META ===== */
 .module-meta { display: flex; gap: 12px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
 .module-meta .meta-item { font-size: 11px; color: rgba(255,255,255,.7); display: flex; align-items: center; gap: 4px; }
+
+/* ===== WELCOME POPUP ===== */
+.welcome-overlay {
+  display: none; position: fixed; inset: 0; z-index: 900;
+  background: rgba(0,0,0,.7); backdrop-filter: blur(8px);
+  justify-content: center; align-items: center;
+}
+.welcome-overlay.open { display: flex; }
+.welcome-box {
+  background: var(--bg2); border-radius: 20px; padding: 40px; width: 420px;
+  box-shadow: 0 25px 80px rgba(0,0,0,.4); text-align: center;
+  border: 1px solid var(--border);
+}
+.welcome-box .welcome-icon { font-size: 56px; margin-bottom: 12px; }
+.welcome-box h2 { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 8px; border: none; padding: 0; }
+.welcome-box p { font-size: 14px; color: var(--text2); margin-bottom: 20px; }
+.welcome-box input {
+  width: 100%; padding: 14px 18px; border: 2px solid var(--border);
+  border-radius: 12px; font-size: 16px; background: var(--bg);
+  color: var(--text); outline: none; text-align: center;
+  transition: border-color .2s;
+}
+.welcome-box input:focus { border-color: var(--primary); }
+.welcome-box input::placeholder { color: var(--text3); }
+.welcome-box .welcome-btn {
+  width: 100%; padding: 14px; margin-top: 16px; border: none;
+  border-radius: 12px; background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
+  transition: opacity .2s;
+}
+.welcome-box .welcome-btn:hover { opacity: .9; }
+.welcome-box .welcome-btn:disabled { opacity: .4; cursor: not-allowed; }
+.welcome-box .welcome-skip {
+  display: inline-block; margin-top: 12px; font-size: 12px;
+  color: var(--text3); cursor: pointer; text-decoration: underline;
+}
+.welcome-box .welcome-skip:hover { color: var(--text2); }
+
+/* User badge in sidebar */
+.sidebar-user {
+  padding: 12px 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar-user .user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; flex-shrink: 0;
+}
+.sidebar-user .user-info { flex: 1; min-width: 0; }
+.sidebar-user .user-name { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-user .user-label { font-size: 10px; color: var(--text3); }
+@media (max-width: 900px) { .welcome-box { width: 90vw; padding: 28px; } }
 </style>
 </head>
 <body>
@@ -536,6 +589,7 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
 <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header"><h1>JS &amp; Playwright</h1><p>Giáo trình Automation Testing</p></div>
+  <div class="sidebar-user" id="sidebarUser" style="display:none"></div>
   <div class="sidebar-progress">
     <div class="bar"><div class="fill" id="progressBar" style="width:0%"></div></div>
     <span id="progressText">0 / 12 modules hoàn thành</span>
@@ -563,6 +617,16 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
   <div class="search-modal">
     <input type="text" placeholder="Tìm nội dung trong giáo trình..." id="searchModalInput" oninput="doSearch(this.value)">
     <div class="search-results" id="searchResults"></div>
+  </div>
+</div>
+<div class="welcome-overlay" id="welcomeOverlay">
+  <div class="welcome-box">
+    <div class="welcome-icon">👋</div>
+    <h2>Chào mừng bạn!</h2>
+    <p>Nhập tên để lưu tiến độ học và nhận thành tựu cá nhân.</p>
+    <input type="text" id="welcomeName" placeholder="Tên của bạn (VD: Minh, Hùng...)" maxlength="30" onkeydown="if(event.key==='Enter')submitWelcome()">
+    <button class="welcome-btn" id="welcomeBtn" onclick="submitWelcome()">Bắt đầu học!</button>
+    <span class="welcome-skip" onclick="skipWelcome()">Bỏ qua, học ẩn danh</span>
   </div>
 </div>
 <button class="back-to-toc" id="backToToc" onclick="scrollToToc()">↑ Mục lục</button>
@@ -2243,8 +2307,8 @@ function submitExam(examId, total, timeMin) {
   else if (pct >= 50) addXP(30);
   else addXP(10);
 
-  // GA tracking
-  if (typeof gtag === 'function') gtag('event', 'submit_exam', { exam_id: examId, score: pct, correct: correct, total: total });
+  // GA tracking with username
+  gaEvent('submit_exam', { exam_id: examId, score: pct, correct: correct, total: total });
 }
 
 function retryExam(examId) {
@@ -2489,21 +2553,17 @@ function goTo(id) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('overlay').classList.remove('open');
-  // GA: track module view
-  if (typeof gtag === 'function') {
-    var m = D.find(function(x){return x.id===id;});
-    gtag('event', 'view_module', { module_id: id, module_title: m ? m.title : '' });
-  }
+  // GA: track module view with username
+  var m2 = D.find(function(x){return x.id===id;});
+  gaEvent('view_module', { module_id: id, module_title: m2 ? m2.title : '' });
 }
 function toggleComplete(id) {
   completed[id] = !completed[id];
   localStorage.setItem('pw-progress', JSON.stringify(completed));
   renderSidebar(); render();
-  // GA: track module complete/uncomplete
-  if (typeof gtag === 'function') {
-    var m = D.find(function(x){return x.id===id;});
-    gtag('event', completed[id] ? 'complete_module' : 'uncomplete_module', { module_id: id, module_title: m ? m.title : '' });
-  }
+  // GA: track module complete/uncomplete with username
+  var m3 = D.find(function(x){return x.id===id;});
+  gaEvent(completed[id] ? 'complete_module' : 'uncomplete_module', { module_id: id, module_title: m3 ? m3.title : '' });
   if (completed[id]) addXP(50); // +50 XP khi hoàn thành module
   checkAchievements();
 }
@@ -2536,8 +2596,8 @@ function runPlayground(btnOrEditorId, outputId) {
   console.log = function() { logs.push({ type: 'log', text: Array.from(arguments).map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ') }); };
   console.warn = function() { logs.push({ type: 'warn', text: Array.from(arguments).map(function(a) { return typeof a === 'object' ? JSON.stringify(a) : String(a); }).join(' ') }); };
   console.error = function() { logs.push({ type: 'err', text: Array.from(arguments).map(function(a) { return typeof a === 'object' ? JSON.stringify(a) : String(a); }).join(' ') }); };
-  // GA: track playground usage
-  if (typeof gtag === 'function') gtag('event', 'run_playground', { module_id: active });
+  // GA: track playground usage with username
+  gaEvent('run_playground', { module_id: active });
   // Only award XP if user actually modified the code
   var defaultCode = editor.getAttribute('data-original');
   if (!defaultCode) { editor.setAttribute('data-original', code); }
@@ -2781,8 +2841,69 @@ window.addEventListener('scroll', function() {
   });
 });
 
+// ===== USER IDENTITY =====
+var userName = localStorage.getItem('pw-username') || '';
+var userId = localStorage.getItem('pw-userid') || '';
+
+function submitWelcome() {
+  var input = document.getElementById('welcomeName');
+  var name = input.value.trim();
+  if (!name) { input.focus(); return; }
+  userName = name;
+  if (!userId) { userId = 'u_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
+  localStorage.setItem('pw-username', userName);
+  localStorage.setItem('pw-userid', userId);
+  document.getElementById('welcomeOverlay').classList.remove('open');
+  renderUserBadge();
+  // GA: identify user
+  if (typeof gtag === 'function') {
+    gtag('set', 'user_properties', { user_name: userName, user_id_custom: userId });
+    gtag('event', 'user_register', { user_name: userName, user_id_custom: userId });
+  }
+}
+
+function skipWelcome() {
+  userName = 'Ẩn danh';
+  if (!userId) { userId = 'anon_' + Date.now().toString(36); }
+  localStorage.setItem('pw-username', userName);
+  localStorage.setItem('pw-userid', userId);
+  document.getElementById('welcomeOverlay').classList.remove('open');
+  renderUserBadge();
+}
+
+function renderUserBadge() {
+  var el = document.getElementById('sidebarUser');
+  if (!userName) { el.style.display = 'none'; return; }
+  var initial = userName.charAt(0).toUpperCase();
+  el.style.display = 'flex';
+  el.innerHTML = '<div class="user-avatar">' + initial + '</div><div class="user-info"><div class="user-name">' + escapeHtml(userName) + '</div><div class="user-label">Học viên</div></div>';
+}
+
+// Attach username to all GA events
+function gaEvent(eventName, params) {
+  if (typeof gtag !== 'function') return;
+  params = params || {};
+  params.user_name = userName || 'unknown';
+  params.user_id_custom = userId || 'unknown';
+  gtag('event', eventName, params);
+}
+
+// Show welcome popup if first visit
+function checkWelcome() {
+  if (!userName) {
+    document.getElementById('welcomeOverlay').classList.add('open');
+    setTimeout(function() { document.getElementById('welcomeName').focus(); }, 300);
+  } else {
+    renderUserBadge();
+    // Set GA user properties on return visit
+    if (typeof gtag === 'function') {
+      gtag('set', 'user_properties', { user_name: userName, user_id_custom: userId });
+    }
+  }
+}
+
 // ===== INIT =====
-renderSidebar(); render(); renderXP();
+renderSidebar(); render(); renderXP(); checkWelcome();
 // Check streak on load
 var today = new Date().toISOString().split('T')[0];
 if (xpData.lastDate !== today) {
