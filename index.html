@@ -637,7 +637,7 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
   <div class="welcome-box">
     <div class="welcome-icon">👋</div>
     <h2>Chào mừng bạn!</h2>
-    <p>Nhập tên để lưu tiến độ học và nhận thành tựu cá nhân.</p>
+    <p>Nhập tên để lưu tiến độ học và nhận thành tựu cá nhân.<br><strong style="color:var(--primary)">Nhập đúng tên cũ = đăng nhập lại, khôi phục tiến độ!</strong></p>
     <input type="text" id="welcomeName" placeholder="Tên của bạn (VD: Minh, Hùng...)" maxlength="30" onkeydown="if(event.key==='Enter')submitWelcome()">
     <button class="welcome-btn" id="welcomeBtn" onclick="submitWelcome()">Bắt đầu học!</button>
     <span class="welcome-skip" onclick="skipWelcome()">Bỏ qua, học ẩn danh</span>
@@ -2863,38 +2863,123 @@ var userId = localStorage.getItem('pw-userid') || '';
 
 function submitWelcome() {
   var input = document.getElementById('welcomeName');
+  var btn = document.getElementById('welcomeBtn');
   var name = input.value.trim();
   if (!name) { input.focus(); return; }
-  userName = name;
-  if (!userId) { userId = 'u_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
-  localStorage.setItem('pw-username', userName);
-  localStorage.setItem('pw-userid', userId);
-  document.getElementById('welcomeOverlay').classList.remove('open');
-  renderUserBadge();
-  // GA: identify user
-  if (typeof gtag === 'function') {
-    gtag('set', 'user_properties', { user_name: userName, user_id_custom: userId });
-    gtag('event', 'user_register', { user_name: userName, user_id_custom: userId });
-  }
-  // Firebase: save user
-  fbSaveUser();
+
+  btn.disabled = true;
+  btn.textContent = 'Đang kiểm tra...';
+
+  // Search Firestore for existing user with this name
+  db.collection('users').where('name', '==', name).limit(1).get().then(function(snap) {
+    if (!snap.empty) {
+      // Found existing user — restore progress
+      var doc = snap.docs[0];
+      var data = doc.data();
+      userId = doc.id;
+      userName = data.name;
+
+      // Restore progress from Firestore
+      if (data.completedModules && data.completedModules.length > 0) {
+        completed = {};
+        data.completedModules.forEach(function(id) { completed[id] = true; });
+        localStorage.setItem('pw-progress', JSON.stringify(completed));
+      }
+      if (data.xp) {
+        xpData.xp = data.xp;
+        xpData.streak = data.streak || 0;
+        localStorage.setItem('pw-xp', JSON.stringify(xpData));
+      }
+
+      localStorage.setItem('pw-username', userName);
+      localStorage.setItem('pw-userid', userId);
+      document.getElementById('welcomeOverlay').classList.remove('open');
+      renderUserBadge();
+      renderSidebar(); render(); renderXP();
+      showAchievement({ icon: '👋', name: 'Chào mừng trở lại!', desc: userName + ' — tiến độ đã được khôi phục' });
+
+      // GA
+      if (typeof gtag === 'function') {
+        gtag('set', 'user_properties', { user_name: userName, user_id_custom: userId });
+        gtag('event', 'user_login', { user_name: userName });
+      }
+      fbSaveUser();
+    } else {
+      // New user — create
+      userId = 'u_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
+      userName = name;
+      localStorage.setItem('pw-username', userName);
+      localStorage.setItem('pw-userid', userId);
+      document.getElementById('welcomeOverlay').classList.remove('open');
+      renderUserBadge();
+
+      if (typeof gtag === 'function') {
+        gtag('set', 'user_properties', { user_name: userName, user_id_custom: userId });
+        gtag('event', 'user_register', { user_name: userName, user_id_custom: userId });
+      }
+      fbSaveUser();
+      showAchievement({ icon: '🎉', name: 'Chào mừng ' + userName + '!', desc: 'Bắt đầu hành trình học code' });
+    }
+  }).catch(function(err) {
+    // Firestore error — fallback to local only
+    console.warn('Firebase lookup error:', err);
+    userId = 'u_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
+    userName = name;
+    localStorage.setItem('pw-username', userName);
+    localStorage.setItem('pw-userid', userId);
+    document.getElementById('welcomeOverlay').classList.remove('open');
+    renderUserBadge();
+    fbSaveUser();
+  });
 }
 
 function skipWelcome() {
   userName = 'Ẩn danh';
-  if (!userId) { userId = 'anon_' + Date.now().toString(36); }
+  userId = 'anon_' + Date.now().toString(36);
   localStorage.setItem('pw-username', userName);
   localStorage.setItem('pw-userid', userId);
   document.getElementById('welcomeOverlay').classList.remove('open');
+  renderUserBadge();
+}
+
+function editUserName() {
+  var newName = prompt('Nhập tên mới:', userName);
+  if (!newName || !newName.trim() || newName.trim() === userName) return;
+  var oldName = userName;
+  userName = newName.trim();
+  localStorage.setItem('pw-username', userName);
+  renderUserBadge();
+  // Update Firestore
+  if (db && userId) {
+    db.collection('users').doc(userId).update({ name: userName }).catch(function(){});
+  }
+  showAchievement({ icon: '✏️', name: 'Đã đổi tên', desc: oldName + ' → ' + userName });
+}
+
+function logoutUser() {
+  if (!confirm('Đăng xuất khỏi ' + userName + '?\nTiến độ vẫn được lưu trên server.')) return;
+  userName = '';
+  userId = '';
+  localStorage.removeItem('pw-username');
+  localStorage.removeItem('pw-userid');
+  document.getElementById('welcomeOverlay').classList.add('open');
+  document.getElementById('welcomeName').value = '';
+  document.getElementById('welcomeBtn').disabled = false;
+  document.getElementById('welcomeBtn').textContent = 'Bắt đầu học!';
   renderUserBadge();
 }
 
 function renderUserBadge() {
   var el = document.getElementById('sidebarUser');
-  if (!userName) { el.style.display = 'none'; return; }
+  if (!userName || userName === 'Ẩn danh') { el.style.display = 'none'; return; }
   var initial = userName.charAt(0).toUpperCase();
   el.style.display = 'flex';
-  el.innerHTML = '<div class="user-avatar">' + initial + '</div><div class="user-info"><div class="user-name">' + escapeHtml(userName) + '</div><div class="user-label">Học viên</div></div>';
+  el.innerHTML = '<div class="user-avatar">' + initial + '</div>' +
+    '<div class="user-info"><div class="user-name">' + escapeHtml(userName) + '</div><div class="user-label">Học viên</div></div>' +
+    '<div style="display:flex;gap:4px;margin-left:auto">' +
+    '<button onclick="editUserName()" title="Đổi tên" style="border:none;background:none;cursor:pointer;font-size:14px;padding:4px">✏️</button>' +
+    '<button onclick="logoutUser()" title="Đăng xuất" style="border:none;background:none;cursor:pointer;font-size:14px;padding:4px">🚪</button>' +
+    '</div>';
 }
 
 // Attach username to all GA events
