@@ -290,19 +290,32 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+/* iPad landscape (1024px) */
+@media (max-width: 1100px) {
+  .sidebar { width: 240px; }
+  .main { margin-left: 240px; }
+  .content { padding: 24px 24px 60px; }
+}
+/* iPad portrait & tablets */
 @media (max-width: 900px) {
-  .sidebar { transform: translateX(-100%); }
+  .sidebar { transform: translateX(-100%); width: var(--sidebar-w); }
   .sidebar.open { transform: translateX(0); }
   .overlay.open { display: block; }
   .menu-toggle { display: flex; }
   .main { margin-left: 0; }
   .topbar { padding: 10px 16px; padding-left: 56px; }
-  .content { padding: 20px 16px 60px; }
+  .content { padding: 20px 20px 60px; max-width: 100%; }
+  .content.has-toc { margin-right: auto; }
   .search-box { width: 120px; }
   .search-box:focus { width: 160px; }
   .search-modal { width: 95vw; }
   .module-hero { padding: 20px; }
   .module-hero .num { font-size: 36px; }
+  .playground-editor { font-size: 14px; min-height: 100px; }
+  pre { font-size: 13px; }
+  h2 { font-size: 18px; }
+  .exam-q .q-opts label { padding: 10px 12px; }
+  .welcome-box { width: 90vw; }
 }
 @media print { .sidebar, .topbar, .menu-toggle { display: none !important; } .main { margin-left: 0; } pre { white-space: pre-wrap; } }
 
@@ -2572,6 +2585,8 @@ function goTo(id) {
   var m2 = D.find(function(x){return x.id===id;});
   gaEvent('view_module', { module_id: id, module_title: m2 ? m2.title : '' });
   fbLogActivity('view_module', 'Module ' + id + ': ' + (m2 ? m2.title : ''));
+  // Save current module to user profile
+  if (db && userId) db.collection('users').doc(userId).update({ currentModule: id, currentModuleTitle: m2 ? m2.title : '' }).catch(function(){});
 }
 function toggleComplete(id) {
   completed[id] = !completed[id];
@@ -2618,7 +2633,12 @@ function runPlayground(btnOrEditorId, outputId) {
   // Only award XP if user actually modified the code
   var defaultCode = editor.getAttribute('data-original');
   if (!defaultCode) { editor.setAttribute('data-original', code); }
-  else if (code.trim() !== defaultCode.trim() && code.trim().length > 10) { addXP(5); }
+  else if (code.trim() !== defaultCode.trim() && code.trim().length > 10) {
+    addXP(5);
+    // Save code to Firebase
+    var pgLabel = pg.querySelector('.playground-header span');
+    fbSaveCode(code, active, pgLabel ? pgLabel.textContent : '', '');
+  }
   try {
     var isAsync = code.includes('await') || code.includes('async');
     if (isAsync) {
@@ -3021,6 +3041,19 @@ function fbLogActivity(action, details) {
     modulesCompleted: Object.keys(completed).filter(function(k){return completed[k]}).length,
     completedModules: Object.keys(completed).filter(function(k){return completed[k]}).map(Number)
   }).catch(function(){});
+}
+
+function fbSaveCode(code, moduleId, label, output) {
+  if (!db || !userId || !code || code.length < 5) return;
+  db.collection('codes').add({
+    userId: userId,
+    userName: userName,
+    moduleId: moduleId,
+    label: label || 'Module ' + moduleId,
+    code: code.substring(0, 5000),
+    output: (output || '').substring(0, 2000),
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(function(e){ console.warn('Firebase code save error:', e); });
 }
 
 // Show welcome popup if first visit
