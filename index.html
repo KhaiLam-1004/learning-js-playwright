@@ -6,6 +6,20 @@
 <title>JS &amp; Playwright - Giáo trình Interactive cho người mới</title>
 <meta name="description" content="Học JavaScript và Playwright từ zero. Giáo trình tương tác miễn phí dành cho người chưa biết gì về code.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyBDRJYpzNZrVxUtWHCOk7H17eOWbNKggCY",
+  authDomain: "js-playwright-cms-7b5b9.firebaseapp.com",
+  projectId: "js-playwright-cms-7b5b9",
+  storageBucket: "js-playwright-cms-7b5b9.firebasestorage.app",
+  messagingSenderId: "195440512201",
+  appId: "1:195440512201:web:86cff497872f64ea185118"
+});
+var db = firebase.firestore();
+</script>
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-L19SLX38Z4"></script>
 <script>
@@ -2553,17 +2567,19 @@ function goTo(id) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('overlay').classList.remove('open');
-  // GA: track module view with username
+  // GA + Firebase: track module view
   var m2 = D.find(function(x){return x.id===id;});
   gaEvent('view_module', { module_id: id, module_title: m2 ? m2.title : '' });
+  fbLogActivity('view_module', 'Module ' + id + ': ' + (m2 ? m2.title : ''));
 }
 function toggleComplete(id) {
   completed[id] = !completed[id];
   localStorage.setItem('pw-progress', JSON.stringify(completed));
   renderSidebar(); render();
-  // GA: track module complete/uncomplete with username
+  // GA + Firebase: track module complete/uncomplete
   var m3 = D.find(function(x){return x.id===id;});
   gaEvent(completed[id] ? 'complete_module' : 'uncomplete_module', { module_id: id, module_title: m3 ? m3.title : '' });
+  fbLogActivity(completed[id] ? 'complete_module' : 'uncomplete_module', 'Module ' + id + ': ' + (m3 ? m3.title : ''));
   if (completed[id]) addXP(50); // +50 XP khi hoàn thành module
   checkAchievements();
 }
@@ -2860,6 +2876,8 @@ function submitWelcome() {
     gtag('set', 'user_properties', { user_name: userName, user_id_custom: userId });
     gtag('event', 'user_register', { user_name: userName, user_id_custom: userId });
   }
+  // Firebase: save user
+  fbSaveUser();
 }
 
 function skipWelcome() {
@@ -2888,6 +2906,46 @@ function gaEvent(eventName, params) {
   gtag('event', eventName, params);
 }
 
+// ===== FIREBASE HELPERS =====
+function fbSaveUser() {
+  if (!db || !userId) return;
+  var done = 0;
+  for (var k in completed) if (completed[k]) done++;
+  db.collection('users').doc(userId).set({
+    name: userName,
+    userId: userId,
+    xp: xpData.xp,
+    level: getLevel(xpData.xp).name,
+    streak: xpData.streak,
+    modulesCompleted: done,
+    totalModules: D.length,
+    lastActive: new Date().toISOString(),
+    registeredAt: firebase.firestore.FieldValue.serverTimestamp(),
+    device: navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop',
+    completedModules: Object.keys(completed).filter(function(k){return completed[k]}).map(Number)
+  }, { merge: true }).catch(function(e){ console.warn('Firebase error:', e); });
+}
+
+function fbLogActivity(action, details) {
+  if (!db || !userId) return;
+  db.collection('activities').add({
+    userId: userId,
+    userName: userName,
+    action: action,
+    details: details || '',
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(function(e){ console.warn('Firebase error:', e); });
+  // Also update user's lastActive
+  db.collection('users').doc(userId).update({
+    lastActive: new Date().toISOString(),
+    xp: xpData.xp,
+    level: getLevel(xpData.xp).name,
+    streak: xpData.streak,
+    modulesCompleted: Object.keys(completed).filter(function(k){return completed[k]}).length,
+    completedModules: Object.keys(completed).filter(function(k){return completed[k]}).map(Number)
+  }).catch(function(){});
+}
+
 // Show welcome popup if first visit
 function checkWelcome() {
   if (!userName) {
@@ -2899,6 +2957,7 @@ function checkWelcome() {
     if (typeof gtag === 'function') {
       gtag('set', 'user_properties', { user_name: userName, user_id_custom: userId });
     }
+    fbSaveUser(); // update lastActive on return
   }
 }
 
