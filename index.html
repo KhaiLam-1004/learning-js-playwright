@@ -635,12 +635,12 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
 </div>
 <div class="welcome-overlay" id="welcomeOverlay">
   <div class="welcome-box">
-    <div class="welcome-icon">👋</div>
-    <h2>Chào mừng bạn!</h2>
-    <p>Nhập tên để lưu tiến độ học và nhận thành tựu cá nhân.<br><strong style="color:var(--primary)">Nhập đúng tên cũ = đăng nhập lại, khôi phục tiến độ!</strong></p>
-    <input type="text" id="welcomeName" placeholder="Tên của bạn (VD: Minh, Hùng...)" maxlength="30" onkeydown="if(event.key==='Enter')submitWelcome()">
-    <button class="welcome-btn" id="welcomeBtn" onclick="submitWelcome()">Bắt đầu học!</button>
-    <span class="welcome-skip" onclick="skipWelcome()">Bỏ qua, học ẩn danh</span>
+    <div class="welcome-icon">🚀</div>
+    <h2>Yo! Sẵn sàng code chưa?</h2>
+    <p style="font-size:13.5px">Cho mình biết tên bạn để lưu tiến độ nhé.<br>Lần sau quay lại chỉ cần nhập đúng tên là <strong style="color:var(--primary)">khôi phục ngay</strong> — không mất gì cả! 😎</p>
+    <input type="text" id="welcomeName" placeholder="Nhập tên thật cool của bạn..." maxlength="30" onkeydown="if(event.key==='Enter')submitWelcome()">
+    <button class="welcome-btn" id="welcomeBtn" onclick="submitWelcome()">Let's Go! 🔥</button>
+    <p style="font-size:11px;color:var(--text3);margin-top:12px;margin-bottom:0">* Không cần email, không cần mật khẩu. Chỉ cần 1 cái tên thôi.</p>
   </div>
 </div>
 <button class="back-to-toc" id="backToToc" onclick="scrollToToc()">↑ Mục lục</button>
@@ -2896,7 +2896,7 @@ function submitWelcome() {
       document.getElementById('welcomeOverlay').classList.remove('open');
       renderUserBadge();
       renderSidebar(); render(); renderXP();
-      showAchievement({ icon: '👋', name: 'Chào mừng trở lại!', desc: userName + ' — tiến độ đã được khôi phục' });
+      showAchievement({ icon: '🫡', name: 'Ê ' + userName + ', lâu rồi!', desc: 'Tiến độ đã được khôi phục. Triển tiếp thôi!' });
 
       // GA
       if (typeof gtag === 'function') {
@@ -2918,7 +2918,7 @@ function submitWelcome() {
         gtag('event', 'user_register', { user_name: userName, user_id_custom: userId });
       }
       fbSaveUser();
-      showAchievement({ icon: '🎉', name: 'Chào mừng ' + userName + '!', desc: 'Bắt đầu hành trình học code' });
+      showAchievement({ icon: '🎉', name: 'Welcome ' + userName + '!', desc: 'Hành trình từ zero đến hero bắt đầu!' });
     }
   }).catch(function(err) {
     // Firestore error — fallback to local only
@@ -2931,15 +2931,6 @@ function submitWelcome() {
     renderUserBadge();
     fbSaveUser();
   });
-}
-
-function skipWelcome() {
-  userName = 'Ẩn danh';
-  userId = 'anon_' + Date.now().toString(36);
-  localStorage.setItem('pw-username', userName);
-  localStorage.setItem('pw-userid', userId);
-  document.getElementById('welcomeOverlay').classList.remove('open');
-  renderUserBadge();
 }
 
 function editUserName() {
