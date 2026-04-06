@@ -1,11 +1,5 @@
 // App logic - render, navigation, theme
-// ============================================
-// ===== APP LOGIC =====
-// ============================================
-var active = 0;
-var completed = JSON.parse(localStorage.getItem('pw-progress') || '{}');
-var darkMode = localStorage.getItem('pw-theme') === 'dark';
-if (darkMode) document.documentElement.setAttribute('data-theme', 'dark');
+// Globals used: active, completed, darkMode, D, MODULE_TIME (from index.html + gamification.js)
 
 function renderSidebar() {
   var nav = document.getElementById('sidebarNav');

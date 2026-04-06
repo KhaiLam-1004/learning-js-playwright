@@ -1,7 +1,5 @@
 // Firebase helpers + User identity
-// ===== USER IDENTITY =====
-var userName = localStorage.getItem('pw-username') || '';
-var userId = localStorage.getItem('pw-userid') || '';
+// userName, userId defined in index.html globals
 
 function submitWelcome() {
   var input = document.getElementById('welcomeName');

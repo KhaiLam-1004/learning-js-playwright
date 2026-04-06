@@ -469,7 +469,7 @@ function retryExam(examId) {
 // ============================================
 // ===== GAMIFICATION =====
 // ============================================
-var xpData = JSON.parse(localStorage.getItem('pw-xp') || '{"xp":0,"streak":0,"lastDate":"","achievements":[]}');
+// xpData is defined in index.html globals
 var XP_LEVELS = [
   {name:'Newbie', min:0}, {name:'Beginner', min:50}, {name:'Learner', min:150},
   {name:'Coder', min:300}, {name:'Developer', min:500}, {name:'Pro', min:800},
