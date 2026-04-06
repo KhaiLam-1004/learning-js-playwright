@@ -358,6 +358,29 @@ hr.sep { border: none; border-top: 1px dashed var(--border); margin: 28px 0; }
 .challenge-result.pass { background: var(--green-bg); color: var(--green-text); }
 .challenge-result.fail { background: var(--red-bg); color: var(--red-text); }
 
+/* ===== EXERCISE SUBMISSION ===== */
+.exercise { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin: 14px 0; box-shadow: var(--shadow); }
+.exercise .ex-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.exercise .ex-desc { font-size: 14px; color: var(--text2); margin-bottom: 12px; line-height: 1.7; }
+.exercise .ex-hint { font-size: 12px; color: var(--text3); margin-bottom: 10px; font-style: italic; }
+.exercise .ex-solution { display: none; margin-top: 12px; border-radius: 10px; overflow: hidden; }
+.exercise .ex-solution.show { display: block; }
+.exercise .ex-solution-header { padding: 10px 14px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.exercise .ex-solution-header.correct { background: var(--green-bg); color: var(--green-text); }
+.exercise .ex-solution-header.wrong { background: var(--red-bg); color: var(--red-text); }
+.exercise .ex-solution pre { margin: 0; border-radius: 0; }
+.exercise .ex-solution .ex-explain { padding: 10px 14px; font-size: 13px; color: var(--text2); line-height: 1.7; background: var(--bg3); }
+.exercise .submit-btn {
+  padding: 8px 18px; border: none; border-radius: 8px;
+  background: var(--primary); color: #fff; font-size: 13px;
+  font-weight: 700; cursor: pointer; transition: all .15s;
+}
+.exercise .submit-btn:hover { opacity: .85; }
+.exercise .submit-btn:disabled { opacity: .4; cursor: not-allowed; }
+.exercise .submitted-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.exercise .submitted-badge.pass { background: var(--green-bg); color: var(--green-text); }
+.exercise .submitted-badge.fail { background: var(--red-bg); color: var(--red-text); }
+
 /* ===== ACHIEVEMENT TOAST ===== */
 .achievement-toast {
   position: fixed; bottom: -100px; right: 20px; z-index: 600;
@@ -978,17 +1001,21 @@ defined_pg('Thử chuyển kiểu', '// Chuỗi → Số\nlet tuoiStr = "25";\nl
 
 '<h2>Bài tập cuối Module 1</h2>',
 
-'<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
-'<p>Tạo biến <code>namSinh</code>, tính tuổi, in ra: "Ban [tuoi] tuoi."</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>const namSinh = 2000;\nconst tuoi = 2026 - namSinh;\nconsole.log(`Ban ${tuoi} tuoi.`);</pre>',
-'</details></div>',
+buildExercise('m1_ex1', 'green', 'Bài 1: Tính tuổi',
+  'Tạo biến <code>namSinh = 2000</code>, tính tuổi (năm 2026), in ra: <code>"Ban 26 tuoi."</code> bằng template literal.',
+  'Dùng phép trừ và backtick `${}`',
+  '// Viết code tại đây\n',
+  'const namSinh = 2000;\nconst tuoi = 2026 - namSinh;\nconsole.log(`Ban ${tuoi} tuoi.`);',
+  '<strong>Giải thích:</strong> Tính tuổi = năm hiện tại - năm sinh. Dùng <code>`Ban ${tuoi} tuoi.`</code> để chèn biến vào chuỗi.',
+  null, 4),
 
-'<div class="ex"><span class="tag tg">🟢 Bài 2</span>',
-'<p>Chuyển 37°C sang °F. Công thức: F = C * 9/5 + 32</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>const c = 37;\nconst f = c * 9/5 + 32;\nconsole.log(`${c} do C = ${f} do F`); // 37 do C = 98.6 do F</pre>',
-'</details></div>',
+buildExercise('m1_ex2', 'green', 'Bài 2: Chuyển °C sang °F',
+  'Cho <code>c = 37</code>. Chuyển sang °F. Công thức: <code>F = C * 9/5 + 32</code>. In ra: <code>"37 do C = 98.6 do F"</code>',
+  'Nhân trước, cộng sau. Dùng template literal.',
+  '// Viết code tại đây\n',
+  'const c = 37;\nconst f = c * 9/5 + 32;\nconsole.log(`${c} do C = ${f} do F`);',
+  '<strong>Giải thích:</strong> Áp dụng công thức trực tiếp. 37 * 9/5 + 32 = 98.6. Lưu ý thứ tự phép tính.',
+  null, 4),
 
 buildQuiz('m1', [
   {q:'<code>let x = 5; x = "hello";</code> — biến x bây giờ có kiểu gì?', opts:['Number','String','Boolean','Error'], answer:1, explain:'JS cho phép đổi kiểu. x ban đầu là Number, sau gán lại thành String.'},
@@ -1000,25 +1027,29 @@ buildQuiz('m1', [
 
 buildChallenge('m1_calc', 'Tính tuổi', 'Tạo biến <code>namSinh = 2000</code>, tính tuổi (năm 2026), in ra bằng template literal: "Ban 26 tuoi."', '// Viết code tại đây\nconst namSinh = 2000;\n', 4),
 
-'<div class="ex"><span class="tag ty">🟡 Bài 3</span>',
-'<p>Cho <code>so = 7</code>. In ra "7 la so le" hoặc "7 la so chan". Gợi ý: dùng <code>%</code> và toán tử 3 ngôi <code>? :</code></p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>const so = 7;\nconst loai = so % 2 === 0 ? "chan" : "le";\nconsole.log(`${so} la so ${loai}`);</pre>',
-'</details></div>',
+buildExercise('m1_ex3', 'yellow', 'Bài 3: Chẵn hay Lẻ',
+  'Cho <code>so = 7</code>. In ra <code>"7 la so le"</code> hoặc <code>"7 la so chan"</code>.',
+  'Dùng <code>%</code> (chia lấy dư) và toán tử 3 ngôi <code>? :</code>',
+  'const so = 7;\n// TODO: kiem tra chan/le va in ra\n',
+  'const so = 7;\nconst loai = so % 2 === 0 ? "chan" : "le";\nconsole.log(`${so} la so ${loai}`);',
+  '<strong>Giải thích:</strong> <code>so % 2</code> chia lấy dư cho 2. Nếu dư 0 → chẵn, dư 1 → lẻ. Toán tử 3 ngôi: <code>điều_kiện ? đúng : sai</code>.',
+  null, 4),
 
-'<div class="ex"><span class="tag ty">🟡 Bài 4</span>',
-'<p>Tạo biến email = "  MINH@Gmail.Com  ". Chuẩn hóa: xóa cách thừa, chuyển thường. In kết quả.</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>let email = "  MINH@Gmail.Com  ";\nemail = email.trim().toLowerCase();\nconsole.log(email); // "minh@gmail.com"</pre>',
-'</details></div>',
+buildExercise('m1_ex4', 'yellow', 'Bài 4: Chuẩn hóa email',
+  'Tạo biến <code>email = "  MINH@Gmail.Com  "</code>. Xóa cách thừa và chuyển thường. In ra <code>"minh@gmail.com"</code>.',
+  'Dùng <code>.trim()</code> và <code>.toLowerCase()</code>',
+  'let email = "  MINH@Gmail.Com  ";\n// TODO: chuan hoa va in ra\n',
+  'let email = "  MINH@Gmail.Com  ";\nemail = email.trim().toLowerCase();\nconsole.log(email); // "minh@gmail.com"',
+  '<strong>Giải thích:</strong> <code>.trim()</code> xóa khoảng trắng đầu/cuối. <code>.toLowerCase()</code> chuyển tất cả thành chữ thường. Nối chuỗi method: <code>email.trim().toLowerCase()</code>.',
+  null, 4),
 
-'<div class="ex"><span class="tag tr">🔴 Bài 5</span>',
-'<p>Cho chuỗi <code>"Hello World"</code>. In ra: (a) số ký tự không tính dấu cách, (b) số từ, (c) chuỗi viết ngược.</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>const s = "Hello World";\nconsole.log("Ky tu:", s.replace(/ /g, "").length); // 10\nconsole.log("So tu:", s.split(" ").length);         // 2\nconsole.log("Dao:", s.split("").reverse().join("")); // dlroW olleH</pre>',
-'</details></div>',
-
-defined_pg('Làm bài tập tại đây', '// Viết code bài tập tại đây\n', 4),
+buildExercise('m1_ex5', 'red', 'Bài 5: Phân tích chuỗi',
+  'Cho chuỗi <code>"Hello World"</code>. In ra: (a) số ký tự không tính dấu cách, (b) số từ, (c) chuỗi viết ngược.',
+  'Dùng <code>.replace()</code>, <code>.split()</code>, <code>.reverse()</code>, <code>.join()</code>',
+  'const s = "Hello World";\n// (a) So ky tu khong tinh dau cach\n\n// (b) So tu\n\n// (c) Chuoi viet nguoc\n',
+  'const s = "Hello World";\nconsole.log("Ky tu:", s.replace(/ /g, "").length); // 10\nconsole.log("So tu:", s.split(" ").length);         // 2\nconsole.log("Dao:", s.split("").reverse().join("")); // dlroW olleH',
+  '<strong>Giải thích:</strong><br>(a) <code>s.replace(/ /g, "")</code> xóa tất cả dấu cách, rồi đếm <code>.length</code>.<br>(b) <code>s.split(" ")</code> tách thành mảng các từ, đếm <code>.length</code>.<br>(c) <code>split("")</code> tách từng ký tự → <code>reverse()</code> đảo → <code>join("")</code> nối lại.',
+  null, 6),
 
 '<hr class="sep">',
 
@@ -1114,17 +1145,21 @@ defined_pg('Thử break & continue', '// break — DỪNG vòng lặp ngay\nfor 
 
 '<h2>Bài tập cuối Module 2</h2>',
 
-'<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
-'<p>In ra bảng cửu chương 7 (7x1=7, 7x2=14, ..., 7x10=70).</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>for (let i = 1; i &lt;= 10; i++) {\n  console.log(`7 x ${i} = ${7 * i}`);\n}</pre>',
-'</details></div>',
+buildExercise('m2_ex1', 'green', 'Bài 1: Bảng cửu chương',
+  'In ra bảng cửu chương 7: <code>7x1=7, 7x2=14, ..., 7x10=70</code>.',
+  'Dùng vòng for từ 1 đến 10, in <code>`7 x ${i} = ${7*i}`</code>',
+  '// In bang cuu chuong 7\n',
+  'for (let i = 1; i <= 10; i++) {\n  console.log(`7 x ${i} = ${7 * i}`);\n}',
+  '<strong>Giải thích:</strong> Vòng for chạy i từ 1→10. Mỗi lần in <code>7 x i = 7*i</code>. Template literal giúp chèn biến vào chuỗi.',
+  null, 4),
 
-'<div class="ex"><span class="tag ty">🟡 Bài 2</span>',
-'<p>In tất cả số nguyên tố từ 1 đến 50. Gợi ý: viết hàm kiểm tra ở Module 3, hoặc dùng vòng lặp lồng.</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>for (let n = 2; n &lt;= 50; n++) {\n  let laSNT = true;\n  for (let i = 2; i * i &lt;= n; i++) {\n    if (n % i === 0) { laSNT = false; break; }\n  }\n  if (laSNT) console.log(n);\n}</pre>',
-'</details></div>',
+buildExercise('m2_ex2', 'yellow', 'Bài 2: Số nguyên tố',
+  'In tất cả số nguyên tố từ 2 đến 50.',
+  'Số nguyên tố = chỉ chia hết cho 1 và chính nó. Dùng vòng lặp lồng.',
+  '// In so nguyen to tu 2 den 50\n',
+  'for (let n = 2; n <= 50; n++) {\n  let laSNT = true;\n  for (let i = 2; i * i <= n; i++) {\n    if (n % i === 0) { laSNT = false; break; }\n  }\n  if (laSNT) console.log(n);\n}',
+  '<strong>Giải thích:</strong> Với mỗi số n, kiểm tra có chia hết cho số nào từ 2 đến √n không. Nếu không chia hết cho ai → là số nguyên tố. <code>break</code> dừng sớm khi tìm thấy ước.',
+  null, 6),
 
 buildQuiz('m2', [
   {q:'Vòng lặp <code>for(let i=0; i&lt;3; i++)</code> chạy bao nhiêu lần?', opts:['2 lần','3 lần','4 lần','Vô hạn'], answer:1, explain:'i=0,1,2 → 3 lần. Khi i=3 thì i<3 false → dừng.'},
@@ -1134,13 +1169,13 @@ buildQuiz('m2', [
 
 buildChallenge('m2_fizz', 'FizzBuzz', 'In số 1→30. Chia hết 3→"Fizz", chia hết 5→"Buzz", cả hai→"FizzBuzz".', '// Viết FizzBuzz tại đây\nfor (let i = 1; i <= 30; i++) {\n  // TODO\n}', 6),
 
-'<div class="ex"><span class="tag tr">🔴 Bài 3</span>',
-'<p>FizzBuzz: In 1→100. Chia hết 3 → "Fizz". Chia hết 5 → "Buzz". Cả hai → "FizzBuzz".</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>for (let i = 1; i &lt;= 100; i++) {\n  if (i % 15 === 0) console.log("FizzBuzz");\n  else if (i % 3 === 0) console.log("Fizz");\n  else if (i % 5 === 0) console.log("Buzz");\n  else console.log(i);\n}</pre>',
-'</details></div>',
-
-defined_pg('Làm bài tập tại đây', '// Viết code bài tập tại đây\n', 4),
+buildExercise('m2_ex3', 'red', 'Bài 3: FizzBuzz (1→100)',
+  'In số từ 1→100. Chia hết cho 3 → in "Fizz". Chia hết cho 5 → in "Buzz". Chia hết cả hai → in "FizzBuzz".',
+  'Kiểm tra chia hết 15 TRƯỚC (vì 15 = 3*5), rồi mới kiểm tra 3 và 5 riêng.',
+  'for (let i = 1; i <= 100; i++) {\n  // TODO\n}',
+  'for (let i = 1; i <= 100; i++) {\n  if (i % 15 === 0) console.log("FizzBuzz");\n  else if (i % 3 === 0) console.log("Fizz");\n  else if (i % 5 === 0) console.log("Buzz");\n  else console.log(i);\n}',
+  '<strong>Giải thích:</strong> Phải kiểm tra <code>i % 15 === 0</code> trước! Nếu kiểm tra %3 trước → số 15 sẽ in "Fizz" thay vì "FizzBuzz". Thứ tự if/else if rất quan trọng.',
+  null, 6),
 
 '<hr class="sep">',
 
@@ -1217,17 +1252,21 @@ defined_pg('Thử arrow function', '// Hàm thường\nfunction cong(a, b) {\n  
 
 '<h2>Bài tập cuối Module 3</h2>',
 
-'<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
-'<p>Viết hàm <code>giaiThua(n)</code>. Giai thừa 5 = 5 x 4 x 3 x 2 x 1 = 120.</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>function giaiThua(n) {\n  let kq = 1;\n  for (let i = 2; i &lt;= n; i++) {\n    kq = kq * i;\n  }\n  return kq;\n}\nconsole.log(giaiThua(5)); // 120\nconsole.log(giaiThua(0)); // 1</pre>',
-'</details></div>',
+buildExercise('m3_ex1', 'green', 'Bài 1: Giai thừa',
+  'Viết hàm <code>giaiThua(n)</code>. Giai thừa 5 = 5 x 4 x 3 x 2 x 1 = 120. In ra <code>giaiThua(5)</code> và <code>giaiThua(0)</code>.',
+  'Dùng vòng for, nhân dần từ 1 đến n. giaiThua(0) = 1.',
+  'function giaiThua(n) {\n  // TODO\n}\nconsole.log(giaiThua(5));\nconsole.log(giaiThua(0));',
+  'function giaiThua(n) {\n  let kq = 1;\n  for (let i = 2; i <= n; i++) {\n    kq = kq * i;\n  }\n  return kq;\n}\nconsole.log(giaiThua(5)); // 120\nconsole.log(giaiThua(0)); // 1',
+  '<strong>Giải thích:</strong> Bắt đầu kq = 1. Nhân lần lượt 2, 3, 4, 5 → 1*2*3*4*5 = 120. Khi n=0, vòng for không chạy → trả về 1 (đúng vì 0! = 1).',
+  null, 5),
 
-'<div class="ex"><span class="tag tg">🟢 Bài 2</span>',
-'<p>Viết hàm <code>laSoNguyenTo(n)</code> trả về true nếu n là số nguyên tố.</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>function laSoNguyenTo(n) {\n  if (n &lt; 2) return false;\n  for (let i = 2; i * i &lt;= n; i++) {\n    if (n % i === 0) return false;\n  }\n  return true;\n}\nconsole.log(laSoNguyenTo(7));  // true\nconsole.log(laSoNguyenTo(10)); // false\nconsole.log(laSoNguyenTo(1));  // false</pre>',
-'</details></div>',
+buildExercise('m3_ex2', 'green', 'Bài 2: Kiểm tra số nguyên tố',
+  'Viết hàm <code>laSoNguyenTo(n)</code> trả về <code>true</code> nếu n là số nguyên tố, <code>false</code> nếu không.',
+  'Số nguyên tố > 1 và chỉ chia hết cho 1 và chính nó. Chỉ cần kiểm tra đến √n.',
+  'function laSoNguyenTo(n) {\n  // TODO\n}\nconsole.log(laSoNguyenTo(7));  // true\nconsole.log(laSoNguyenTo(10)); // false\nconsole.log(laSoNguyenTo(1));  // false',
+  'function laSoNguyenTo(n) {\n  if (n < 2) return false;\n  for (let i = 2; i * i <= n; i++) {\n    if (n % i === 0) return false;\n  }\n  return true;\n}\nconsole.log(laSoNguyenTo(7));  // true\nconsole.log(laSoNguyenTo(10)); // false\nconsole.log(laSoNguyenTo(1));  // false',
+  '<strong>Giải thích:</strong> n < 2 → không phải SNT. Kiểm tra từ 2 đến √n: nếu n chia hết cho i → không phải SNT. Tại sao chỉ đến √n? Vì nếu n = a*b thì a hoặc b ≤ √n.',
+  null, 6),
 
 buildQuiz('m3', [
   {q:'Hàm không có <code>return</code> trả về gì?', opts:['null','0','undefined','Error'], answer:2, explain:'Hàm không return → trả về undefined.'},
@@ -1235,19 +1274,33 @@ buildQuiz('m3', [
   {q:'Biến tạo trong hàm có dùng được ngoài hàm không?', opts:['Có','Không','Tùy trường hợp','Chỉ khi dùng var'], answer:1, explain:'Biến let/const trong hàm có scope cục bộ — chỉ dùng trong hàm đó.'}
 ]),
 
+'<hr class="sep">',
+buildExam('exam_m3', 'Bài kiểm tra Module 3 — Hàm', 8, [
+  {q:'Hàm không có <code>return</code> trả về gì?', opts:['null','0','undefined','Error'], answer:2, explain:'Hàm không return sẽ tự động trả về undefined.'},
+  {q:'<code>function f(a=5){return a;} f();</code> trả về?', opts:['undefined','5','null','Error'], answer:1, explain:'Tham số mặc định a=5. Gọi f() không truyền a → dùng mặc định = 5.'},
+  {q:'Arrow function <code>const add = (a,b) => a+b;</code> tương đương?', opts:['function add(a,b){return a+b;}','function(a,b){a+b}','const add = function(a,b){a+b;}','add(a,b) => return a+b'], answer:0, explain:'Arrow function 1 dòng tự return. Tương đương function declaration có return.'},
+  {q:'Biến <code>let x</code> trong hàm A, hàm B có dùng được x không?', opts:['Có','Không','Chỉ khi khai báo var','Chỉ khi x là const'], answer:1, explain:'Biến let/const trong hàm là cục bộ (local scope). Hàm khác không thấy.'},
+  {q:'<code>console.log(f(3)); function f(x){return x*2;}</code> — chạy được không?', opts:['Có, in ra 6','Không, lỗi ReferenceError','In ra undefined','In ra NaN'], answer:0, explain:'Function declaration được hoisted — JS "đưa" lên đầu trước khi chạy. Nên gọi trước khi khai báo vẫn OK.'},
+  {q:'<code>const f = x => { x * 2 }</code> — f(3) trả về?', opts:['6','undefined','Error','3'], answer:1, explain:'Dùng {} nhưng KHÔNG có return → trả về undefined. Phải viết { return x*2 } hoặc bỏ {}: x => x*2.'}
+]),
+
 buildChallenge('m3_factorial', 'Giai thừa', 'Viết hàm <code>giaiThua(n)</code> trả về n!. In ra giaiThua(5) (kết quả = 120).', 'function giaiThua(n) {\n  // TODO: viết code tại đây\n}\nconsole.log(giaiThua(5));', 5),
 
-'<div class="ex"><span class="tag ty">🟡 Bài 3</span>',
-'<p>Viết hàm <code>daoChuoi(s)</code> đảo ngược chuỗi KHÔNG dùng <code>.reverse()</code>.</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>function daoChuoi(s) {\n  let kq = "";\n  for (let i = s.length - 1; i >= 0; i--) {\n    kq = kq + s[i];\n  }\n  return kq;\n}\nconsole.log(daoChuoi("hello")); // "olleh"</pre>',
-'</details></div>',
+buildExercise('m3_ex3', 'yellow', 'Bài 3: Đảo ngược chuỗi',
+  'Viết hàm <code>daoChuoi(s)</code> đảo ngược chuỗi <strong>KHÔNG dùng <code>.reverse()</code></strong>.',
+  'Dùng vòng for từ cuối chuỗi về đầu, nối từng ký tự.',
+  'function daoChuoi(s) {\n  // TODO: khong dung .reverse()\n}\nconsole.log(daoChuoi("hello")); // "olleh"',
+  'function daoChuoi(s) {\n  let kq = "";\n  for (let i = s.length - 1; i >= 0; i--) {\n    kq = kq + s[i];\n  }\n  return kq;\n}\nconsole.log(daoChuoi("hello")); // "olleh"',
+  '<strong>Giải thích:</strong> Duyệt chuỗi từ cuối (index = length-1) về đầu (index = 0). Nối từng ký tự vào chuỗi kết quả. <code>s[i]</code> lấy ký tự tại vị trí i.',
+  null, 5),
 
-'<div class="ex"><span class="tag tr">🔴 Bài 4</span>',
-'<p>Viết hàm <code>demTu(s)</code> đếm số từ trong chuỗi. Xử lý cả trường hợp nhiều dấu cách liên tiếp.</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>function demTu(s) {\n  return s.trim().split(/\\s+/).length;\n}\nconsole.log(demTu("Hello World"));       // 2\nconsole.log(demTu("  Xin   chao  ban ")); // 3</pre>',
-'</details></div>',
+buildExercise('m3_ex4', 'red', 'Bài 4: Đếm từ',
+  'Viết hàm <code>demTu(s)</code> đếm số từ. Xử lý cả nhiều dấu cách liên tiếp. <code>demTu("  Xin   chao  ban ")</code> → 3.',
+  'Dùng <code>.trim()</code> + <code>.split()</code> với regex.',
+  'function demTu(s) {\n  // TODO\n}\nconsole.log(demTu("Hello World"));       // 2\nconsole.log(demTu("  Xin   chao  ban ")); // 3',
+  'function demTu(s) {\n  return s.trim().split(/\\s+/).length;\n}\nconsole.log(demTu("Hello World"));       // 2\nconsole.log(demTu("  Xin   chao  ban ")); // 3',
+  '<strong>Giải thích:</strong> <code>.trim()</code> xóa cách đầu/cuối. <code>.split(/\\s+/)</code> tách theo 1 hoặc nhiều dấu cách (regex \\s+ = whitespace). Kết quả là mảng các từ → đếm .length.',
+  null, 5),
 
 '<hr class="sep">',
 
@@ -1385,25 +1438,29 @@ defined_pg('Thử JSON', '// Object → chuỗi JSON\nconst user = { ten: "Minh"
 
 '<h2>Bài tập cuối Module 4</h2>',
 
-'<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
-'<p>Cho mảng <code>[8, 3, 9, 5, 7, 2, 10, 6]</code>. Tìm số lớn nhất, nhỏ nhất, và tổng.</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>const arr = [8, 3, 9, 5, 7, 2, 10, 6];\nconsole.log("Max:", Math.max(...arr));  // 10\nconsole.log("Min:", Math.min(...arr));  // 2\nconsole.log("Tong:", arr.reduce((s,n) => s+n, 0)); // 50</pre>',
-'</details></div>',
+buildExercise('m4_ex1', 'green', 'Bài 1: Max, Min, Tổng',
+  'Cho mảng <code>[8, 3, 9, 5, 7, 2, 10, 6]</code>. Tìm số lớn nhất, nhỏ nhất, và tổng.',
+  'Dùng <code>Math.max(...arr)</code>, <code>Math.min(...arr)</code>, <code>.reduce()</code>',
+  'const arr = [8, 3, 9, 5, 7, 2, 10, 6];\n// TODO: tim max, min, tong\n',
+  'const arr = [8, 3, 9, 5, 7, 2, 10, 6];\nconsole.log("Max:", Math.max(...arr));  // 10\nconsole.log("Min:", Math.min(...arr));  // 2\nconsole.log("Tong:", arr.reduce((s,n) => s+n, 0)); // 50',
+  '<strong>Giải thích:</strong> <code>Math.max(...arr)</code> spread mảng thành các tham số riêng lẻ. <code>reduce((s,n) => s+n, 0)</code> cộng dồn từ 0.',
+  null, 5),
 
-'<div class="ex"><span class="tag ty">🟡 Bài 2</span>',
-'<p>Cho mảng điểm. Lọc điểm >= 5, sắp xếp giảm dần, in ra.</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>const diem = [8, 3, 9, 5, 7, 2, 10, 6];\nconst kq = diem.filter(d => d >= 5).sort((a,b) => b - a);\nconsole.log(kq); // [10, 9, 8, 7, 6, 5]</pre>',
-'</details></div>',
+buildExercise('m4_ex2', 'yellow', 'Bài 2: Lọc và sắp xếp',
+  'Cho mảng điểm <code>[8, 3, 9, 5, 7, 2, 10, 6]</code>. Lọc điểm >= 5, sắp xếp giảm dần.',
+  'Dùng <code>.filter()</code> rồi <code>.sort((a,b) => b-a)</code>',
+  'const diem = [8, 3, 9, 5, 7, 2, 10, 6];\n// TODO: loc va sap xep\n',
+  'const diem = [8, 3, 9, 5, 7, 2, 10, 6];\nconst kq = diem.filter(d => d >= 5).sort((a,b) => b - a);\nconsole.log(kq); // [10, 9, 8, 7, 6, 5]',
+  '<strong>Giải thích:</strong> <code>.filter(d => d >= 5)</code> giữ lại số >= 5. <code>.sort((a,b) => b-a)</code> sắp giảm dần (b-a > 0 → b đứng trước a).',
+  null, 5),
 
-'<div class="ex"><span class="tag tr">🔴 Bài 3</span>',
-'<p>Cho mảng users. Đếm số người trên 18 tuổi, tìm người lớn tuổi nhất, tạo mảng chỉ chứa tên.</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>const users = [\n  { ten: "An", tuoi: 20 },\n  { ten: "Binh", tuoi: 17 },\n  { ten: "Cuong", tuoi: 25 },\n  { ten: "Dao", tuoi: 15 }\n];\nconsole.log("Tren 18:", users.filter(u => u.tuoi >= 18).length);\nconsole.log("Lon nhat:", users.reduce((max, u) => u.tuoi > max.tuoi ? u : max));\nconsole.log("Ten:", users.map(u => u.ten));</pre>',
-'</details></div>',
-
-defined_pg('Làm bài tập tại đây', '// Viết code bài tập tại đây\n', 4),
+buildExercise('m4_ex3', 'red', 'Bài 3: Xử lý Array of Objects',
+  'Cho mảng users (ten, tuoi). Đếm người trên 18 tuổi, tìm người lớn tuổi nhất, tạo mảng chỉ chứa tên.',
+  'Dùng <code>.filter()</code>, <code>.reduce()</code>, <code>.map()</code>',
+  'const users = [\n  { ten: "An", tuoi: 20 },\n  { ten: "Binh", tuoi: 17 },\n  { ten: "Cuong", tuoi: 25 },\n  { ten: "Dao", tuoi: 15 }\n];\n// TODO\n',
+  'const users = [\n  { ten: "An", tuoi: 20 },\n  { ten: "Binh", tuoi: 17 },\n  { ten: "Cuong", tuoi: 25 },\n  { ten: "Dao", tuoi: 15 }\n];\nconsole.log("Tren 18:", users.filter(u => u.tuoi >= 18).length);\nconsole.log("Lon nhat:", users.reduce((max, u) => u.tuoi > max.tuoi ? u : max));\nconsole.log("Ten:", users.map(u => u.ten));',
+  '<strong>Giải thích:</strong><br>- <code>.filter(u => u.tuoi >= 18).length</code> = đếm số object thỏa điều kiện.<br>- <code>.reduce((max, u) => ...)</code> so sánh tuổi, giữ lại object có tuổi lớn nhất.<br>- <code>.map(u => u.ten)</code> rút tên từ mỗi object.',
+  null, 8),
 
 '<hr class="sep">',
 
@@ -1519,23 +1576,39 @@ defined_pg('Thử Promise.all', 'function layUser() {\n  return new Promise(r =>
 
 '<h2>Bài tập cuối Module 5</h2>',
 
-'<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
-'<p>Viết hàm <code>doiVaIn(message, ms)</code> — chờ ms mili giây rồi in message.</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>function doiVaIn(message, ms) {\n  return new Promise(resolve => {\n    setTimeout(() => {\n      console.log(message);\n      resolve();\n    }, ms);\n  });\n}\n\nasync function main() {\n  await doiVaIn("Xin chao!", 1000);\n  await doiVaIn("Ban khoe khong?", 500);\n  console.log("Xong!");\n}\nmain();</pre>',
-'</details></div>',
+buildExercise('m5_ex1', 'green', 'Bài 1: Đợi và in',
+  'Viết hàm <code>doiVaIn(message, ms)</code> — trả về Promise, chờ ms mili giây rồi in message. Gọi tuần tự 2 lần.',
+  'Dùng <code>new Promise</code> + <code>setTimeout</code> + <code>async/await</code>',
+  'function doiVaIn(message, ms) {\n  // TODO: tra ve Promise, setTimeout, resolve\n}\n\nasync function main() {\n  await doiVaIn("Xin chao!", 1000);\n  await doiVaIn("Ban khoe?", 500);\n  console.log("Xong!");\n}\nmain();',
+  'function doiVaIn(message, ms) {\n  return new Promise(resolve => {\n    setTimeout(() => {\n      console.log(message);\n      resolve();\n    }, ms);\n  });\n}\n\nasync function main() {\n  await doiVaIn("Xin chao!", 1000);\n  await doiVaIn("Ban khoe?", 500);\n  console.log("Xong!");\n}\nmain();',
+  '<strong>Giải thích:</strong> Hàm trả về Promise. Bên trong dùng setTimeout để delay. Khi xong → gọi <code>resolve()</code>. Dùng <code>await</code> để chờ từng Promise xong mới tiếp.',
+  null, 10),
 
-'<div class="ex"><span class="tag ty">🟡 Bài 2</span>',
-'<p>Viết hàm <code>async</code> giả lập login: chờ 1 giây, nếu username = "admin" → resolve, ngược lại → reject. Dùng try/catch để bắt lỗi.</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>function login(username) {\n  return new Promise((resolve, reject) => {\n    setTimeout(() => {\n      if (username === "admin") resolve("Dang nhap thanh cong!");\n      else reject("Sai ten dang nhap!");\n    }, 1000);\n  });\n}\n\nasync function main() {\n  try {\n    const kq = await login("admin");\n    console.log(kq);\n  } catch (err) {\n    console.log("Loi:", err);\n  }\n}\nmain();</pre>',
-'</details></div>',
+buildExercise('m5_ex2', 'yellow', 'Bài 2: Giả lập login async',
+  'Viết hàm <code>login(username)</code> trả về Promise: chờ 1 giây, username = "admin" → resolve, ngược lại → reject. Dùng try/catch.',
+  'Promise + setTimeout + resolve/reject + async/await + try/catch',
+  'function login(username) {\n  // TODO\n}\n\nasync function main() {\n  try {\n    const kq = await login("admin");\n    console.log(kq);\n  } catch (err) {\n    console.log("Loi:", err);\n  }\n}\nmain();',
+  'function login(username) {\n  return new Promise((resolve, reject) => {\n    setTimeout(() => {\n      if (username === "admin") resolve("Dang nhap thanh cong!");\n      else reject("Sai ten dang nhap!");\n    }, 1000);\n  });\n}\n\nasync function main() {\n  try {\n    const kq = await login("admin");\n    console.log(kq);\n  } catch (err) {\n    console.log("Loi:", err);\n  }\n}\nmain();',
+  '<strong>Giải thích:</strong> <code>resolve()</code> khi đúng, <code>reject()</code> khi sai. <code>try/catch</code> bắt reject — reject sẽ rơi vào catch block.',
+  null, 12),
 
-'<div class="ex"><span class="tag tr">🔴 Bài 3</span>',
-'<p>Viết 3 hàm async giả lập: layUser(), layDonHang(userId), layChiTiet(orderId). Gọi tuần tự: lấy user → lấy đơn hàng của user → lấy chi tiết đơn hàng.</p>',
-'</div>',
+buildExercise('m5_ex3', 'red', 'Bài 3: Chuỗi API calls',
+  'Viết 3 hàm async giả lập: <code>layUser()</code> → trả về {id:1, name:"Minh"}, <code>layDonHang(userId)</code> → trả về {orderId:99}, <code>layChiTiet(orderId)</code> → trả về {total:500000}. Gọi tuần tự với await.',
+  'Mỗi hàm trả về Promise + setTimeout 500ms',
+  '// TODO: viet 3 ham async\n\nasync function main() {\n  // TODO: goi tuan tu\n}\nmain();',
+  'function layUser() {\n  return new Promise(r => setTimeout(() => r({id:1,name:"Minh"}), 500));\n}\nfunction layDonHang(userId) {\n  return new Promise(r => setTimeout(() => r({orderId:99,userId}), 500));\n}\nfunction layChiTiet(orderId) {\n  return new Promise(r => setTimeout(() => r({total:500000,orderId}), 500));\n}\n\nasync function main() {\n  const user = await layUser();\n  console.log("User:", user);\n  const order = await layDonHang(user.id);\n  console.log("Order:", order);\n  const detail = await layChiTiet(order.orderId);\n  console.log("Detail:", detail);\n}\nmain();',
+  '<strong>Giải thích:</strong> Mỗi bước dùng kết quả của bước trước: user.id → layDonHang → order.orderId → layChiTiet. Đây là pattern phổ biến khi gọi API thực tế.',
+  null, 6),
 
 '<hr class="sep">',
+
+buildExam('exam_m5', 'Bài kiểm tra Module 5 — Async/Await', 8, [
+  {q:'<code>setTimeout(fn, 1000)</code> — code sau setTimeout chạy ngay hay chờ 1 giây?', opts:['Chờ 1 giây','Chạy ngay','Tùy trường hợp','Báo lỗi'], answer:1, explain:'JS không chờ setTimeout. Nó "đặt hẹn" rồi chạy tiếp ngay lập tức.'},
+  {q:'Promise có mấy trạng thái?', opts:['2: đúng/sai','3: pending, fulfilled, rejected','4','1: resolved'], answer:1, explain:'Promise: pending (đang chờ) → fulfilled (resolve) hoặc rejected (reject).'},
+  {q:'<code>await</code> dùng được ở đâu?', opts:['Bất kỳ đâu','Chỉ trong hàm async','Chỉ trong Promise','Chỉ trong try/catch'], answer:1, explain:'await BẮT BUỘC phải ở trong hàm có từ khóa async phía trước.'},
+  {q:'<code>Promise.all([p1,p2,p3])</code> — nếu p2 fail thì sao?', opts:['Chỉ p2 fail, p1+p3 vẫn OK','Tất cả fail','Promise.all fail ngay','Chờ tất cả xong rồi báo lỗi'], answer:2, explain:'Promise.all fail ngay khi BẤT KỲ promise nào fail. Dùng Promise.allSettled nếu muốn biết tất cả kết quả.'},
+  {q:'<code>try { ... } catch (e) { ... }</code> — catch bắt gì?', opts:['Chỉ bắt lỗi mạng','Bắt mọi lỗi/exception trong try','Bắt lỗi cú pháp','Bắt lỗi runtime và compile'], answer:1, explain:'catch bắt mọi exception (throw/reject) xảy ra trong block try.'}
+]),
 
 '<h2>🚀 Mini Project: Giả lập hệ thống đặt hàng</h2>',
 '<div class="b idea">💡 Mô phỏng flow thực tế khi đặt hàng online: kiểm tra kho → xử lý thanh toán → gửi email xác nhận. Mỗi bước là async.</div>',
@@ -1616,24 +1689,31 @@ defined_pg('Thử extends', 'class Animal {\n  constructor(ten) {\n    this.ten 
 
 '<hr class="sep">',
 
+buildExam('exam_m6', 'Bài kiểm tra Module 6 — Class/OOP & HTML', 8, [
+  {q:'<code>constructor()</code> chạy khi nào?', opts:['Khi gọi method','Khi dùng new ClassName()','Khi khai báo class','Không bao giờ tự chạy'], answer:1, explain:'constructor tự động chạy khi tạo object mới bằng new.'},
+  {q:'<code>this</code> trong class trỏ tới đâu?', opts:['Window','Class','Object hiện tại (instance)','Hàm gọi nó'], answer:2, explain:'this = chính object đang được tạo/sử dụng (instance của class).'},
+  {q:'<code>class Dog extends Animal</code> — Dog gọi constructor Animal bằng?', opts:['Animal()','this.Animal()','super()','parent()'], answer:2, explain:'super() gọi constructor của class cha. Bắt buộc gọi trước khi dùng this.'},
+  {q:'Thẻ HTML nào tạo nút bấm?', opts:['&lt;a&gt;','&lt;div&gt;','&lt;button&gt;','&lt;input&gt;'], answer:2, explain:'<button> tạo nút bấm. <a> tạo link, <div> tạo khối chứa.'},
+  {q:'<code>id</code> và <code>class</code> trong HTML khác gì?', opts:['Giống nhau','id duy nhất, class có thể trùng','class duy nhất, id trùng được','Không có sự khác biệt'], answer:1, explain:'id phải DUY NHẤT trên trang (như CMND). class có thể dùng lại nhiều phần tử.'},
+  {q:'Playwright ưu tiên locator nào nhất?', opts:['CSS Selector','getByRole','getByTestId','XPath'], answer:1, explain:'getByRole tốt nhất vì nó giống cách user thấy trang (nút, link, heading...).'}
+]),
+
 '<h2>Bài tập cuối Module 6</h2>',
-'<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
-'<p>Tạo class <code>HinhChuNhat</code> với thuộc tính dai, rong. Thêm method <code>dienTich()</code> và <code>chuVi()</code>.</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>class HinhChuNhat {\n  constructor(dai, rong) {\n    this.dai = dai;\n    this.rong = rong;\n  }\n  dienTich() { return this.dai * this.rong; }\n  chuVi() { return 2 * (this.dai + this.rong); }\n}\nconst h = new HinhChuNhat(5, 3);\nconsole.log("DT:", h.dienTich()); // 15\nconsole.log("CV:", h.chuVi());    // 16</pre>',
-'</details></div>',
+buildExercise('m6_ex1', 'green', 'Bài 1: Class Hình chữ nhật',
+  'Tạo class <code>HinhChuNhat</code> với constructor nhận dai, rong. Thêm method <code>dienTich()</code> và <code>chuVi()</code>. Tạo HCN dai=5, rong=3 và in diện tích, chu vi.',
+  'Dùng <code>this.dai</code>, method trả về giá trị bằng return.',
+  'class HinhChuNhat {\n  // TODO\n}\nconst h = new HinhChuNhat(5, 3);\nconsole.log("DT:", h.dienTich());\nconsole.log("CV:", h.chuVi());',
+  'class HinhChuNhat {\n  constructor(dai, rong) {\n    this.dai = dai;\n    this.rong = rong;\n  }\n  dienTich() { return this.dai * this.rong; }\n  chuVi() { return 2 * (this.dai + this.rong); }\n}\nconst h = new HinhChuNhat(5, 3);\nconsole.log("DT:", h.dienTich()); // 15\nconsole.log("CV:", h.chuVi());    // 16',
+  '<strong>Giải thích:</strong> <code>constructor</code> chạy khi <code>new</code>. <code>this.dai</code> lưu giá trị vào object. Method truy cập thuộc tính qua <code>this</code>.',
+  null, 7),
 
-'<div class="ex"><span class="tag ty">🟡 Bài 2</span>',
-'<p>Tạo class <code>NhanVien</code> (ten, luong). Tạo class <code>QuanLy extends NhanVien</code> thêm thuộc tính <code>soPhoiHop</code>. QuanLy có method <code>thuong()</code> trả về luong * 0.2.</p>',
-'<details><summary>Xem đáp án</summary>',
-'<pre>class NhanVien {\n  constructor(ten, luong) {\n    this.ten = ten;\n    this.luong = luong;\n  }\n}\nclass QuanLy extends NhanVien {\n  constructor(ten, luong, soPhoiHop) {\n    super(ten, luong);\n    this.soPhoiHop = soPhoiHop;\n  }\n  thuong() { return this.luong * 0.2; }\n}\nconst ql = new QuanLy("Minh", 20000000, 5);\nconsole.log(ql.ten, "thuong:", ql.thuong());</pre>',
-'</details></div>',
-
-'<div class="ex"><span class="tag tr">🔴 Bài 3</span>',
-'<p>Mở F12 trên trang <code>https://www.saucedemo.com</code>. Tìm id, class, type của ô username, ô password, và nút Login. Viết ra 3 CSS selector cho chúng.</p>',
-'</div>',
-
-defined_pg('Làm bài tập tại đây', '// Viết code bài tập tại đây\n', 4),
+buildExercise('m6_ex2', 'yellow', 'Bài 2: Kế thừa Class',
+  'Tạo class <code>NhanVien</code> (ten, luong). Tạo class <code>QuanLy extends NhanVien</code> thêm thuộc tính <code>soPhoiHop</code>. QuanLy có method <code>thuong()</code> trả về luong * 0.2.',
+  'Dùng <code>extends</code> + <code>super()</code> trong constructor.',
+  'class NhanVien {\n  // TODO\n}\nclass QuanLy extends NhanVien {\n  // TODO\n}\nconst ql = new QuanLy("Minh", 20000000, 5);\nconsole.log(ql.ten, "thuong:", ql.thuong());',
+  'class NhanVien {\n  constructor(ten, luong) {\n    this.ten = ten;\n    this.luong = luong;\n  }\n}\nclass QuanLy extends NhanVien {\n  constructor(ten, luong, soPhoiHop) {\n    super(ten, luong);\n    this.soPhoiHop = soPhoiHop;\n  }\n  thuong() { return this.luong * 0.2; }\n}\nconst ql = new QuanLy("Minh", 20000000, 5);\nconsole.log(ql.ten, "thuong:", ql.thuong());',
+  '<strong>Giải thích:</strong> <code>extends</code> kế thừa. <code>super(ten, luong)</code> gọi constructor cha. QuanLy có thêm soPhoiHop và method thuong().',
+  null, 8),
 ].join('\n')});
 
 // =============================================
@@ -1724,13 +1804,13 @@ D.push({id:7,title:"Playwright Cơ bản",week:"Tuần 5",phase:2,html:[
 '<h2>Bài tập cuối Module 7</h2>',
 '<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
 '<p>Viết test mở <code>https://the-internet.herokuapp.com</code>, kiểm tra title chứa "The Internet".</p>',
-'<details><summary>Xem đáp án</summary>',
+'<details><summary>Xem code mẫu (Playwright - cần chạy trên máy)</summary>',
 '<pre>test("Trang chu", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com");\n  await expect(page).toHaveTitle(/The Internet/);\n});</pre>',
 '</details></div>',
 
 '<div class="ex"><span class="tag ty">🟡 Bài 2</span>',
 '<p>Viết test login trên /login với tomsmith / SuperSecretPassword!. Kiểm tra thấy "secure area".</p>',
-'<details><summary>Xem đáp án</summary>',
+'<details><summary>Xem code mẫu (Playwright - cần chạy trên máy)</summary>',
 '<pre>test("Login OK", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/login");\n  await page.fill("#username", "tomsmith");\n  await page.fill("#password", "SuperSecretPassword!");\n  await page.click(\'button[type="submit"]\');\n  await expect(page.locator(".flash")).toContainText("secure area");\n});</pre>',
 '</details></div>',
 
@@ -1789,19 +1869,19 @@ D.push({id:8,title:"Locator & Actions",week:"Tuần 5-6",phase:2,html:[
 '<h2>Bài tập cuối Module 7</h2>',
 '<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
 '<p>Test dropdown trên the-internet.herokuapp.com/dropdown: chọn "Option 1", kiểm tra đã chọn.</p>',
-'<details><summary>Xem đáp án</summary>',
+'<details><summary>Xem code mẫu (Playwright - cần chạy trên máy)</summary>',
 '<pre>test("Dropdown", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/dropdown");\n  await page.selectOption("#dropdown", "1");\n  await expect(page.locator("#dropdown")).toHaveValue("1");\n});</pre>',
 '</details></div>',
 
 '<div class="ex"><span class="tag ty">🟡 Bài 2</span>',
 '<p>Test checkbox: mở /checkboxes, tick checkbox đầu tiên, kiểm tra đã tick.</p>',
-'<details><summary>Xem đáp án</summary>',
+'<details><summary>Xem code mẫu (Playwright - cần chạy trên máy)</summary>',
 '<pre>test("Checkbox", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/checkboxes");\n  const cb = page.locator(\'input[type="checkbox"]\').first();\n  await cb.check();\n  await expect(cb).toBeChecked();\n});</pre>',
 '</details></div>',
 
 '<div class="ex"><span class="tag tr">🔴 Bài 3</span>',
 '<p>Test JavaScript Alert: mở /javascript_alerts, click nút, nhấn OK, kiểm tra kết quả.</p>',
-'<details><summary>Xem đáp án</summary>',
+'<details><summary>Xem code mẫu (Playwright - cần chạy trên máy)</summary>',
 '<pre>test("JS Alert", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/javascript_alerts");\n  page.on("dialog", d => d.accept());\n  await page.getByText("Click for JS Alert").click();\n  await expect(page.locator("#result"))\n    .toHaveText("You successfully clicked an alert");\n});</pre>',
 '</details></div>',
 ].join('\n')});
@@ -2112,6 +2192,143 @@ function scoreQuiz(quizId, total) {
   else { result.className = 'quiz-result bad'; result.textContent = '💪 ' + correct + '/' + total + ' (' + pct + '%) — Cần ôn lại. Đừng nản!'; }
 }
 
+// ============================================
+// ===== EXERCISE SUBMISSION SYSTEM =========
+// ============================================
+function buildExercise(id, level, title, desc, hint, startCode, solutionCode, explain, testFn, rows) {
+  var levelClass = level === 'green' ? 'tg' : (level === 'yellow' ? 'ty' : 'tr');
+  var levelIcon = level === 'green' ? '🟢' : (level === 'yellow' ? '🟡' : '🔴');
+  return '<div class="exercise" id="ex-' + id + '">' +
+    '<div class="ex-header"><span class="tag ' + levelClass + '">' + levelIcon + ' ' + title + '</span><span id="ex-badge-' + id + '"></span></div>' +
+    '<div class="ex-desc">' + desc + '</div>' +
+    (hint ? '<div class="ex-hint">💡 Gợi ý: ' + hint + '</div>' : '') +
+    '<div class="playground" data-playground data-exercise-id="' + id + '">' +
+    '<div class="playground-header"><span>💻 Viết code</span><div style="display:flex;gap:6px">' +
+    '<button onclick="expandPlayground(this,\'' + title.replace(/'/g,"\\'") + '\')" class="expand-btn" title="Mở rộng">⛶ Phóng to</button>' +
+    '<button onclick="runPlayground(this)" style="background:var(--green)">▶ Chạy</button>' +
+    '<button class="submit-btn" id="ex-submit-' + id + '" onclick="submitExercise(\'' + id + '\')">📝 Nộp bài</button>' +
+    '</div></div>' +
+    '<textarea class="playground-editor" spellcheck="false" rows="' + (rows||5) + '">' + startCode + '</textarea>' +
+    '<div class="playground-output"><span style="color:var(--text3)">// Viết code rồi nhấn 📝 Nộp bài</span></div>' +
+    '</div>' +
+    '<div class="ex-solution" id="ex-sol-' + id + '">' +
+    '<div class="ex-solution-header" id="ex-sol-header-' + id + '"></div>' +
+    '<pre>' + (solutionCode || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</pre>' +
+    '<div class="ex-explain">' + (explain || '') + '</div>' +
+    '</div></div>';
+}
+
+var exerciseTests = {};
+function registerExercise(id, testFn) { exerciseTests[id] = testFn; }
+
+function submitExercise(id) {
+  var exDiv = document.getElementById('ex-' + id);
+  var pg = exDiv.querySelector('[data-playground]');
+  var editor = pg.querySelector('.playground-editor');
+  var output = pg.querySelector('.playground-output');
+  var code = editor.value;
+
+  if (code.trim().length < 5) { alert('Hãy viết code trước khi nộp bài!'); return; }
+
+  // Run code first
+  var logs = [];
+  var origLog = console.log, origWarn = console.warn, origError = console.error;
+  console.log = function() { logs.push(Array.from(arguments).map(function(a){return typeof a==='object'?JSON.stringify(a):String(a)}).join(' ')); };
+  console.warn = console.log;
+  console.error = function() { logs.push(Array.from(arguments).map(function(a){return typeof a==='object'?JSON.stringify(a):String(a)}).join(' ')); };
+
+  var hasError = false;
+  try {
+    var isAsync = code.includes('await') || code.includes('async');
+    if (isAsync) {
+      new Function('return (async function() {\n' + code + '\n})()')().then(function(){
+        finishSubmit(id, logs, code, false);
+      }).catch(function(e){ logs.push('Error: ' + e.message); finishSubmit(id, logs, code, true); });
+      console.log = origLog; console.warn = origWarn; console.error = origError;
+      renderOutput(output, logs.map(function(l){return {type:'log',text:l}}));
+      return;
+    } else {
+      new Function(code)();
+    }
+  } catch(e) { logs.push('Error: ' + e.message); hasError = true; }
+
+  console.log = origLog; console.warn = origWarn; console.error = origError;
+  renderOutput(output, logs.map(function(l){return {type:'log',text:l}}));
+  finishSubmit(id, logs, code, hasError);
+}
+
+function finishSubmit(id, logs, code, hasError) {
+  var solDiv = document.getElementById('ex-sol-' + id);
+  var headerDiv = document.getElementById('ex-sol-header-' + id);
+  var badgeDiv = document.getElementById('ex-badge-' + id);
+  var submitBtn = document.getElementById('ex-submit-' + id);
+
+  var pass = false;
+  if (exerciseTests[id] && !hasError) {
+    var result = exerciseTests[id](logs, code);
+    pass = result.pass;
+  }
+
+  // Show result badge (NOT solution yet)
+  if (pass) {
+    badgeDiv.innerHTML = '<span class="submitted-badge pass">✅ Đạt</span>';
+    addXP(25);
+  } else {
+    badgeDiv.innerHTML = '<span class="submitted-badge fail">❌ Chưa đạt</span>';
+    addXP(5);
+  }
+
+  // Set solution header (hidden until user clicks "Xem đáp án")
+  if (pass) {
+    headerDiv.className = 'ex-solution-header correct';
+    headerDiv.innerHTML = '✅ Chính xác! Đây là đáp án mẫu:';
+  } else {
+    headerDiv.className = 'ex-solution-header wrong';
+    headerDiv.innerHTML = '❌ Chưa đúng. Đây là đáp án và hướng giải:';
+  }
+
+  // Replace submit button with "Làm lại" + "Xem đáp án"
+  var actionsHtml = '<button class="submit-btn" onclick="retryExercise(\'' + id + '\')" style="background:var(--text3)">🔄 Làm lại</button> ';
+  actionsHtml += '<button class="submit-btn" onclick="showExSolution(\'' + id + '\')" style="background:var(--primary)">📖 Xem đáp án</button>';
+  submitBtn.outerHTML = '<span id="ex-actions-' + id + '">' + actionsHtml + '</span>';
+
+  // Firebase: save submission detail
+  if (db && userId) {
+    db.collection('submissions').add({
+      userId: userId,
+      userName: userName,
+      exerciseId: id,
+      moduleId: active,
+      type: 'exercise',
+      code: code.substring(0, 5000),
+      output: logs.join('\n').substring(0, 2000),
+      pass: pass,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(function(){});
+  }
+  fbLogActivity('submit_exercise', id + (pass ? ' (PASS)' : ' (FAIL)'));
+}
+
+function showExSolution(id) {
+  var solDiv = document.getElementById('ex-sol-' + id);
+  solDiv.classList.add('show');
+  // Hide the "Xem đáp án" button after clicking
+  var actions = document.getElementById('ex-actions-' + id);
+  actions.innerHTML = '<button class="submit-btn" onclick="retryExercise(\'' + id + '\')" style="background:var(--text3)">🔄 Làm lại</button>';
+}
+
+function retryExercise(id) {
+  var solDiv = document.getElementById('ex-sol-' + id);
+  var badgeDiv = document.getElementById('ex-badge-' + id);
+  solDiv.classList.remove('show');
+  badgeDiv.innerHTML = '';
+  // Restore submit button
+  var actionsSpan = document.getElementById('ex-actions-' + id);
+  if (actionsSpan) {
+    actionsSpan.outerHTML = '<button class="submit-btn" id="ex-submit-' + id + '" onclick="submitExercise(\'' + id + '\')">📝 Nộp bài</button>';
+  }
+}
+
 function buildChallenge(id, title, desc, startCode, testFn, rows) {
   return '<div class="challenge" id="challenge-' + id + '">' +
     '<div class="challenge-title">🏆 Code Challenge: ' + title + '</div>' +
@@ -2335,8 +2552,23 @@ function submitExam(examId, total, timeMin) {
   else if (pct >= 50) addXP(30);
   else addXP(10);
 
-  // GA tracking with username
+  // GA + Firebase tracking
   gaEvent('submit_exam', { exam_id: examId, score: pct, correct: correct, total: total });
+  if (db && userId) {
+    db.collection('submissions').add({
+      userId: userId,
+      userName: userName,
+      exerciseId: examId,
+      moduleId: active,
+      type: 'exam',
+      score: pct,
+      correct: correct,
+      total: total,
+      grade: gradeText,
+      pass: pct >= 50,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(function(){});
+  }
 }
 
 function retryExam(examId) {
@@ -3154,6 +3386,33 @@ registerChallenge('m5_race', function(logs) {
   if (logs.some(function(l){return l.includes('nhanh nhat') || l.includes('VN')})) return {pass:true,msg:'Promise.race hoạt động! +20 XP'};
   return {pass:false,msg:'Dùng Promise.race() với 3 server. In tên server nhanh nhất.'};
 });
+// ===== REGISTER EXERCISES =====
+// M1
+registerExercise('m1_ex1', function(logs) { return logs.some(function(l){return l.includes('26')}) ? {pass:true} : {pass:false}; });
+registerExercise('m1_ex2', function(logs) { return logs.some(function(l){return l.includes('98.6')}) ? {pass:true} : {pass:false}; });
+registerExercise('m1_ex3', function(logs) { return logs.some(function(l){return l.toLowerCase().includes('le')}) ? {pass:true} : {pass:false}; });
+registerExercise('m1_ex4', function(logs) { return logs.some(function(l){return l.includes('minh@gmail.com')}) ? {pass:true} : {pass:false}; });
+registerExercise('m1_ex5', function(logs) { return (logs.some(function(l){return l.includes('10')}) && logs.some(function(l){return l.includes('dlroW')||l.includes('2')})) ? {pass:true} : {pass:false}; });
+// M2
+registerExercise('m2_ex1', function(logs) { return (logs.length >= 10 && logs.some(function(l){return l.includes('7 x 10 = 70')||l.includes('70')})) ? {pass:true} : {pass:false}; });
+registerExercise('m2_ex2', function(logs) { return (logs.some(function(l){return l.includes('2')}) && logs.some(function(l){return l.includes('47')})) ? {pass:true} : {pass:false}; });
+registerExercise('m2_ex3', function(logs) { return (logs.length >= 20 && logs.some(function(l){return l==='FizzBuzz'})) ? {pass:true} : {pass:false}; });
+// M3
+registerExercise('m3_ex1', function(logs) { return logs.some(function(l){return l.includes('120')}) ? {pass:true} : {pass:false}; });
+registerExercise('m3_ex2', function(logs) { return (logs.some(function(l){return l.includes('true')}) && logs.some(function(l){return l.includes('false')})) ? {pass:true} : {pass:false}; });
+registerExercise('m3_ex3', function(logs) { return logs.some(function(l){return l.includes('olleh')}) ? {pass:true} : {pass:false}; });
+registerExercise('m3_ex4', function(logs) { return (logs.some(function(l){return l.includes('2')}) && logs.some(function(l){return l.includes('3')})) ? {pass:true} : {pass:false}; });
+// M4
+registerExercise('m4_ex1', function(logs) { return (logs.some(function(l){return l.includes('10')}) && logs.some(function(l){return l.includes('50')})) ? {pass:true} : {pass:false}; });
+registerExercise('m4_ex2', function(logs) { return logs.some(function(l){return l.includes('10') && l.includes('9') && l.includes('5')}) ? {pass:true} : {pass:false}; });
+registerExercise('m4_ex3', function(logs) { return logs.length >= 2 ? {pass:true} : {pass:false}; });
+// M5
+registerExercise('m5_ex1', function(logs) { return logs.some(function(l){return l.includes('Xin chao')||l.includes('Xong')}) ? {pass:true} : {pass:false}; });
+registerExercise('m5_ex2', function(logs) { return logs.some(function(l){return l.includes('thanh cong')||l.includes('Dang nhap')}) ? {pass:true} : {pass:false}; });
+registerExercise('m5_ex3', function(logs) { return logs.some(function(l){return l.includes('User')||l.includes('Order')||l.includes('Detail')}) ? {pass:true} : {pass:false}; });
+// M6
+registerExercise('m6_ex1', function(logs, code) { return (logs.some(function(l){return l.includes('15')}) && code.includes('class')) ? {pass:true} : {pass:false}; });
+registerExercise('m6_ex2', function(logs, code) { return (code.includes('extends') && code.includes('super') && logs.length >= 1) ? {pass:true} : {pass:false}; });
 </script>
 </body>
 </html>

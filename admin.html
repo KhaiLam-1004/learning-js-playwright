@@ -127,6 +127,7 @@ tr { cursor: pointer; }
   <div class="tab active" onclick="switchTab('overview')">📋 Tổng quan</div>
   <div class="tab" onclick="switchTab('users')">👥 Học viên</div>
   <div class="tab" onclick="switchTab('activity')">📜 Hoạt động</div>
+  <div class="tab" onclick="switchTab('submissions')">📝 Bài nộp</div>
   <div class="tab" onclick="switchTab('codes')">💻 Code</div>
 </div>
 
@@ -137,6 +138,7 @@ tr { cursor: pointer; }
     <div class="stat-card primary"><div class="num" id="statActive">-</div><div class="label">Active hôm nay</div></div>
     <div class="stat-card yellow"><div class="num" id="statAvgXp">-</div><div class="label">XP trung bình</div></div>
     <div class="stat-card red"><div class="num" id="statAvgProgress">-</div><div class="label">Tiến độ TB</div></div>
+    <div class="stat-card primary"><div class="num" id="statSubmissions">-</div><div class="label">Tổng bài nộp</div></div>
   </div>
   <div class="section">
     <h2>👥 Học viên gần đây</h2>
@@ -160,6 +162,34 @@ tr { cursor: pointer; }
     <h2>📜 Hoạt động gần đây (50 mới nhất)</h2>
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;max-height:70vh;overflow-y:auto;" id="activityList">
       <div class="empty">Đang tải...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: Submissions -->
+<div class="tab-content" id="tab-submissions">
+  <div class="section" style="padding-top:20px">
+    <h2>📝 Bài nộp gần đây</h2>
+    <table>
+      <thead><tr><th>Học viên</th><th>Loại</th><th>Bài</th><th>Module</th><th>Kết quả</th><th>Điểm</th><th>Thời gian</th><th></th></tr></thead>
+      <tbody id="submissionsTable"><tr><td colspan="8" class="empty">Đang tải...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Submission Code Modal -->
+<div class="detail-overlay" id="codeModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="detail-panel" style="padding:0">
+    <div class="detail-header">
+      <div class="user-meta"><h3 id="codeModalTitle">Code</h3><p id="codeModalMeta"></p></div>
+      <button class="close-btn" onclick="document.getElementById('codeModal').classList.remove('open')">✕</button>
+    </div>
+    <div style="padding:16px">
+      <div id="codeModalResult" style="margin-bottom:12px"></div>
+      <h4 style="font-size:12px;color:var(--text3);margin-bottom:8px">📝 CODE CỦA HỌC VIÊN</h4>
+      <pre id="codeModalCode" style="background:#1e1e2e;color:#cdd6f4;padding:16px;border-radius:8px;font-size:13px;line-height:1.7;max-height:400px;overflow:auto;margin:0"></pre>
+      <h4 style="font-size:12px;color:var(--text3);margin:16px 0 8px">📤 OUTPUT</h4>
+      <pre id="codeModalOutput" style="background:var(--bg);padding:12px;border-radius:8px;font-size:12px;color:var(--text2);border:1px solid var(--border);max-height:200px;overflow:auto;margin:0"></pre>
     </div>
   </div>
 </div>
@@ -195,8 +225,9 @@ function actionIcon(a) { return {view_module:'👁️',complete_module:'✅',unc
 function actionText(a) { return {view_module:'xem',complete_module:'hoàn thành',uncomplete_module:'bỏ hoàn thành',run_playground:'chạy code',submit_exam:'nộp bài'}[a] || a; }
 function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+var TAB_LABELS = {overview:'Tổng',users:'Học',activity:'Hoạt',submissions:'Bài',codes:'Code'};
 function switchTab(name) {
-  document.querySelectorAll('.tab').forEach(function(t,i) { t.classList.toggle('active', t.textContent.includes(name === 'overview' ? 'Tổng' : name === 'users' ? 'Học' : name === 'activity' ? 'Hoạt' : 'Code')); });
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.toggle('active', t.textContent.includes(TAB_LABELS[name] || name)); });
   document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.toggle('active', c.id === 'tab-' + name); });
 }
 
@@ -215,6 +246,12 @@ function loadData() {
     snap.forEach(function(doc) { acts.push(doc.data()); });
     renderActivities(acts);
   });
+  // Submissions
+  db.collection('submissions').orderBy('timestamp', 'desc').limit(50).get().then(function(snap) {
+    var subs = [];
+    snap.forEach(function(doc) { var d = doc.data(); d._id = doc.id; subs.push(d); });
+    renderSubmissions(subs);
+  });
   // Codes
   db.collection('codes').orderBy('timestamp', 'desc').limit(30).get().then(function(snap) {
     var codes = [];
@@ -232,6 +269,10 @@ function renderStats() {
   document.getElementById('statActive').textContent = activeToday;
   document.getElementById('statAvgXp').textContent = avgXp;
   document.getElementById('statAvgProgress').textContent = avgProg + '%';
+  // Count submissions
+  db.collection('submissions').get().then(function(snap) {
+    document.getElementById('statSubmissions').textContent = snap.size;
+  }).catch(function(){ document.getElementById('statSubmissions').textContent = '0'; });
 }
 
 function renderOverview() {
@@ -287,7 +328,61 @@ function renderCodes(codes) {
   }).join('');
 }
 
-// User Detail Panel
+var allSubmissions = [];
+function renderSubmissions(subs) {
+  allSubmissions = subs;
+  if (!subs.length) { document.getElementById('submissionsTable').innerHTML = '<tr><td colspan="8" class="empty">Chưa có bài nộp</td></tr>'; return; }
+  document.getElementById('submissionsTable').innerHTML = subs.map(function(s, idx) {
+    var ts = s.timestamp ? s.timestamp.toDate().toLocaleString('vi-VN') : '';
+    var typeLabel = s.type === 'exam' ? '<span class="badge badge-yellow">Kiểm tra</span>' : '<span class="badge badge-primary">Bài tập</span>';
+    var resultBadge = s.pass ? '<span class="badge badge-green">✅ Đạt</span>' : '<span class="badge badge-red">❌ Chưa đạt</span>';
+    var scoreText = s.type === 'exam' ? (s.correct + '/' + s.total + ' (' + s.score + '%)') : (s.pass ? 'Đạt' : 'Chưa đạt');
+    return '<tr>' +
+      '<td><span class="avatar">' + (s.userName||'?').charAt(0).toUpperCase() + '</span><strong>' + escHtml(s.userName) + '</strong></td>' +
+      '<td>' + typeLabel + '</td>' +
+      '<td><strong>' + escHtml(s.exerciseId || '') + '</strong></td>' +
+      '<td>M' + (s.moduleId||0) + '</td>' +
+      '<td>' + resultBadge + '</td>' +
+      '<td>' + scoreText + '</td>' +
+      '<td style="color:var(--text3);font-size:12px">' + ts + '</td>' +
+      '<td><button onclick="showCodeModal(' + idx + ')" style="border:none;background:var(--primary);color:#fff;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700">🔍 Chi tiết</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function showCodeModal(idx) {
+  showSubDetail(allSubmissions[idx]);
+}
+function showSubDetail(s) {
+  if (!s) return;
+  var ts = s.timestamp ? s.timestamp.toDate().toLocaleString('vi-VN') : '';
+  document.getElementById('codeModalTitle').textContent = (s.type === 'exam' ? '📋 Kiểm tra: ' : '📝 Bài tập: ') + (s.exerciseId || '');
+  document.getElementById('codeModalMeta').textContent = (s.userName || '') + ' · Module ' + (s.moduleId||0) + ' · ' + ts;
+
+  // Result banner
+  var resultHtml = '';
+  if (s.type === 'exam') {
+    var color = s.score >= 80 ? 'var(--green)' : (s.score >= 50 ? 'var(--yellow)' : 'var(--red)');
+    var bgColor = s.score >= 80 ? 'rgba(34,197,94,.1)' : (s.score >= 50 ? 'rgba(234,179,8,.1)' : 'rgba(239,68,68,.1)');
+    resultHtml = '<div style="padding:12px 16px;border-radius:8px;background:' + bgColor + ';border:1px solid ' + color + ';display:flex;align-items:center;gap:12px">' +
+      '<span style="font-size:28px;font-weight:900;color:' + color + '">' + s.score + '%</span>' +
+      '<div><div style="font-weight:700;color:' + color + '">' + (s.grade || (s.pass ? 'Đạt' : 'Chưa đạt')) + '</div>' +
+      '<div style="font-size:12px;color:var(--text3)">Đúng ' + s.correct + '/' + s.total + ' câu</div></div></div>';
+  } else {
+    var passBg = s.pass ? 'rgba(34,197,94,.1)' : 'rgba(239,68,68,.1)';
+    var passColor = s.pass ? 'var(--green)' : 'var(--red)';
+    var passIcon = s.pass ? '✅' : '❌';
+    resultHtml = '<div style="padding:10px 16px;border-radius:8px;background:' + passBg + ';border:1px solid ' + passColor + ';font-weight:700;color:' + passColor + '">' +
+      passIcon + ' ' + (s.pass ? 'Đạt — Code chính xác!' : 'Chưa đạt — Cần sửa lại') + '</div>';
+  }
+  document.getElementById('codeModalResult').innerHTML = resultHtml;
+
+  document.getElementById('codeModalCode').textContent = s.code || '(Bài kiểm tra trắc nghiệm — không có code)';
+  document.getElementById('codeModalOutput').textContent = s.output || '(không có output)';
+  document.getElementById('codeModal').classList.add('open');
+}
+
+// User Detail Panel — add submissions section
 function openDetail(uid) {
   var u = allUsers.find(function(x) { return x._id === uid; });
   if (!u) return;
@@ -320,14 +415,33 @@ function openDetail(uid) {
   });
   html += '</div>';
 
-  // Code section - load from Firestore
+  // Submissions section
+  html += '<div class="detail-section"><h4>📝 Bài đã nộp</h4><div id="detailSubs"><div class="empty">Đang tải...</div></div></div>';
+
+  // Code section
   html += '<div class="detail-section"><h4>💻 Code đã viết</h4><div id="detailCodes"><div class="empty">Đang tải...</div></div></div>';
 
   document.getElementById('detailPanel').innerHTML = html;
   document.getElementById('detailOverlay').classList.add('open');
 
-  // Load user codes
-  db.collection('codes').where('userId', '==', uid).orderBy('timestamp', 'desc').limit(20).get().then(function(snap) {
+  // Load user submissions — filter from allSubmissions (already loaded) to avoid composite index
+  var userSubs = allSubmissions.filter(function(s) { return s.userId === uid; });
+  window._detailSubs = userSubs;
+  var subEl = document.getElementById('detailSubs');
+  if (!userSubs.length) {
+    // Fallback: try direct query without orderBy
+    db.collection('submissions').where('userId', '==', uid).limit(30).get().then(function(snap) {
+      var subs = [];
+      snap.forEach(function(doc) { subs.push(doc.data()); });
+      window._detailSubs = subs;
+      renderDetailSubs(subs);
+    }).catch(function(){ subEl.innerHTML = '<div class="empty">Không tải được</div>'; });
+  } else {
+    renderDetailSubs(userSubs);
+  }
+
+  // Load user codes — filter or direct query
+  db.collection('codes').where('userId', '==', uid).limit(20).get().then(function(snap) {
     var codes = [];
     snap.forEach(function(doc) { codes.push(doc.data()); });
     var el = document.getElementById('detailCodes');
@@ -339,8 +453,32 @@ function openDetail(uid) {
         '<pre>' + escHtml(c.code) + '</pre></div>';
     }).join('');
   }).catch(function() {
-    document.getElementById('detailCodes').innerHTML = '<div class="empty">Cần tạo index trong Firestore</div>';
+    document.getElementById('detailCodes').innerHTML = '<div class="empty">Không tải được</div>';
   });
+}
+
+function renderDetailSubs(subs) {
+  var el = document.getElementById('detailSubs');
+  if (!subs.length) { el.innerHTML = '<div class="empty">Chưa nộp bài nào</div>'; return; }
+  var passCount = subs.filter(function(s){return s.pass}).length;
+  el.innerHTML = '<div style="margin-bottom:10px;font-size:12px;color:var(--text2)">Đã nộp <strong>' + subs.length + '</strong> bài · Đạt <strong style="color:var(--green)">' + passCount + '</strong> · Chưa đạt <strong style="color:var(--red)">' + (subs.length-passCount) + '</strong></div>' +
+    subs.map(function(s, idx) {
+      var ts = s.timestamp ? s.timestamp.toDate().toLocaleString('vi-VN') : '';
+      var icon = s.pass ? '✅' : '❌';
+      var typeIcon = s.type === 'exam' ? '📋' : '📝';
+      return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px;flex-wrap:wrap">' +
+        '<span>' + typeIcon + '</span>' +
+        '<span style="flex:1;min-width:120px"><strong>' + escHtml(s.exerciseId||'') + '</strong> (M' + (s.moduleId||0) + ')</span>' +
+        '<span>' + icon + '</span>' +
+        (s.score !== undefined ? '<span style="color:var(--text3)">' + s.score + '%</span>' : '') +
+        '<span style="color:var(--text3);font-size:11px">' + ts + '</span>' +
+        (s.code ? '<button onclick="viewDetailSub(' + idx + ')" style="border:none;background:var(--primary);color:#fff;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700">📄 Xem code</button>' : '') +
+        '</div>';
+    }).join('');
+}
+
+function viewDetailSub(idx) {
+  showSubDetail(window._detailSubs[idx]);
 }
 
 function closeDetail() {
