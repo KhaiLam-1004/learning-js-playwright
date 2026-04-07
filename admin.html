@@ -150,9 +150,12 @@ tr { cursor: pointer; }
 <!-- Tab: Users -->
 <div class="tab-content" id="tab-users">
   <div class="section" style="padding-top:20px">
-    <h2>👥 Tất cả học viên</h2>
-    <table><thead><tr><th>Học viên</th><th>Level</th><th>XP</th><th>Tiến độ</th><th>Đang học</th><th>Streak</th><th>Thiết bị</th><th>Hoạt động cuối</th></tr></thead>
-    <tbody id="usersTable"><tr><td colspan="8" class="empty">Đang tải...</td></tr></tbody></table>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <h2 style="margin:0">👥 Tất cả học viên</h2>
+      <button id="bulkDeleteBtn" onclick="bulkDeleteUsers()" style="display:none;padding:6px 14px;border:1px solid var(--red);border-radius:8px;background:rgba(239,68,68,.1);color:var(--red);cursor:pointer;font-size:12px;font-weight:700">🗑 Xóa đã chọn (<span id="bulkCount">0</span>)</button>
+    </div>
+    <table><thead><tr><th style="width:32px"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)"></th><th>Học viên</th><th>Level</th><th>XP</th><th>Tiến độ</th><th>Đang học</th><th>Streak</th><th>Thiết bị</th><th>Hoạt động cuối</th><th style="width:40px"></th></tr></thead>
+    <tbody id="usersTable"><tr><td colspan="10" class="empty">Đang tải...</td></tr></tbody></table>
   </div>
 </div>
 
@@ -289,20 +292,24 @@ function renderOverview() {
 }
 
 function renderUsers() {
-  if (!allUsers.length) { document.getElementById('usersTable').innerHTML = '<tr><td colspan="8" class="empty">Chưa có</td></tr>'; return; }
+  if (!allUsers.length) { document.getElementById('usersTable').innerHTML = '<tr><td colspan="10" class="empty">Chưa có</td></tr>'; return; }
   document.getElementById('usersTable').innerHTML = allUsers.map(function(u) {
     var pct = Math.round((u.modulesCompleted||0)/13*100);
     var lvBadge = (u.xp||0) >= 500 ? 'badge-green' : (u.xp||0) >= 150 ? 'badge-yellow' : 'badge-primary';
-    return '<tr onclick="openDetail(\'' + u._id + '\')">' +
-      '<td><span class="avatar">' + (u.name||'?').charAt(0).toUpperCase() + '</span><strong>' + escHtml(u.name) + '</strong></td>' +
-      '<td><span class="badge ' + lvBadge + '">' + (u.level||'Newbie') + '</span></td>' +
-      '<td><strong>' + (u.xp||0) + '</strong></td>' +
-      '<td><div class="progress-bar"><div class="fill" style="width:' + pct + '%"></div></div>' + pct + '% (' + (u.modulesCompleted||0) + '/13)</td>' +
-      '<td><span class="badge badge-primary">M' + (u.currentModule||0) + '</span></td>' +
-      '<td>' + (u.streak > 0 ? '🔥' + u.streak : '-') + '</td>' +
-      '<td>' + (u.device||'-') + '</td>' +
-      '<td style="color:var(--text3)">' + timeAgo(u.lastActive) + '</td></tr>';
+    return '<tr>' +
+      '<td onclick="event.stopPropagation()"><input type="checkbox" class="user-cb" value="' + u._id + '" onchange="updateBulkBtn()"></td>' +
+      '<td onclick="openDetail(\'' + u._id + '\')"><span class="avatar">' + (u.name||'?').charAt(0).toUpperCase() + '</span><strong>' + escHtml(u.name) + '</strong></td>' +
+      '<td onclick="openDetail(\'' + u._id + '\')"><span class="badge ' + lvBadge + '">' + (u.level||'Newbie') + '</span></td>' +
+      '<td onclick="openDetail(\'' + u._id + '\')"><strong>' + (u.xp||0) + '</strong></td>' +
+      '<td onclick="openDetail(\'' + u._id + '\')"><div class="progress-bar"><div class="fill" style="width:' + pct + '%"></div></div>' + pct + '% (' + (u.modulesCompleted||0) + '/13)</td>' +
+      '<td onclick="openDetail(\'' + u._id + '\')"><span class="badge badge-primary">M' + (u.currentModule||0) + '</span></td>' +
+      '<td onclick="openDetail(\'' + u._id + '\')">' + (u.streak > 0 ? '🔥' + u.streak : '-') + '</td>' +
+      '<td onclick="openDetail(\'' + u._id + '\')">' + (u.device||'-') + '</td>' +
+      '<td onclick="openDetail(\'' + u._id + '\')" style="color:var(--text3)">' + timeAgo(u.lastActive) + '</td>' +
+      '<td onclick="event.stopPropagation()"><button onclick="deleteUser(\'' + u._id + '\',\'' + escHtml(u.name).replace(/'/g,"\\'") + '\')" title="Xóa" style="border:none;background:none;color:var(--red);cursor:pointer;font-size:15px;padding:4px">🗑</button></td></tr>';
   }).join('');
+  document.getElementById('selectAll').checked = false;
+  updateBulkBtn();
 }
 
 function renderActivities(acts) {
@@ -392,7 +399,8 @@ function openDetail(uid) {
   var html = '<div class="detail-header">' +
     '<div class="big-avatar">' + (u.name||'?').charAt(0).toUpperCase() + '</div>' +
     '<div class="user-meta"><h3>' + escHtml(u.name) + '</h3><p>' + (u.level||'Newbie') + ' · ' + (u.device||'') + ' · ' + timeAgo(u.lastActive) + '</p></div>' +
-    '<button class="close-btn" onclick="closeDetail()">✕</button></div>';
+    '<button onclick="deleteUser(\'' + uid + '\',\'' + escHtml(u.name).replace(/'/g,"\\'") + '\');closeDetail()" style="background:rgba(239,68,68,.3);border:none;color:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;margin-left:auto">🗑 Xóa</button>' +
+    '<button class="close-btn" onclick="closeDetail()" style="margin-left:8px">✕</button></div>';
 
   // Stats
   html += '<div class="detail-section"><h4>📊 Thống kê</h4><div class="detail-stats">' +
@@ -483,6 +491,92 @@ function viewDetailSub(idx) {
 
 function closeDetail() {
   document.getElementById('detailOverlay').classList.remove('open');
+}
+
+// ===== DELETE USER =====
+function deleteUser(uid, name) {
+  if (!confirm('Xóa user "' + name + '"?\n\nSẽ xóa tất cả: user data, activities, submissions, codes.\nKhông thể hoàn tác!')) return;
+
+  var batch = [];
+  // 1. Delete user doc
+  batch.push(db.collection('users').doc(uid).delete());
+
+  // 2. Delete related activities
+  batch.push(db.collection('activities').where('userId', '==', uid).get().then(function(snap) {
+    var b = db.batch();
+    snap.forEach(function(doc) { b.delete(doc.ref); });
+    return b.commit();
+  }));
+
+  // 3. Delete related submissions
+  batch.push(db.collection('submissions').where('userId', '==', uid).get().then(function(snap) {
+    var b = db.batch();
+    snap.forEach(function(doc) { b.delete(doc.ref); });
+    return b.commit();
+  }));
+
+  // 4. Delete related codes
+  batch.push(db.collection('codes').where('userId', '==', uid).get().then(function(snap) {
+    var b = db.batch();
+    snap.forEach(function(doc) { b.delete(doc.ref); });
+    return b.commit();
+  }));
+
+  Promise.all(batch).then(function() {
+    alert('"' + name + '" đã được xóa hoàn toàn.');
+    loadData();
+  }).catch(function(err) {
+    alert('Lỗi khi xóa: ' + err.message);
+    console.error(err);
+  });
+}
+
+// ===== BULK SELECT & DELETE =====
+function toggleSelectAll(checked) {
+  document.querySelectorAll('.user-cb').forEach(function(cb) { cb.checked = checked; });
+  updateBulkBtn();
+}
+
+function updateBulkBtn() {
+  var selected = document.querySelectorAll('.user-cb:checked');
+  var btn = document.getElementById('bulkDeleteBtn');
+  var count = document.getElementById('bulkCount');
+  if (selected.length > 0) {
+    btn.style.display = 'inline-block';
+    count.textContent = selected.length;
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function bulkDeleteUsers() {
+  var selected = document.querySelectorAll('.user-cb:checked');
+  var uids = [];
+  var names = [];
+  selected.forEach(function(cb) {
+    uids.push(cb.value);
+    var u = allUsers.find(function(x) { return x._id === cb.value; });
+    if (u) names.push(u.name);
+  });
+  if (!uids.length) return;
+  if (!confirm('Xóa ' + uids.length + ' user?\n\n' + names.join(', ') + '\n\nKhông thể hoàn tác!')) return;
+
+  var promises = uids.map(function(uid) {
+    return Promise.all([
+      db.collection('users').doc(uid).delete(),
+      db.collection('activities').where('userId', '==', uid).get().then(function(snap) { var b = db.batch(); snap.forEach(function(d){b.delete(d.ref)}); return b.commit(); }),
+      db.collection('submissions').where('userId', '==', uid).get().then(function(snap) { var b = db.batch(); snap.forEach(function(d){b.delete(d.ref)}); return b.commit(); }),
+      db.collection('codes').where('userId', '==', uid).get().then(function(snap) { var b = db.batch(); snap.forEach(function(d){b.delete(d.ref)}); return b.commit(); })
+    ]);
+  });
+
+  Promise.all(promises).then(function() {
+    alert('Đã xóa ' + uids.length + ' user.');
+    loadData();
+  }).catch(function(err) {
+    alert('Lỗi: ' + err.message);
+    console.error(err);
+  });
 }
 
 // Init
