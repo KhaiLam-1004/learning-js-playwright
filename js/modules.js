@@ -997,6 +997,71 @@ buildExercise('m6_ex2', 'yellow', 'Bài 2: Kế thừa Class',
 ].join('\n')});
 
 // =============================================
+// PHASE 1 GATE — BÀI THI CUỐI PHASE 1
+// =============================================
+D.push({id:61,title:"Bài thi cuối Phase 1",week:"Kiểm tra trước khi sang Playwright",phase:1,gate:1,html:[
+
+'<h2>🚪 Bài thi cuối Phase 1 — JavaScript & OOP</h2>',
+'<div class="b warn"><strong>Để mở khóa Phase 2 (Playwright)</strong>, bạn cần hoàn thành cả 2 phần:<br>1. ✍️ Đạt bài kiểm tra kiến thức bên dưới (>=70%)<br>2. 💻 Pass ít nhất 1 bài code challenge<br><br>Bài thi tổng hợp toàn bộ kiến thức Phase 1: biến, kiểu dữ liệu, điều kiện, vòng lặp, hàm, array, object, async/await, class/OOP, HTML.</div>',
+
+'<hr class="sep">',
+'<h2>Phần 1: Kiểm tra kiến thức (15 câu)</h2>',
+
+buildExam('gate_phase1', 'Bài thi cuối Phase 1 — JavaScript & OOP', 15, [
+  // M1: Biến & Kiểu dữ liệu
+  {q:'<code>let x = 5; const y = 10;</code> — câu nào SAI?', opts:['x = 8;','y = 20;','console.log(x + y)','let z = x + y'], answer:1, explain:'const không thể gán lại. let thì được.'},
+  {q:'<code>typeof null</code> trả về gì?', opts:['"null"','"undefined"','"object"','"boolean"'], answer:2, explain:'Bug lịch sử của JS. typeof null = "object".'},
+  {q:'<code>"5" + 3</code> cho kết quả gì?', opts:['8','"53"','NaN','Error'], answer:1, explain:'"5" là string → toán tử + nối chuỗi → "53".'},
+  // M2: Điều kiện & Vòng lặp
+  {q:'<code>for (let i=0; i&lt;5; i++)</code> — chạy bao nhiêu lần?', opts:['4','5','6','Vô hạn'], answer:1, explain:'i=0,1,2,3,4. Khi i=5 → điều kiện sai → dừng. 5 lần.'},
+  {q:'<code>switch</code> thiếu <code>break</code> sẽ xảy ra gì?', opts:['Báo lỗi','Chạy tiếp case bên dưới (fall-through)','Tự dừng','Chạy default'], answer:1, explain:'Không có break → JS chạy tiếp xuống các case phía dưới (fall-through).'},
+  // M3: Hàm
+  {q:'Hàm không có <code>return</code> trả về gì?', opts:['0','null','undefined','Error'], answer:2, explain:'JS function không return sẽ tự trả về undefined.'},
+  {q:'Arrow function: <code>const f = (a,b) => a+b;</code> — gọi <code>f(2,3)</code> được?', opts:['5','undefined','Error','NaN'], answer:0, explain:'Arrow function ngắn gọn. => a+b tự return khi không có {}.'},
+  // M4: Array & Object
+  {q:'<code>[1,2,3].map(n => n*2)</code> trả về?', opts:['[2,4,6]','6','[1,2,3,1,2,3]','undefined'], answer:0, explain:'map tạo mảng mới, mỗi phần tử nhân 2.'},
+  {q:'<code>[10,5,8].filter(n => n > 6)</code> trả về?', opts:['[10,8]','[10,5,8]','[5]','18'], answer:0, explain:'filter giữ phần tử thỏa điều kiện > 6.'},
+  {q:'<code>[1,2,3].reduce((s,n) => s+n, 0)</code> trả về?', opts:['[1,2,3]','6','0','undefined'], answer:1, explain:'reduce tích lũy: 0+1+2+3 = 6.'},
+  // M5: Async/Await
+  {q:'<code>async function f() { return 1; }</code> — f() trả về?', opts:['1','Promise resolve(1)','undefined','Error'], answer:1, explain:'async function LUÔN trả về Promise.'},
+  {q:'<code>try { throw new Error("oops") } catch(e) {}</code> — crash?', opts:['Có','Không, catch bắt lỗi','Tùy lỗi','Chạy 2 lần'], answer:1, explain:'catch bắt lỗi, chương trình tiếp tục bình thường.'},
+  // M6: Class & OOP
+  {q:'<code>new Cat("Mimi").name</code> trả về?', opts:['"Cat"','"Mimi"','undefined','Error'], answer:1, explain:'constructor(name) { this.name = name } → "Mimi".'},
+  {q:'<code>super()</code> trong constructor dùng để?', opts:['Tạo class','Gọi constructor class cha','Xóa class','Import'], answer:1, explain:'super() gọi constructor cha. Bắt buộc gọi trước this trong class con.'},
+  {q:'<code>arr.push(4)</code> vs <code>arr.concat([4])</code> khác gì?', opts:['Giống nhau','push thay đổi gốc, concat tạo mới','concat đổi gốc','Lỗi'], answer:1, explain:'push mutate mảng gốc. concat tạo mảng mới.'}
+]),
+
+'<hr class="sep">',
+'<h2>Phần 2: Code Challenge (3 bài)</h2>',
+'<div class="b info">Hoàn thành ít nhất <strong>1 bài</strong> để mở khóa Phase 2.</div>',
+
+buildExercise('gp1_code1', 'green', 'Bài 1: Tổng hợp cơ bản — Phân tích mảng số',
+  'Cho mảng <code>nums = [12, 5, 8, 130, 44, 3, 67]</code>. Viết code:<br>1. Tìm số lớn nhất và nhỏ nhất<br>2. Lọc ra các số chẵn<br>3. Tính tổng các số lẻ<br>In tất cả kết quả.',
+  'Dùng Math.max(...arr), filter(n => n%2===0), reduce()',
+  'const nums = [12, 5, 8, 130, 44, 3, 67];\n\n// Tim max, min\n\n// Loc so chan\n\n// Tong so le\n',
+  'const nums = [12, 5, 8, 130, 44, 3, 67];\nconst max = Math.max(...nums);\nconst min = Math.min(...nums);\nconsole.log("Max:", max, "Min:", min);\nconst chan = nums.filter(n => n % 2 === 0);\nconsole.log("So chan:", chan);\nconst tongLe = nums.filter(n => n % 2 !== 0).reduce((s,n) => s+n, 0);\nconsole.log("Tong so le:", tongLe);',
+  'Kết hợp spread, filter, reduce — 3 kỹ năng quan trọng nhất của array.',
+  null, 8),
+
+buildExercise('gp1_code2', 'yellow', 'Bài 2: Hàm + Object — Xử lý đơn hàng',
+  'Viết hàm <code>xuLyDon(donHang)</code> nhận object: <code>{items: [{ten, gia, sl}], giamGia: 10}</code>.<br>Trả về object: <code>{tongTien, giamGia, thucTra, soMon}</code>.<br>Tạo 1 đơn hàng và in kết quả.',
+  'tongTien = sum(gia*sl). giamGia = tongTien * %/100. thucTra = tongTien - giamGia.',
+  'function xuLyDon(don) {\n  // TODO\n}\n\nconst don = {\n  items: [\n    {ten: "Ao", gia: 200000, sl: 2},\n    {ten: "Quan", gia: 350000, sl: 1}\n  ],\n  giamGia: 10\n};\nconst kq = xuLyDon(don);\nconsole.log("Tong:", kq.tongTien);\nconsole.log("Giam:", kq.giamGia);\nconsole.log("Thuc tra:", kq.thucTra);\nconsole.log("So mon:", kq.soMon);',
+  'function xuLyDon(don) {\n  var tongTien = don.items.reduce(function(s, i) { return s + i.gia * i.sl; }, 0);\n  var giam = tongTien * don.giamGia / 100;\n  return {\n    tongTien: tongTien,\n    giamGia: giam,\n    thucTra: tongTien - giam,\n    soMon: don.items.length\n  };\n}\n\nconst don = {\n  items: [\n    {ten: "Ao", gia: 200000, sl: 2},\n    {ten: "Quan", gia: 350000, sl: 1}\n  ],\n  giamGia: 10\n};\nconst kq = xuLyDon(don);\nconsole.log("Tong:", kq.tongTien);\nconsole.log("Giam:", kq.giamGia);\nconsole.log("Thuc tra:", kq.thucTra);\nconsole.log("So mon:", kq.soMon);',
+  'Hàm nhận object → xử lý → trả object. Pattern rất phổ biến trong thực tế.',
+  null, 14),
+
+buildExercise('gp1_code3', 'red', 'Bài 3: Class + OOP — Quản lý sinh viên',
+  'Viết class <code>SinhVien</code> (ten, diem). Method <code>xepLoai()</code>: >=8 "Gioi", >=6.5 "Kha", >=5 "TB", else "Yeu".<br>Viết class <code>LopHoc</code> chứa mảng SV. Method: <code>them(sv)</code>, <code>diemTB()</code>, <code>topSV()</code> (SV cao nhất).<br>Tạo lớp 3 SV, in TB lớp và top SV.',
+  'Dùng class + reduce + push',
+  'class SinhVien {\n  // TODO: constructor(ten, diem) + xepLoai()\n}\n\nclass LopHoc {\n  // TODO: constructor() + them(sv) + diemTB() + topSV()\n}\n\nconst lop = new LopHoc();\nlop.them(new SinhVien("An", 8.5));\nlop.them(new SinhVien("Binh", 6.0));\nlop.them(new SinhVien("Cuong", 7.2));\nconsole.log("TB lop:", lop.diemTB());\nconsole.log("Top:", lop.topSV().ten, lop.topSV().diem);',
+  'class SinhVien {\n  constructor(ten, diem) {\n    this.ten = ten;\n    this.diem = diem;\n  }\n  xepLoai() {\n    if (this.diem >= 8) return "Gioi";\n    if (this.diem >= 6.5) return "Kha";\n    if (this.diem >= 5) return "TB";\n    return "Yeu";\n  }\n}\n\nclass LopHoc {\n  constructor() { this.ds = []; }\n  them(sv) { this.ds.push(sv); }\n  diemTB() {\n    var tong = this.ds.reduce(function(s,sv){ return s + sv.diem; }, 0);\n    return (tong / this.ds.length).toFixed(1);\n  }\n  topSV() {\n    return this.ds.reduce(function(top, sv){ return sv.diem > top.diem ? sv : top; });\n  }\n}\n\nconst lop = new LopHoc();\nlop.them(new SinhVien("An", 8.5));\nlop.them(new SinhVien("Binh", 6.0));\nlop.them(new SinhVien("Cuong", 7.2));\nconsole.log("TB lop:", lop.diemTB());\nconsole.log("Top:", lop.topSV().ten, lop.topSV().diem);',
+  'Kết hợp class + array method. SinhVien chứa logic cá nhân, LopHoc quản lý danh sách.',
+  null, 14),
+
+].join('\n')});
+
+// =============================================
 // MODULE 7 — PLAYWRIGHT CƠ BẢN (cũ M6)
 // =============================================
 D.push({id:7,title:"Playwright Cơ bản",week:"Tuần 5",phase:2,html:[
@@ -1082,21 +1147,22 @@ D.push({id:7,title:"Playwright Cơ bản",week:"Tuần 5",phase:2,html:[
 '<hr class="sep">',
 
 '<h2>Bài tập cuối Module 7</h2>',
-'<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
-'<p>Viết test mở <code>https://the-internet.herokuapp.com</code>, kiểm tra title chứa "The Internet".</p>',
-'<details><summary>Xem code mẫu (Playwright - cần chạy trên máy)</summary>',
-'<pre>test("Trang chu", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com");\n  await expect(page).toHaveTitle(/The Internet/);\n});</pre>',
-'</details></div>',
 
-'<div class="ex"><span class="tag ty">🟡 Bài 2</span>',
-'<p>Viết test login trên /login với tomsmith / SuperSecretPassword!. Kiểm tra thấy "secure area".</p>',
-'<details><summary>Xem code mẫu (Playwright - cần chạy trên máy)</summary>',
-'<pre>test("Login OK", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/login");\n  await page.fill("#username", "tomsmith");\n  await page.fill("#password", "SuperSecretPassword!");\n  await page.click(\'button[type="submit"]\');\n  await expect(page.locator(".flash")).toContainText("secure area");\n});</pre>',
-'</details></div>',
+buildExercise('m7_ex1', 'green', 'Bài 1: Viết test mở trang',
+  'Viết code Playwright test: mở <code>https://the-internet.herokuapp.com</code>, kiểm tra title chứa "The Internet".',
+  'Dùng test(), page.goto(), expect(page).toHaveTitle()',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Trang chu", async ({ page }) => {\n  // TODO: goto + toHaveTitle\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Trang chu", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com");\n  await expect(page).toHaveTitle(/The Internet/);\n});',
+  'page.goto() mở URL. toHaveTitle() kiểm tra thẻ <title> của trang.',
+  null, 6),
 
-'<div class="ex"><span class="tag tr">🔴 Bài 3</span>',
-'<p>Viết test login SAI. Thêm <code>page.pause()</code> để debug. Chạy với <code>--debug</code> và sử dụng Inspector.</p>',
-'</div>',
+buildExercise('m7_ex2', 'yellow', 'Bài 2: Viết test Login',
+  'Viết test login trên /login: fill username (tomsmith), fill password (SuperSecretPassword!), click submit, kiểm tra thấy "secure area".',
+  'Dùng page.fill(), page.click(), expect().toContainText()',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Login OK", async ({ page }) => {\n  // TODO\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Login OK", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/login");\n  await page.fill("#username", "tomsmith");\n  await page.fill("#password", "SuperSecretPassword!");\n  await page.click(\'button[type="submit"]\');\n  await expect(page.locator(".flash")).toContainText("secure area");\n});',
+  'fill() điền text vào input. click() nhấn nút. toContainText() kiểm tra text hiển thị.',
+  null, 8),
 
 '<hr class="sep">',
 buildExam('exam_m7', 'Bài kiểm tra Module 7 — Playwright Cơ bản', 8, [
@@ -1183,24 +1249,23 @@ D.push({id:8,title:"Locator & Actions",week:"Tuần 5-6",phase:2,html:[
 
 '<hr class="sep">',
 
-'<h2>Bài tập cuối Module 7</h2>',
-'<div class="ex"><span class="tag tg">🟢 Bài 1</span>',
-'<p>Test dropdown trên the-internet.herokuapp.com/dropdown: chọn "Option 1", kiểm tra đã chọn.</p>',
-'<details><summary>Xem code mẫu (Playwright - cần chạy trên máy)</summary>',
-'<pre>test("Dropdown", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/dropdown");\n  await page.selectOption("#dropdown", "1");\n  await expect(page.locator("#dropdown")).toHaveValue("1");\n});</pre>',
-'</details></div>',
+'<h2>Bài tập cuối Module 8</h2>',
 
-'<div class="ex"><span class="tag ty">🟡 Bài 2</span>',
-'<p>Test checkbox: mở /checkboxes, tick checkbox đầu tiên, kiểm tra đã tick.</p>',
-'<details><summary>Xem code mẫu (Playwright - cần chạy trên máy)</summary>',
-'<pre>test("Checkbox", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/checkboxes");\n  const cb = page.locator(\'input[type="checkbox"]\').first();\n  await cb.check();\n  await expect(cb).toBeChecked();\n});</pre>',
-'</details></div>',
+buildExercise('m8_ex1', 'green', 'Bài 1: Locator + Dropdown',
+  'Viết test: mở /dropdown, dùng <code>selectOption</code> chọn "Option 1", kiểm tra giá trị bằng <code>toHaveValue</code>.',
+  'Dùng page.selectOption() và expect().toHaveValue()',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Dropdown", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/dropdown");\n  // TODO: selectOption + toHaveValue\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Dropdown", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/dropdown");\n  await page.selectOption("#dropdown", "1");\n  await expect(page.locator("#dropdown")).toHaveValue("1");\n});',
+  'selectOption() chọn giá trị trong dropdown. toHaveValue() kiểm tra value đã chọn.',
+  null, 7),
 
-'<div class="ex"><span class="tag tr">🔴 Bài 3</span>',
-'<p>Test JavaScript Alert: mở /javascript_alerts, click nút, nhấn OK, kiểm tra kết quả.</p>',
-'<details><summary>Xem code mẫu (Playwright - cần chạy trên máy)</summary>',
-'<pre>test("JS Alert", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/javascript_alerts");\n  page.on("dialog", d => d.accept());\n  await page.getByText("Click for JS Alert").click();\n  await expect(page.locator("#result"))\n    .toHaveText("You successfully clicked an alert");\n});</pre>',
-'</details></div>',
+buildExercise('m8_ex2', 'yellow', 'Bài 2: Checkbox + getByRole',
+  'Viết test: mở /checkboxes, dùng <code>getByRole("checkbox")</code> hoặc locator, gọi <code>check()</code>, kiểm tra <code>toBeChecked()</code>.',
+  'Dùng .first() nếu locator khớp nhiều phần tử',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Checkbox", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/checkboxes");\n  // TODO: check + toBeChecked\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Checkbox", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/checkboxes");\n  const cb = page.locator(\'input[type="checkbox"]\').first();\n  await cb.check();\n  await expect(cb).toBeChecked();\n});',
+  'check() tick checkbox. toBeChecked() kiểm tra đã tick. .first() lấy phần tử đầu tiên khi locator khớp nhiều.',
+  null, 7),
 
 '<hr class="sep">',
 buildExam('exam_m8', 'Bài kiểm tra Module 8 — Locator & Actions', 8, [
@@ -1253,10 +1318,22 @@ D.push({id:9,title:"Assertions & Tổ chức Test",week:"Tuần 6-7",phase:2,htm
 '<hr class="sep">',
 
 '<h2>Bài tập cuối Module 9</h2>',
-'<div class="ex"><span class="tag ty">🟡 Bài 1</span>',
-'<p>Viết test suite: beforeEach mở trang login, afterEach screenshot khi fail. Test 5 bộ credentials bằng parameterized test.</p></div>',
-'<div class="ex"><span class="tag tr">🔴 Bài 2</span>',
-'<p>Viết helper kiểm tra toast notification: xuất hiện → chứa text → biến mất sau vài giây.</p></div>',
+
+buildExercise('m9_ex1', 'green', 'Bài 1: Test Suite với describe + beforeEach',
+  'Viết test suite: dùng <code>test.describe</code> nhóm test, <code>test.beforeEach</code> mở trang login. Viết 2 test: login đúng và login sai.',
+  'Dùng test.describe(), test.beforeEach(), expect().toBeVisible()',
+  'const { test, expect } = require("@playwright/test");\n\ntest.describe("Login", function() {\n  test.beforeEach(async ({ page }) => {\n    // TODO: goto login page\n  });\n\n  test("login dung", async ({ page }) => {\n    // TODO\n  });\n\n  test("login sai", async ({ page }) => {\n    // TODO\n  });\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest.describe("Login", function() {\n  test.beforeEach(async ({ page }) => {\n    await page.goto("https://the-internet.herokuapp.com/login");\n  });\n\n  test("login dung", async ({ page }) => {\n    await page.fill("#username", "tomsmith");\n    await page.fill("#password", "SuperSecretPassword!");\n    await page.click(\'button[type="submit"]\');\n    await expect(page.locator(".flash.success")).toBeVisible();\n  });\n\n  test("login sai", async ({ page }) => {\n    await page.fill("#username", "wrong");\n    await page.fill("#password", "wrong");\n    await page.click(\'button[type="submit"]\');\n    await expect(page.locator(".flash.error")).toBeVisible();\n  });\n});',
+  'describe nhóm test liên quan. beforeEach chạy trước MỖI test — tránh lặp code.',
+  null, 14),
+
+buildExercise('m9_ex2', 'yellow', 'Bài 2: Parameterized Test',
+  'Viết parameterized test: tạo mảng data (ít nhất 3 bộ), lặp qua mảng tạo test cho mỗi bộ. Dùng <code>for...of</code>.',
+  'Tạo const cases = [...] rồi dùng for (const c of cases) { test(...) }',
+  'const { test, expect } = require("@playwright/test");\n\nconst cases = [\n  // TODO: thêm 3 bộ data\n];\n\nfor (const c of cases) {\n  test("Login: " + c.user, async ({ page }) => {\n    // TODO\n  });\n}',
+  'const { test, expect } = require("@playwright/test");\n\nconst cases = [\n  { user: "tomsmith", pass: "SuperSecretPassword!", ok: true },\n  { user: "wrong", pass: "wrong", ok: false },\n  { user: "", pass: "", ok: false },\n];\n\nfor (const c of cases) {\n  test("Login: " + (c.user || "empty"), async ({ page }) => {\n    await page.goto("https://the-internet.herokuapp.com/login");\n    await page.fill("#username", c.user);\n    await page.fill("#password", c.pass);\n    await page.click(\'button[type="submit"]\');\n    if (c.ok) {\n      await expect(page.locator(".flash.success")).toBeVisible();\n    } else {\n      await expect(page.locator(".flash.error")).toBeVisible();\n    }\n  });\n}',
+  'Parameterized test: viết code 1 lần, chạy nhiều bộ data. Thêm test case = thêm 1 dòng object.',
+  null, 14),
 
 '<hr class="sep">',
 buildExam('exam_m9', 'Bài kiểm tra Module 9 — Assertions & Tổ chức Test', 8, [
@@ -1267,6 +1344,65 @@ buildExam('exam_m9', 'Bài kiểm tra Module 9 — Assertions & Tổ chức Test
   {q:'<code>test.skip("reason")</code> làm gì?', opts:['Xóa test','Bỏ qua test, đánh dấu skipped','Chạy test 2 lần','Fail test'], answer:1, explain:'test.skip bỏ qua test, hiện "skipped" trong report. Dùng khi test chưa viết xong hoặc tạm tắt.'},
   {q:'<code>await expect(locator).toHaveCount(5)</code> kiểm tra gì?', opts:['Text có 5 ký tự','Có 5 phần tử khớp locator','Trang load 5 giây','5 test pass'], answer:1, explain:'toHaveCount đếm số phần tử khớp locator. VD: kiểm tra có 5 items trong danh sách.'}
 ]),
+].join('\n')});
+
+// =============================================
+// PHASE 2 GATE — BÀI THI CUỐI PHASE 2
+// =============================================
+D.push({id:91,title:"Bài thi cuối Phase 2",week:"Kiểm tra trước khi sang Nâng cao",phase:2,gate:2,html:[
+
+'<h2>🚪 Bài thi cuối Phase 2 — Playwright Cơ bản</h2>',
+'<div class="b warn"><strong>Để mở khóa Phase 3 (Nâng cao: POM, API Testing, CI/CD)</strong>, bạn cần hoàn thành cả 2 phần:<br>1. ✍️ Đạt bài kiểm tra kiến thức bên dưới (>=70%)<br>2. 💻 Pass ít nhất 1 bài code challenge<br><br>Bài thi tổng hợp: Playwright setup, locator, actions, assertions, test tổ chức.</div>',
+
+'<hr class="sep">',
+'<h2>Phần 1: Kiểm tra kiến thức (12 câu)</h2>',
+
+buildExam('gate_phase2', 'Bài thi cuối Phase 2 — Playwright Cơ bản', 12, [
+  // M7: Playwright cơ bản
+  {q:'Playwright dùng để làm gì?', opts:['Viết backend','Thiết kế UI','Tự động hóa test trình duyệt','Quản lý database'], answer:2, explain:'Playwright tự động mở trình duyệt, tương tác, kiểm tra kết quả.'},
+  {q:'Lệnh nào cài đặt Playwright?', opts:['npm install playwright','npm init playwright@latest','pip install playwright','yarn add playwright'], answer:1, explain:'npm init playwright@latest tạo project mới đầy đủ.'},
+  {q:'<code>await page.goto(url)</code> làm gì?', opts:['Tạo trang','Mở URL trên trình duyệt','Đóng trang','Chụp ảnh'], answer:1, explain:'goto() điều hướng trình duyệt đến URL.'},
+  {q:'Codegen (<code>npx playwright codegen</code>) dùng để?', opts:['Build project','Tự sinh code test từ thao tác tay','Tạo report','Deploy'], answer:1, explain:'Codegen ghi lại thao tác → tự sinh code test. Tuyệt vời để bắt đầu.'},
+  // M8: Locator & Actions
+  {q:'Locator nào ưu tiên nhất?', opts:['CSS Selector','XPath','getByRole','getByTestId'], answer:2, explain:'getByRole giống cách user nhìn trang — ưu tiên nhất.'},
+  {q:'<code>page.fill("#email", "a@b.com")</code> làm gì?', opts:['Tìm phần tử','Xóa nội dung cũ + gõ text mới','Click phần tử','Kiểm tra text'], answer:1, explain:'fill() xóa nội dung cũ và gõ text mới vào input.'},
+  {q:'Khi locator khớp nhiều phần tử, báo lỗi gì?', opts:['Timeout','strict mode violation','Not found','Syntax error'], answer:1, explain:'Dùng .first(), .nth(), hoặc chaining để chỉ định chính xác.'},
+  {q:'Playwright có cần <code>sleep(3000)</code> không?', opts:['Có, luôn cần','Không, auto-wait','Tùy trường hợp','Chỉ headed'], answer:1, explain:'Playwright tự chờ phần tử visible, enabled. KHÔNG cần sleep!'},
+  // M9: Assertions & Test tổ chức
+  {q:'<code>await expect(page).toHaveTitle(/Dashboard/)</code> kiểm tra?', opts:['URL','Title trang chứa "Dashboard"','Có text Dashboard','Loaded'], answer:1, explain:'toHaveTitle kiểm tra thẻ <title>, hỗ trợ regex.'},
+  {q:'<code>test.beforeEach</code> chạy khi nào?', opts:['1 lần đầu','Trước MỖI test trong describe','Sau mỗi test','Khi fail'], answer:1, explain:'beforeEach chạy TRƯỚC mỗi test — setup chung.'},
+  {q:'Soft assertion khác assertion thường?', opts:['Nhanh hơn','Không dừng test khi fail','Không cần await','Chạy sau'], answer:1, explain:'expect.soft() ghi nhận fail nhưng test chạy tiếp.'},
+  {q:'Parameterized test dùng để?', opts:['Skip test','Test 1 flow với nhiều bộ data','Debug','Report'], answer:1, explain:'Viết code 1 lần, chạy nhiều bộ data.'}
+]),
+
+'<hr class="sep">',
+'<h2>Phần 2: Code Challenge (3 bài)</h2>',
+'<div class="b info">Hoàn thành ít nhất <strong>1 bài</strong> để mở khóa Phase 3.</div>',
+
+buildExercise('gp2_code1', 'green', 'Bài 1: Viết test cơ bản',
+  'Viết 1 test: mở trang <code>the-internet.herokuapp.com/login</code>, fill username "tomsmith", fill password "SuperSecretPassword!", click submit, kiểm tra URL chứa "/secure".',
+  'Dùng test(), page.goto(), page.fill(), page.click(), expect(page).toHaveURL()',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Login test", async ({ page }) => {\n  // TODO: goto, fill, click, expect\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Login test", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/login");\n  await page.fill("#username", "tomsmith");\n  await page.fill("#password", "SuperSecretPassword!");\n  await page.click(\'button[type="submit"]\');\n  await expect(page).toHaveURL(/\\/secure/);\n});',
+  'Flow cơ bản: goto → fill → click → assert. Playwright auto-wait mỗi bước.',
+  null, 8),
+
+buildExercise('gp2_code2', 'yellow', 'Bài 2: Locator nâng cao + Actions',
+  'Viết test: mở /checkboxes, dùng locator tìm checkbox đầu tiên, <code>check()</code>, assert <code>toBeChecked()</code>. Sau đó <code>uncheck()</code> checkbox thứ 2, assert <code>not.toBeChecked()</code>.',
+  'Dùng page.locator().first(), .nth(1), check(), uncheck(), toBeChecked()',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Checkbox test", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/checkboxes");\n  // TODO: check first, uncheck second, assert both\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Checkbox test", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/checkboxes");\n  const checkboxes = page.locator(\'input[type="checkbox"]\');\n  await checkboxes.first().check();\n  await expect(checkboxes.first()).toBeChecked();\n  await checkboxes.nth(1).uncheck();\n  await expect(checkboxes.nth(1)).not.toBeChecked();\n});',
+  'Locator chaining: .first(), .nth() giúp chọn phần tử cụ thể khi có nhiều phần tử khớp.',
+  null, 10),
+
+buildExercise('gp2_code3', 'red', 'Bài 3: Test Suite hoàn chỉnh',
+  'Viết test suite:<br>1. <code>test.describe</code> nhóm "Login"<br>2. <code>beforeEach</code> goto trang login<br>3. Test "login đúng": fill + click + expect toContainText("secure")<br>4. Test "login sai": fill sai + expect error toBeVisible<br>5. Test "username trống": expect error',
+  'describe, beforeEach, fill, click, expect, toContainText, toBeVisible',
+  'const { test, expect } = require("@playwright/test");\n\ntest.describe("Login Suite", function() {\n  test.beforeEach(async ({ page }) => {\n    // TODO\n  });\n\n  test("login dung", async ({ page }) => {\n    // TODO\n  });\n\n  test("login sai", async ({ page }) => {\n    // TODO\n  });\n\n  test("username trong", async ({ page }) => {\n    // TODO\n  });\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest.describe("Login Suite", function() {\n  test.beforeEach(async ({ page }) => {\n    await page.goto("https://the-internet.herokuapp.com/login");\n  });\n\n  test("login dung", async ({ page }) => {\n    await page.fill("#username", "tomsmith");\n    await page.fill("#password", "SuperSecretPassword!");\n    await page.click(\'button[type="submit"]\');\n    await expect(page.locator(".flash")).toContainText("secure area");\n  });\n\n  test("login sai", async ({ page }) => {\n    await page.fill("#username", "wrong");\n    await page.fill("#password", "wrong");\n    await page.click(\'button[type="submit"]\');\n    await expect(page.locator(".flash.error")).toBeVisible();\n  });\n\n  test("username trong", async ({ page }) => {\n    await page.fill("#password", "abc");\n    await page.click(\'button[type="submit"]\');\n    await expect(page.locator(".flash.error")).toBeVisible();\n  });\n});',
+  'Test suite chuẩn: describe nhóm, beforeEach setup, mỗi test kiểm tra 1 scenario.',
+  null, 20),
+
 ].join('\n')});
 
 // =============================================
@@ -1312,8 +1448,22 @@ D.push({id:10,title:"Page Object Model (POM)",week:"Tuần 8",phase:3,html:[
 
 '<hr class="sep">',
 '<h2>Bài tập cuối Module 10</h2>',
-'<div class="ex"><span class="tag ty">🟡 Bài 1</span><p>Refactor tất cả test login từ Module 6-8 sang POM.</p></div>',
-'<div class="ex"><span class="tag tr">🔴 Bài 2</span><p>Tạo POM cho saucedemo.com: LoginPage, InventoryPage, CartPage, CheckoutPage.</p></div>',
+
+buildExercise('m10_ex1', 'green', 'Bài 1: Viết LoginPage class (POM)',
+  'Viết class <code>LoginPage</code> extends <code>BasePage</code>: constructor nhận page, khai báo locator (usernameInput, passwordInput, submitBtn), method <code>login(user, pass)</code>.',
+  'Dùng class, extends, super(page), this.xxx = page.locator(...)',
+  'class BasePage {\n  constructor(page) { this.page = page; }\n}\n\nclass LoginPage extends BasePage {\n  constructor(page) {\n    // TODO: super + locator\n  }\n  async login(user, pass) {\n    // TODO: fill + click\n  }\n}\nconsole.log("LoginPage defined!");',
+  'class BasePage {\n  constructor(page) { this.page = page; }\n}\n\nclass LoginPage extends BasePage {\n  constructor(page) {\n    super(page);\n    this.usernameInput = page.locator("#username");\n    this.passwordInput = page.locator("#password");\n    this.submitBtn = page.locator(\'button[type="submit"]\');\n  }\n  async login(user, pass) {\n    await this.usernameInput.fill(user);\n    await this.passwordInput.fill(pass);\n    await this.submitBtn.click();\n  }\n}\nconsole.log("LoginPage defined!");',
+  'POM gom tất cả locator vào constructor. Method nhóm thao tác thành hành động có nghĩa.',
+  null, 12),
+
+buildExercise('m10_ex2', 'yellow', 'Bài 2: Viết test dùng POM',
+  'Viết test dùng LoginPage: tạo instance trong <code>beforeEach</code>, gọi <code>loginPage.login()</code> trong test. Dùng <code>expect</code> kiểm tra kết quả.',
+  'new LoginPage(page) trong beforeEach, loginPage.login() trong test',
+  'const { test, expect } = require("@playwright/test");\n// const LoginPage = require("../pages/LoginPage");\n\ntest.describe("Login POM", function() {\n  // TODO: beforeEach + 2 tests\n});',
+  'const { test, expect } = require("@playwright/test");\nconst LoginPage = require("../pages/LoginPage");\n\ntest.describe("Login POM", function() {\n  let loginPage;\n  test.beforeEach(async ({ page }) => {\n    loginPage = new LoginPage(page);\n    await loginPage.goto();\n  });\n  test("Login OK", async () => {\n    await loginPage.login("tomsmith", "SuperSecretPassword!");\n    await expect(loginPage.flashMsg).toContainText("secure area");\n  });\n  test("Login sai", async () => {\n    await loginPage.login("wrong", "wrong");\n    await expect(loginPage.flashMsg).toContainText("invalid");\n  });\n});',
+  'Test ngắn gọn, không locator nào lộ ra. UI đổi → chỉ sửa LoginPage.',
+  null, 12),
 
 '<hr class="sep">',
 buildExam('exam_m10', 'Bài kiểm tra Module 10 — Page Object Model', 6, [
@@ -1388,9 +1538,22 @@ D.push({id:11,title:"API Testing & Data-driven",week:"Tuần 9",phase:3,html:[
 '<hr class="sep">',
 
 '<h2>Bài tập cuối Module 11</h2>',
-'<div class="ex"><span class="tag tg">🟢 Bài 1</span><p>GET /api/users từ reqres.in, kiểm tra status 200 và có ít nhất 1 user.</p></div>',
-'<div class="ex"><span class="tag ty">🟡 Bài 2</span><p>CRUD: POST tạo → verify → PUT update → DELETE → verify đã xóa.</p></div>',
-'<div class="ex"><span class="tag tr">🔴 Bài 3</span><p>Tạo file JSON chứa 5 bộ login data. Viết data-driven test đọc file và chạy tất cả.</p></div>',
+
+buildExercise('m11_ex1', 'green', 'Bài 1: API GET test',
+  'Viết test: GET <code>/api/users</code> từ reqres.in, kiểm tra status 200, response body có mảng <code>data</code> chứa ít nhất 1 user.',
+  'Dùng request.get(), expect(res.status()).toBe(200), JSON.parse()',
+  'const { test, expect } = require("@playwright/test");\n\ntest("GET users", async ({ request }) => {\n  const res = await request.get("https://reqres.in/api/users");\n  // TODO: check status + body\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("GET users", async ({ request }) => {\n  const res = await request.get("https://reqres.in/api/users");\n  expect(res.status()).toBe(200);\n  const body = await res.json();\n  expect(body.data.length).toBeGreaterThan(0);\n});',
+  'request.get() gọi API trực tiếp. res.json() parse body. Không cần mở browser!',
+  null, 7),
+
+buildExercise('m11_ex2', 'yellow', 'Bài 2: API POST + mock',
+  'Viết 2 phần: (1) POST tạo user mới, check status 201. (2) Viết <code>page.route</code> mock API trả về lỗi 500.',
+  'Dùng request.post() và page.route() với route.fulfill()',
+  'const { test, expect } = require("@playwright/test");\n\ntest("POST user", async ({ request }) => {\n  // TODO: post + check 201\n});\n\ntest("Mock API 500", async ({ page }) => {\n  // TODO: page.route + fulfill status 500\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("POST user", async ({ request }) => {\n  const res = await request.post("https://reqres.in/api/users", {\n    data: { name: "Test", job: "QA" }\n  });\n  expect(res.status()).toBe(201);\n});\n\ntest("Mock API 500", async ({ page }) => {\n  await page.route("**/api/users", route => {\n    route.fulfill({ status: 500, body: "Server Error" });\n  });\n  await page.goto("https://example.com");\n});',
+  'POST tạo resource mới (201). page.route() chặn request và trả response giả.',
+  null, 12),
 
 '<hr class="sep">',
 buildExam('exam_m11', 'Bài kiểm tra Module 11 — API Testing', 8, [
@@ -1525,6 +1688,24 @@ D.push({id:12,title:"Config, CI/CD & Capstone",week:"Tuần 10-11",phase:3,html:
 '</table>',
 
 '<div class="b ok">🎉 <strong>Chúc mừng!</strong> Hoàn thành Capstone = bạn đã có đủ kỹ năng làm Automation Tester.<br><br><strong>Bước tiếp theo:</strong><br>1. Push project lên GitHub.<br>2. Thêm link GitHub vào CV.<br>3. Viết README.md thật đẹp (giới thiệu, hướng dẫn cài đặt, cách chạy test).<br>4. Tự tin đi phỏng vấn! 💪</div>',
+
+'<h2>Bài tập cuối Module 12</h2>',
+
+buildExercise('m12_ex1', 'green', 'Bài 1: Viết playwright.config.js',
+  'Viết file config: testDir = "./tests", timeout 30s, retries 2, multi-browser (chromium, firefox), screenshot on failure, HTML report.',
+  'Dùng defineConfig, projects, use: { screenshot: "only-on-failure" }',
+  'const { defineConfig } = require("@playwright/test");\n\nmodule.exports = defineConfig({\n  // TODO: testDir, timeout, retries, projects, use, reporter\n});',
+  'const { defineConfig } = require("@playwright/test");\n\nmodule.exports = defineConfig({\n  testDir: "./tests",\n  timeout: 30000,\n  retries: 2,\n  projects: [\n    { name: "chromium", use: { browserName: "chromium" } },\n    { name: "firefox", use: { browserName: "firefox" } },\n  ],\n  use: {\n    screenshot: "only-on-failure",\n    trace: "retain-on-failure",\n  },\n  reporter: [["html"], ["list"]],\n});',
+  'Config tập trung: browser, retry, screenshot. Thay đổi 1 file ảnh hưởng tất cả test.',
+  null, 10),
+
+buildExercise('m12_ex2', 'yellow', 'Bài 2: GitHub Actions workflow',
+  'Viết file YAML cho GitHub Actions: trigger on push/PR to main, setup Node 20, install Playwright, run test, upload report.',
+  'Dùng actions/checkout, actions/setup-node, npx playwright install, upload-artifact',
+  '# .github/workflows/playwright.yml\nname: Playwright Tests\non:\n  push:\n    branches: [main]\n  # TODO: thêm pull_request\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      # TODO: checkout, setup-node, install, run test, upload report',
+  '# .github/workflows/playwright.yml\nname: Playwright Tests\non:\n  push:\n    branches: [main]\n  pull_request:\n    branches: [main]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 20\n      - run: npm ci\n      - run: npx playwright install --with-deps\n      - run: npx playwright test\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: playwright-report\n          path: playwright-report/',
+  'CI/CD chạy test tự động mỗi push. Upload report để xem kết quả dù test pass hay fail.',
+  null, 14),
 
 '<hr class="sep">',
 buildExam('exam_m12', 'Bài kiểm tra cuối khóa — Tổng hợp', 15, [

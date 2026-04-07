@@ -8,13 +8,20 @@ function renderSidebar() {
   for (var j = 0; j < D.length; j++) {
     var m = D[j];
     if (m.phase !== lastPhase) {
-      html += '<div class="nav-phase">' + phases[m.phase] + '</div>';
+      var phaseLocked = (m.phase >= 2 && !isPhaseGatePassed(m.phase - 1));
+      html += '<div class="nav-phase' + (phaseLocked ? ' phase-locked' : '') + '">' + (phaseLocked ? '🔒 ' : '') + phases[m.phase] + '</div>';
       lastPhase = m.phase;
     }
     var isDone = completed[m.id], isActive = m.id === active;
-    html += '<div class="nav-item' + (isActive ? ' active' : '') + '" onclick="goTo(' + m.id + ')">';
-    html += '<div class="check' + (isDone ? ' done' : '') + '">' + (isDone ? '✓' : '') + '</div>';
-    html += '<span>' + (m.id === 0 ? 'Intro' : 'M' + m.id + ': ') + m.title + '</span></div>';
+    var locked = !isModuleUnlocked(m.id);
+    html += '<div class="nav-item' + (isActive ? ' active' : '') + (locked ? ' locked' : '') + '" onclick="goTo(' + m.id + ')">';
+    if (locked) {
+      html += '<div class="check locked-icon">🔒</div>';
+    } else {
+      html += '<div class="check' + (isDone ? ' done' : '') + '">' + (isDone ? '✓' : '') + '</div>';
+    }
+    var namePrefix = m.id === 0 ? 'Intro' : (m.gate ? '🚪 ' : 'M' + m.id + ': ');
+    html += '<span>' + namePrefix + m.title + '</span></div>';
   }
   nav.innerHTML = html;
   updateProgress();
@@ -27,16 +34,24 @@ function updateProgress() {
   document.getElementById('progressText').textContent = done + ' / ' + D.length + ' modules hoàn thành (' + pct + '%)';
 }
 function render() {
-  var m = null;
-  for (var k = 0; k < D.length; k++) if (D[k].id === active) { m = D[k]; break; }
+  var m = null, mIdx = 0;
+  for (var k = 0; k < D.length; k++) if (D[k].id === active) { m = D[k]; mIdx = k; break; }
   var pn = {0:'Giới thiệu', 1:'Phase 1: JS & OOP Cơ bản', 2:'Phase 2: Playwright', 3:'Phase 3: Nâng cao'};
-  var label = active === 0 ? 'Giới thiệu khóa học' : 'Module ' + m.id + ': ' + m.title;
+  var isGate = m.gate;
+  var label = active === 0 ? 'Giới thiệu khóa học' : (isGate ? m.title : 'Module ' + m.id + ': ' + m.title);
   document.getElementById('breadcrumb').innerHTML = pn[m.phase] + ' / <b>' + label + '</b>';
   var time = MODULE_TIME[m.id] || 30;
-  var heroHtml = '<div class="module-hero"><div class="num">' + (active === 0 ? '📖' : ('0' + m.id).slice(-2)) + '</div><h2>' + label + '</h2><p>' + m.week + '</p><div class="module-meta"><span class="phase-badge">' + pn[m.phase] + '</span><span class="meta-item">⏱ ~' + time + ' phút</span><span class="meta-item">📖 ' + Math.round(m.html.length/500) + ' phần</span></div><button class="complete-btn' + (completed[m.id] ? ' done' : '') + '" onclick="toggleComplete(' + m.id + ')">' + (completed[m.id] ? '✓ Đã hoàn thành' : '○ Đánh dấu hoàn thành') + '</button></div>';
+  var numDisplay = active === 0 ? '📖' : (isGate ? '🚪' : ('0' + m.id).slice(-2));
+  var heroHtml = '<div class="module-hero' + (isGate ? ' gate-hero' : '') + '"><div class="num">' + numDisplay + '</div><h2>' + label + '</h2><p>' + m.week + '</p><div class="module-meta"><span class="phase-badge">' + pn[m.phase] + '</span><span class="meta-item">⏱ ~' + time + ' phút</span><span class="meta-item">📖 ' + Math.round(m.html.length/500) + ' phần</span></div><button class="complete-btn' + (completed[m.id] ? ' done' : '') + '" onclick="toggleComplete(' + m.id + ')">' + (completed[m.id] ? '✓ Đã hoàn thành' : '○ Đánh dấu hoàn thành') + '</button></div>';
   var prev = '<div></div>', next = '<div></div>';
-  if (active > 0) prev = '<button class="pv" onclick="goTo(' + (active - 1) + ')">← ' + (active === 1 ? 'Intro' : 'Module ' + (active - 1)) + '</button>';
-  if (active < D.length - 1) next = '<button class="nx" onclick="goTo(' + (active + 1) + ')">Module ' + (active + 1) + ' →</button>';
+  if (mIdx > 0) {
+    var prevM = D[mIdx - 1];
+    prev = '<button class="pv" onclick="goTo(' + prevM.id + ')">← ' + (prevM.id === 0 ? 'Intro' : prevM.title) + '</button>';
+  }
+  if (mIdx < D.length - 1) {
+    var nextM = D[mIdx + 1];
+    next = '<button class="nx" onclick="goTo(' + nextM.id + ')">' + nextM.title + ' →</button>';
+  }
   // Build Table of Contents from h2/h3 headings
   var contentHtml = m.html;
   var headingRegex = /<h([23])>(.*?)<\/h[23]>/g;
@@ -63,7 +78,7 @@ function render() {
     var tocListHtml = '<ul class="toc-list">';
     tocItems.forEach(function(item) {
       var isSub = item.level === '3';
-      var isSpecial = item.text.includes('Mini Project') || item.text.includes('Bài tập') || item.text.includes('Bài kiểm tra');
+      var isSpecial = item.text.includes('Mini Project') || item.text.includes('Bài tập') || item.text.includes('Bài kiểm tra') || item.text.includes('Bài thi cuối');
       tocListHtml += '<li class="' + (isSub ? 'toc-sub' : '') + (isSpecial ? ' toc-highlight' : '') + '">';
       tocListHtml += '<a href="#' + item.id + '" data-toc-id="' + item.id + '" onclick="event.preventDefault();smoothScrollTo(\'' + item.id + '\')">' + item.text + '</a></li>';
     });
@@ -131,6 +146,19 @@ function copyCode(btn) {
   });
 }
 function goTo(id) {
+  // Phase gate check
+  if (!isModuleUnlocked(id)) {
+    var targetMod = D.find(function(x){return x.id===id;});
+    var targetPhase = targetMod ? targetMod.phase : 0;
+    var requiredGate = getRequiredGateForPhase(targetPhase);
+    var phaseNames = {1:'Phase 1: JS & OOP', 2:'Phase 2: Playwright'};
+    var gs = getPhaseGateStatus(requiredGate);
+    var needs = [];
+    if (!gs.examPassed) needs.push('đạt bài kiểm tra kiến thức (>=70%)');
+    if (!gs.codePassed) needs.push('hoàn thành bài code challenge');
+    alert('🔒 Phase này đang bị khóa!\n\nĐể mở khóa, bạn cần pass "Bài thi cuối ' + phaseNames[requiredGate] + '":\n• ' + needs.join('\n• '));
+    return;
+  }
   active = id; renderSidebar(); render();
   window.scrollTo({ top: 0, behavior: 'smooth' });
   document.getElementById('sidebar').classList.remove('open');
@@ -157,6 +185,7 @@ function resetProgress() {
   if (confirm('Xóa toàn bộ tiến độ học và XP?')) {
     completed = {}; localStorage.removeItem('pw-progress');
     xpData = {xp:0,streak:0,lastDate:'',achievements:[]}; localStorage.removeItem('pw-xp');
+    gateData = {}; localStorage.removeItem('pw-gates');
     renderSidebar(); render(); renderXP();
   }
 }

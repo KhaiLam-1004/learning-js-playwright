@@ -19,17 +19,25 @@ function submitWelcome() {
       userId = doc.id;
       userName = data.name;
 
-      // Restore progress from Firestore
+      // Reset everything first, then restore from Firestore
+      completed = {};
+      xpData = {xp:0, streak:0, lastDate:'', achievements:[]};
+      gateData = {};
+
       if (data.completedModules && data.completedModules.length > 0) {
-        completed = {};
         data.completedModules.forEach(function(id) { completed[id] = true; });
-        localStorage.setItem('pw-progress', JSON.stringify(completed));
       }
       if (data.xp) {
         xpData.xp = data.xp;
         xpData.streak = data.streak || 0;
-        localStorage.setItem('pw-xp', JSON.stringify(xpData));
       }
+      if (data.gateData) {
+        gateData = data.gateData;
+      }
+
+      localStorage.setItem('pw-progress', JSON.stringify(completed));
+      localStorage.setItem('pw-xp', JSON.stringify(xpData));
+      localStorage.setItem('pw-gates', JSON.stringify(gateData));
 
       localStorage.setItem('pw-username', userName);
       localStorage.setItem('pw-userid', userId);
@@ -45,13 +53,20 @@ function submitWelcome() {
       }
       fbSaveUser();
     } else {
-      // New user — create
+      // New user — create, reset all progress from previous user
       userId = 'u_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
       userName = name;
+      completed = {};
+      xpData = {xp:0, streak:0, lastDate:'', achievements:[]};
+      gateData = {};
       localStorage.setItem('pw-username', userName);
       localStorage.setItem('pw-userid', userId);
+      localStorage.setItem('pw-progress', '{}');
+      localStorage.setItem('pw-xp', JSON.stringify(xpData));
+      localStorage.setItem('pw-gates', '{}');
       document.getElementById('welcomeOverlay').classList.remove('open');
       renderUserBadge();
+      renderSidebar(); render(); renderXP();
 
       if (typeof gtag === 'function') {
         gtag('set', 'user_properties', { user_name: userName, user_id_custom: userId });
@@ -61,14 +76,21 @@ function submitWelcome() {
       showAchievement({ icon: '🎉', name: 'Welcome ' + userName + '!', desc: 'Hành trình từ zero đến hero bắt đầu!' });
     }
   }).catch(function(err) {
-    // Firestore error — fallback to local only
+    // Firestore error — fallback to local only, reset progress
     console.warn('Firebase lookup error:', err);
     userId = 'u_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
     userName = name;
+    completed = {};
+    xpData = {xp:0, streak:0, lastDate:'', achievements:[]};
+    gateData = {};
     localStorage.setItem('pw-username', userName);
     localStorage.setItem('pw-userid', userId);
+    localStorage.setItem('pw-progress', '{}');
+    localStorage.setItem('pw-xp', JSON.stringify(xpData));
+    localStorage.setItem('pw-gates', '{}');
     document.getElementById('welcomeOverlay').classList.remove('open');
     renderUserBadge();
+    renderSidebar(); render(); renderXP();
     fbSaveUser();
   });
 }
@@ -89,15 +111,26 @@ function editUserName() {
 
 function logoutUser() {
   if (!confirm('Đăng xuất khỏi ' + userName + '?\nTiến độ vẫn được lưu trên server.')) return;
+  // Save current user to Firebase before logout
+  fbSaveUser();
+  // Clear all in-memory + localStorage
   userName = '';
   userId = '';
+  completed = {};
+  xpData = {xp:0, streak:0, lastDate:'', achievements:[]};
+  gateData = {};
   localStorage.removeItem('pw-username');
   localStorage.removeItem('pw-userid');
+  localStorage.setItem('pw-progress', '{}');
+  localStorage.setItem('pw-xp', JSON.stringify(xpData));
+  localStorage.setItem('pw-gates', '{}');
+  // Show welcome screen
   document.getElementById('welcomeOverlay').classList.add('open');
   document.getElementById('welcomeName').value = '';
   document.getElementById('welcomeBtn').disabled = false;
-  document.getElementById('welcomeBtn').textContent = 'Bắt đầu học!';
+  document.getElementById('welcomeBtn').textContent = "Let's Go! 🔥";
   renderUserBadge();
+  renderSidebar(); render(); renderXP();
 }
 
 function renderUserBadge() {
@@ -138,7 +171,8 @@ function fbSaveUser() {
     lastActive: new Date().toISOString(),
     registeredAt: firebase.firestore.FieldValue.serverTimestamp(),
     device: navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop',
-    completedModules: Object.keys(completed).filter(function(k){return completed[k]}).map(Number)
+    completedModules: Object.keys(completed).filter(function(k){return completed[k]}).map(Number),
+    gateData: gateData
   }, { merge: true }).catch(function(e){ console.warn('Firebase error:', e); });
 }
 
@@ -188,5 +222,25 @@ function checkWelcome() {
     }
     fbSaveUser(); // update lastActive on return
   }
+}
+
+// ===== ADMIN: UNLOCK ALL =====
+function unlockAll() {
+  // Unlock all phase gates
+  gateData = {exam_phase1:true, code_phase1:true, exam_phase2:true, code_phase2:true};
+  localStorage.setItem('pw-gates', JSON.stringify(gateData));
+  // Complete all modules
+  completed = {};
+  D.forEach(function(m){ completed[m.id] = true; });
+  localStorage.setItem('pw-progress', JSON.stringify(completed));
+  // Set high XP
+  xpData.xp = 5000; xpData.streak = 10;
+  xpData.lastDate = new Date().toISOString().split('T')[0];
+  localStorage.setItem('pw-xp', JSON.stringify(xpData));
+  // Save to Firebase
+  fbSaveUser();
+  // Re-render
+  renderSidebar(); render(); renderXP();
+  alert('Done! Tat ca modules da mo khoa.');
 }
 

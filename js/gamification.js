@@ -132,6 +132,9 @@ function finishSubmit(id, logs, code, hasError) {
   if (pass) {
     badgeDiv.innerHTML = '<span class="submitted-badge pass">✅ Đạt</span>';
     addXP(25);
+    // Phase gate: record if this is a phase gate exercise (gp1_code*, gp2_code*)
+    var exPhaseMatch = id.match(/^gp(\d+)_code/);
+    if (exPhaseMatch) recordPhaseGatePass(parseInt(exPhaseMatch[1]), 'code');
   } else {
     badgeDiv.innerHTML = '<span class="submitted-badge fail">❌ Chưa đạt</span>';
     addXP(5);
@@ -411,6 +414,12 @@ function submitExam(examId, total, timeMin) {
   else if (pct >= 50) addXP(30);
   else addXP(10);
 
+  // Phase gate: record if this is a phase gate exam
+  if (pct >= 70) {
+    var pgMatch = examId.match(/gate_phase(\d+)/);
+    if (pgMatch) recordPhaseGatePass(parseInt(pgMatch[1]), 'exam');
+  }
+
   // GA + Firebase tracking
   gaEvent('submit_exam', { exam_id: examId, score: pct, correct: correct, total: total });
   if (db && userId) {
@@ -526,6 +535,62 @@ function showAchievement(a) {
 }
 
 // ============================================
+// ===== PHASE GATE SYSTEM =====
+// ============================================
+// Phase 0: Intro (M0) — always open
+// Phase 1: JS & OOP (M1-M6) — always open
+// Phase 2: Playwright (M7-M9) — requires Phase 1 gate passed
+// Phase 3: Nâng cao (M10-M14) — requires Phase 2 gate passed
+var gateData = JSON.parse(localStorage.getItem('pw-gates') || '{}');
+
+function saveGateData() {
+  localStorage.setItem('pw-gates', JSON.stringify(gateData));
+}
+
+function recordPhaseGatePass(phase, type) {
+  // type: 'exam' or 'code'
+  var key = type + '_phase' + phase;
+  if (!gateData[key]) {
+    gateData[key] = true;
+    saveGateData();
+    if (typeof renderSidebar === 'function') renderSidebar();
+  }
+}
+
+function getPhaseGateStatus(phase) {
+  return {
+    examPassed: !!gateData['exam_phase' + phase],
+    codePassed: !!gateData['code_phase' + phase]
+  };
+}
+
+function isPhaseGatePassed(phase) {
+  var gs = getPhaseGateStatus(phase);
+  return gs.examPassed && gs.codePassed;
+}
+
+function isModuleUnlocked(moduleId) {
+  // Gate modules (id=61, 91) are always accessible if their own phase is accessible
+  var mod = null;
+  for (var i = 0; i < D.length; i++) if (D[i].id === moduleId) { mod = D[i]; break; }
+  if (!mod) return true;
+  var phase = mod.phase;
+  // Phase 0 and 1: always open
+  if (phase <= 1) return true;
+  // Phase 2: requires Phase 1 gate passed
+  if (phase === 2) return isPhaseGatePassed(1);
+  // Phase 3: requires Phase 2 gate passed
+  if (phase === 3) return isPhaseGatePassed(2);
+  return true;
+}
+
+function getRequiredGateForPhase(phase) {
+  if (phase === 2) return 1;
+  if (phase === 3) return 2;
+  return 0;
+}
+
+// ============================================
 // ===== MODULE TIME ESTIMATES =====
 // ============================================
-var MODULE_TIME = {0:10, 1:45, 2:40, 3:35, 4:45, 5:40, 6:35, 7:30, 8:30, 9:35, 10:30, 11:40, 12:45, 13:40, 14:35};
+var MODULE_TIME = {0:10, 1:45, 2:40, 3:35, 4:45, 5:40, 6:35, 61:30, 7:30, 8:30, 9:35, 91:25, 10:30, 11:40, 12:45, 13:40, 14:35};

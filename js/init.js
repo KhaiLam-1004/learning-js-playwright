@@ -109,6 +109,44 @@ registerExercise('m5_ex3', function(logs) { return logs.some(function(l){return 
 // M6
 registerExercise('m6_ex1', function(logs, code) { return (logs.some(function(l){return l.includes('15')}) && code.includes('class')) ? {pass:true} : {pass:false}; });
 registerExercise('m6_ex2', function(logs, code) { return (code.includes('extends') && code.includes('super') && logs.length >= 1) ? {pass:true} : {pass:false}; });
+// Phase 1 Gate exercises
+registerExercise('gp1_code1', function(logs, code) {
+  return (code.includes('Math.max') && code.includes('filter') && code.includes('reduce') && logs.some(function(l){return l.includes('Max')})) ? {pass:true} : {pass:false};
+});
+registerExercise('gp1_code2', function(logs, code) {
+  return (code.includes('function xuLyDon') && code.includes('tongTien') && code.includes('thucTra') && logs.some(function(l){return l.includes('Tong')})) ? {pass:true} : {pass:false};
+});
+registerExercise('gp1_code3', function(logs, code) {
+  return (code.includes('class SinhVien') && code.includes('class LopHoc') && code.includes('xepLoai') && code.includes('diemTB') && logs.some(function(l){return l.includes('TB')})) ? {pass:true} : {pass:false};
+});
+// Phase 2 Gate exercises
+registerExercise('gp2_code1', function(logs, code) {
+  return (code.includes('page.goto') && code.includes('page.fill') && code.includes('page.click') && code.includes('expect') && code.includes('test(')) ? {pass:true} : {pass:false};
+});
+registerExercise('gp2_code2', function(logs, code) {
+  return (code.includes('check()') && code.includes('uncheck()') && code.includes('toBeChecked') && code.includes('not.toBeChecked')) ? {pass:true} : {pass:false};
+});
+registerExercise('gp2_code3', function(logs, code) {
+  return (code.includes('test.describe') && code.includes('beforeEach') && code.includes('page.fill') && code.includes('toContainText') && code.includes('toBeVisible')) ? {pass:true} : {pass:false};
+});
+// M7
+registerExercise('m7_ex1', function(logs, code) { return (code.includes('page.goto') && code.includes('toHaveTitle') && code.includes('test(')) ? {pass:true} : {pass:false}; });
+registerExercise('m7_ex2', function(logs, code) { return (code.includes('page.fill') && code.includes('page.click') && code.includes('expect') && code.includes('test(')) ? {pass:true} : {pass:false}; });
+// M8
+registerExercise('m8_ex1', function(logs, code) { return (code.includes('selectOption') && code.includes('toHaveValue') && code.includes('test(')) ? {pass:true} : {pass:false}; });
+registerExercise('m8_ex2', function(logs, code) { return (code.includes('check()') && code.includes('toBeChecked') && code.includes('test(')) ? {pass:true} : {pass:false}; });
+// M9
+registerExercise('m9_ex1', function(logs, code) { return (code.includes('test.describe') && code.includes('beforeEach') && code.includes('test(')) ? {pass:true} : {pass:false}; });
+registerExercise('m9_ex2', function(logs, code) { return (code.includes('const cases') && code.includes('for') && code.includes('test(')) ? {pass:true} : {pass:false}; });
+// M10
+registerExercise('m10_ex1', function(logs, code) { return (code.includes('class LoginPage') && code.includes('extends') && code.includes('super') && code.includes('locator')) ? {pass:true} : {pass:false}; });
+registerExercise('m10_ex2', function(logs, code) { return (code.includes('test.describe') && code.includes('beforeEach') && code.includes('loginPage') && code.includes('login(')) ? {pass:true} : {pass:false}; });
+// M11
+registerExercise('m11_ex1', function(logs, code) { return (code.includes('request.get') && code.includes('status()') && code.includes('toBe(200)')) ? {pass:true} : {pass:false}; });
+registerExercise('m11_ex2', function(logs, code) { return (code.includes('request.post') && code.includes('page.route') && code.includes('fulfill')) ? {pass:true} : {pass:false}; });
+// M12
+registerExercise('m12_ex1', function(logs, code) { return (code.includes('defineConfig') && code.includes('projects') && code.includes('retries') && code.includes('screenshot')) ? {pass:true} : {pass:false}; });
+registerExercise('m12_ex2', function(logs, code) { return (code.includes('actions/checkout') && code.includes('playwright') && code.includes('upload-artifact')) ? {pass:true} : {pass:false}; });
 // M13
 registerExercise('m13_ex1', function(logs, code) { return (code.includes('TC-CART') && code.includes('Positive') && code.includes('Negative')) ? {pass:true} : {pass:false}; });
 registerExercise('m13_ex2', function(logs, code) { return (code.includes('Title') && code.includes('Steps') && code.includes('Expected') && code.includes('Actual')) ? {pass:true} : {pass:false}; });
