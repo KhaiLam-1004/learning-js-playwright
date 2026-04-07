@@ -109,3 +109,8 @@ registerExercise('m5_ex3', function(logs) { return logs.some(function(l){return 
 // M6
 registerExercise('m6_ex1', function(logs, code) { return (logs.some(function(l){return l.includes('15')}) && code.includes('class')) ? {pass:true} : {pass:false}; });
 registerExercise('m6_ex2', function(logs, code) { return (code.includes('extends') && code.includes('super') && logs.length >= 1) ? {pass:true} : {pass:false}; });
+// M13
+registerExercise('m13_ex1', function(logs, code) { return (code.includes('TC-CART') && code.includes('Positive') && code.includes('Negative')) ? {pass:true} : {pass:false}; });
+registerExercise('m13_ex2', function(logs, code) { return (code.includes('Title') && code.includes('Steps') && code.includes('Expected') && code.includes('Actual')) ? {pass:true} : {pass:false}; });
+// M14
+registerExercise('m14_ex1', function(logs, code) { return (code.includes('devices') && code.includes('projects') && code.includes('screenshot')) ? {pass:true} : {pass:false}; });

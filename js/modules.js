@@ -29,7 +29,7 @@ D.push({id:0,title:"Giới thiệu",week:"Trước khi bắt đầu",phase:0,htm
 '<tr><th>Giai đoạn</th><th>Thời gian</th><th>Nội dung</th></tr>',
 '<tr><td>🟡 Phase 1</td><td>Tuần 1–4</td><td>JavaScript cơ bản: biến, điều kiện, vòng lặp, hàm, mảng, bất đồng bộ, OOP & HTML</td></tr>',
 '<tr><td>🟢 Phase 2</td><td>Tuần 5–7</td><td>Playwright cơ bản: cài đặt, debug, viết test, tương tác trang web</td></tr>',
-'<tr><td>🔴 Phase 3</td><td>Tuần 8–11</td><td>Nâng cao: POM, API test, data-driven, fixtures, visual test, CI/CD, dự án thực tế</td></tr>',
+'<tr><td>🔴 Phase 3</td><td>Tuần 8–12</td><td>Nâng cao: POM, API test, test strategy, bug report, mobile test, CI/CD, dự án thực tế</td></tr>',
 '</table>',
 
 '<h2>Cần chuẩn bị gì?</h2>',
@@ -1097,6 +1097,18 @@ D.push({id:7,title:"Playwright Cơ bản",week:"Tuần 5",phase:2,html:[
 '<div class="ex"><span class="tag tr">🔴 Bài 3</span>',
 '<p>Viết test login SAI. Thêm <code>page.pause()</code> để debug. Chạy với <code>--debug</code> và sử dụng Inspector.</p>',
 '</div>',
+
+'<hr class="sep">',
+buildExam('exam_m7', 'Bài kiểm tra Module 7 — Playwright Cơ bản', 8, [
+  {q:'Playwright dùng để làm gì?', opts:['Viết backend','Thiết kế UI','Test tự động trình duyệt','Quản lý database'], answer:2, explain:'Playwright tự động hóa trình duyệt: mở trang, click, gõ, kiểm tra kết quả.'},
+  {q:'Lệnh nào cài đặt Playwright?', opts:['npm install playwright','npm init playwright@latest','pip install playwright','yarn add playwright'], answer:1, explain:'npm init playwright@latest tạo project mới với config, browsers, và test mẫu.'},
+  {q:'<code>await page.goto(url)</code> làm gì?', opts:['Tạo trang mới','Mở URL trên trình duyệt','Đóng trang','Chụp ảnh trang'], answer:1, explain:'page.goto() điều hướng trình duyệt đến URL chỉ định.'},
+  {q:'Chạy test với trình duyệt hiện ra để xem, dùng flag nào?', opts:['--visible','--show','--headed','--browser'], answer:2, explain:'npx playwright test --headed mở trình duyệt cho bạn xem robot thao tác.'},
+  {q:'Codegen dùng để làm gì?', opts:['Sinh code test từ thao tác tay','Tạo database','Build project','Deploy test'], answer:0, explain:'Codegen ghi lại thao tác của bạn trên trình duyệt → tự sinh code test.'},
+  {q:'<code>page.pause()</code> dùng khi nào?', opts:['Tắt trình duyệt','Dừng test để debug','Chờ 5 giây','Chụp screenshot'], answer:1, explain:'page.pause() dừng test tại dòng đó, mở Inspector để debug.'},
+  {q:'Trace Viewer ghi lại những gì?', opts:['Chỉ screenshot','Chỉ console log','Mọi thứ: screenshot, DOM, network, console','Chỉ video'], answer:2, explain:'Trace Viewer ghi lại toàn bộ: screenshot mỗi bước, network, console, DOM snapshot.'},
+  {q:'Lỗi Timeout thường do nguyên nhân gì?', opts:['Code sai cú pháp','Phần tử chưa xuất hiện trên trang','RAM hết','Internet chậm'], answer:1, explain:'Timeout = Playwright chờ phần tử nhưng không tìm thấy trong thời gian cho phép. Kiểm tra locator.'}
+]),
 ].join('\n')});
 
 // =============================================
@@ -1127,12 +1139,37 @@ D.push({id:8,title:"Locator & Actions",week:"Tuần 5-6",phase:2,html:[
 
 '<div class="b ok"><strong>Thứ tự ưu tiên khi chọn locator:</strong><br>getByRole → getByLabel → getByPlaceholder → getByText → getByTestId → CSS → XPath (cuối cùng)</div>',
 
+'<h3>Locator Chaining — Kết hợp locator</h3>',
+'<div class="b idea">💡 Khi trang có nhiều phần tử giống nhau (VD: 2 nút "Delete"), dùng chaining để thu hẹp phạm vi tìm kiếm.</div>',
+'<pre>// Tìm nút "Delete" BÊN TRONG dòng có text "Sản phẩm A"\npage.locator("tr", { hasText: "San pham A" })\n    .getByRole("button", { name: "Delete" });\n\n// Tìm phần tử thứ 2 trong danh sách\npage.locator(".product-card").nth(1); // index từ 0\n\n// Tìm phần tử đầu tiên / cuối cùng\npage.locator(".item").first();\npage.locator(".item").last();\n\n// Filter theo text\npage.locator(".card").filter({ hasText: "Premium" });\n\n// Filter theo locator con\npage.locator(".card").filter({ has: page.locator(".badge-sale") });</pre>',
+
+'<div class="b warn"><strong>Mẹo quan trọng:</strong> Nếu locator khớp nhiều phần tử → Playwright báo <code>strict mode violation</code>. Dùng <code>.first()</code>, <code>.nth()</code>, hoặc chaining để chỉ định chính xác.</div>',
+
 '<hr class="sep">',
 
-'<h2>3. Tương tác (Actions)</h2>',
-'<pre>// CLICK vào phần tử\nawait page.getByRole("button", { name: "Gui" }).click();\n\n// GÕ TEXT vào ô input\nawait page.getByLabel("Email").fill("test@gmail.com");\n\n// XÓA nội dung ô input\nawait page.getByLabel("Email").clear();\n\n// TICK checkbox\nawait page.getByRole("checkbox", { name: "Dong y" }).check();\nawait page.getByRole("checkbox", { name: "Dong y" }).uncheck();\n\n// CHỌN dropdown\nawait page.selectOption("select#country", "vn");\n\n// HOVER (di chuột lên)\nawait page.getByText("Menu").hover();\n\n// NHẤN PHÍM\nawait page.keyboard.press("Enter");\nawait page.keyboard.press("Control+a");</pre>',
+'<h2>2. Tương tác (Actions)</h2>',
+'<div class="b idea">💡 Sau khi tìm được phần tử (locator), bạn cần "ra lệnh" cho robot: click, gõ, chọn, hover...</div>',
 
-'<h2>4. Auto-wait — Tự động chờ</h2>',
+'<h3>2.1. Click & Gõ text</h3>',
+'<pre>// CLICK vào phần tử\nawait page.getByRole("button", { name: "Gui" }).click();\n\n// DOUBLE CLICK\nawait page.locator("#item").dblclick();\n\n// RIGHT CLICK (context menu)\nawait page.locator("#item").click({ button: "right" });</pre>',
+
+'<h3>2.2. Nhập liệu</h3>',
+'<pre>// GÕ TEXT vào ô input (xóa nội dung cũ trước)\nawait page.getByLabel("Email").fill("test@gmail.com");\n\n// GÕ TỪNG KÝ TỰ (như đang gõ bàn phím)\nawait page.getByLabel("Search").type("playwright", { delay: 100 });\n\n// XÓA nội dung ô input\nawait page.getByLabel("Email").clear();</pre>',
+
+'<div class="b info"><strong>fill() vs type():</strong><br><code>fill()</code> = paste ngay, nhanh. Dùng khi chỉ cần điền giá trị.<br><code>type()</code> = gõ từng chữ, chậm hơn. Dùng khi cần trigger sự kiện keydown (VD: autocomplete, search).</div>',
+
+'<h3>2.3. Checkbox, Radio, Dropdown</h3>',
+'<pre>// TICK checkbox\nawait page.getByRole("checkbox", { name: "Dong y" }).check();\nawait page.getByRole("checkbox", { name: "Dong y" }).uncheck();\n\n// CHỌN dropdown\nawait page.selectOption("select#country", "vn");\nawait page.selectOption("select#size", { label: "Large" });\n\n// CHỌN nhiều option\nawait page.selectOption("select#colors", ["red", "blue"]);</pre>',
+
+'<h3>2.4. Hover, Drag, Upload</h3>',
+'<pre>// HOVER (di chuột lên)\nawait page.getByText("Menu").hover();\n\n// DRAG AND DROP\nawait page.locator("#source").dragTo(page.locator("#target"));\n\n// UPLOAD FILE\nawait page.locator(\'input[type="file"]\').setInputFiles("path/to/file.pdf");\n\n// UPLOAD nhiều file\nawait page.locator(\'input[type="file"]\').setInputFiles(["file1.pdf", "file2.pdf"]);</pre>',
+
+'<h3>2.5. Keyboard & Scroll</h3>',
+'<pre>// NHẤN PHÍM\nawait page.keyboard.press("Enter");\nawait page.keyboard.press("Control+a"); // Select All\nawait page.keyboard.press("Control+c"); // Copy\n\n// GÕ TEXT bằng keyboard\nawait page.keyboard.type("Hello World");\n\n// SCROLL\nawait page.mouse.wheel(0, 500); // scroll xuống 500px\nawait page.locator("#footer").scrollIntoViewIfNeeded();</pre>',
+
+'<hr class="sep">',
+
+'<h2>3. Auto-wait — Tự động chờ</h2>',
 '<div class="b ok"><strong>Tin vui:</strong> Playwright TỰ ĐỘNG CHỜ phần tử sẵn sàng trước khi tương tác. Không cần viết <code>sleep(3000)</code> như Selenium! Playwright đủ thông minh để biết khi nào nút đã load xong.</div>',
 
 '<p>Khi cần chờ thủ công:</p>',
@@ -1164,6 +1201,17 @@ D.push({id:8,title:"Locator & Actions",week:"Tuần 5-6",phase:2,html:[
 '<details><summary>Xem code mẫu (Playwright - cần chạy trên máy)</summary>',
 '<pre>test("JS Alert", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/javascript_alerts");\n  page.on("dialog", d => d.accept());\n  await page.getByText("Click for JS Alert").click();\n  await expect(page.locator("#result"))\n    .toHaveText("You successfully clicked an alert");\n});</pre>',
 '</details></div>',
+
+'<hr class="sep">',
+buildExam('exam_m8', 'Bài kiểm tra Module 8 — Locator & Actions', 8, [
+  {q:'Locator nào được ưu tiên nhất trong Playwright?', opts:['CSS Selector','XPath','getByRole','getByTestId'], answer:2, explain:'getByRole tốt nhất vì nó giống cách user nhìn trang (nút, link, heading...).'},
+  {q:'<code>page.getByLabel("Email")</code> tìm phần tử nào?', opts:['Thẻ label','Input có label "Email"','Div chứa text Email','Button tên Email'], answer:1, explain:'getByLabel tìm input/textarea được liên kết với thẻ <label> có text "Email".'},
+  {q:'<code>page.fill("#username", "admin")</code> làm gì?', opts:['Tạo thẻ mới','Xóa nội dung','Gõ "admin" vào ô input','Click vào input'], answer:2, explain:'fill() xóa nội dung cũ và gõ text mới vào input.'},
+  {q:'Playwright có tự động chờ phần tử không?', opts:['Không, phải dùng sleep','Có, auto-wait','Chỉ khi dùng waitFor','Tùy config'], answer:1, explain:'Playwright tự động chờ phần tử visible, enabled trước khi tương tác. Không cần sleep!'},
+  {q:'Xử lý JavaScript Alert, cần làm gì TRƯỚC?', opts:['Click nút alert','Đăng ký page.on("dialog") listener','Gọi page.waitForAlert()','Không cần làm gì'], answer:1, explain:'Phải đăng ký listener TRƯỚC khi dialog xuất hiện, nếu không sẽ bị miss.'},
+  {q:'<code>page.locator(".btn").first()</code> dùng khi nào?', opts:['Luôn luôn','Khi có nhiều phần tử khớp locator','Khi phần tử chưa load','Khi test fail'], answer:1, explain:'Khi locator khớp nhiều phần tử → strict mode violation. Dùng .first() để lấy phần tử đầu tiên.'},
+  {q:'<code>page.keyboard.press("Control+a")</code> làm gì?', opts:['Mở trang mới','Chọn tất cả text (Select All)','Đóng tab','Undo'], answer:1, explain:'Control+a = Select All, giống phím tắt trên bàn phím.'}
+]),
 ].join('\n')});
 
 // =============================================
@@ -1197,11 +1245,28 @@ D.push({id:9,title:"Assertions & Tổ chức Test",week:"Tuần 6-7",phase:2,htm
 '<pre># Chạy theo tag\nnpx playwright test --grep @smoke</pre>',
 
 '<hr class="sep">',
-'<h2>Bài tập cuối Module 8</h2>',
+'<h2>6. Ví dụ thực tế: Test flow e-commerce</h2>',
+'<pre>const { test, expect } = require("@playwright/test");\n\ntest.describe("Saucedemo - Mua hàng", function() {\n\n  test.beforeEach(async ({ page }) => {\n    await page.goto("https://www.saucedemo.com");\n    await page.fill("#user-name", "standard_user");\n    await page.fill("#password", "secret_sauce");\n    await page.click("#login-button");\n  });\n\n  test("Hiển thị danh sách sản phẩm", async ({ page }) => {\n    // Kiểm tra có ít nhất 1 sản phẩm\n    await expect(page.locator(".inventory_item")).toHaveCount(6);\n\n    // Kiểm tra tên sản phẩm đầu tiên\n    await expect(page.locator(".inventory_item").first())\n      .toContainText("Sauce Labs");\n  });\n\n  test("Thêm vào giỏ hàng", async ({ page }) => {\n    // Click nút Add to cart\n    await page.locator(".inventory_item").first()\n      .getByRole("button", { name: "Add to cart" }).click();\n\n    // Kiểm tra badge giỏ hàng hiện "1"\n    await expect(page.locator(".shopping_cart_badge")).toHaveText("1");\n\n    // Kiểm tra nút đổi thành "Remove"\n    await expect(page.locator(".inventory_item").first()\n      .getByRole("button", { name: "Remove" })).toBeVisible();\n  });\n\n  test("Checkout thành công", async ({ page }) => {\n    // Thêm sản phẩm\n    await page.locator("[data-test=\\"add-to-cart-sauce-labs-backpack\\"]").click();\n\n    // Vào giỏ hàng\n    await page.locator(".shopping_cart_link").click();\n    await expect(page).toHaveURL(/cart/);\n\n    // Checkout\n    await page.click("[data-test=\\"checkout\\"]");\n    await page.fill("[data-test=\\"firstName\\"]", "Test");\n    await page.fill("[data-test=\\"lastName\\"]", "User");\n    await page.fill("[data-test=\\"postalCode\\"]", "70000");\n    await page.click("[data-test=\\"continue\\"]");\n    await page.click("[data-test=\\"finish\\"]");\n\n    // Kiểm tra thành công\n    await expect(page.locator(".complete-header"))\n      .toHaveText("Thank you for your order!");\n  });\n});</pre>',
+
+'<div class="b ok"><strong>Best practices tổ chức test:</strong><br>1. Mỗi file test = 1 feature/trang<br>2. <code>describe</code> nhóm test liên quan<br>3. <code>beforeEach</code> setup chung (login, mở trang)<br>4. Tên test mô tả rõ hành vi mong đợi<br>5. Mỗi test kiểm tra 1 điều cụ thể</div>',
+
+'<hr class="sep">',
+
+'<h2>Bài tập cuối Module 9</h2>',
 '<div class="ex"><span class="tag ty">🟡 Bài 1</span>',
 '<p>Viết test suite: beforeEach mở trang login, afterEach screenshot khi fail. Test 5 bộ credentials bằng parameterized test.</p></div>',
 '<div class="ex"><span class="tag tr">🔴 Bài 2</span>',
 '<p>Viết helper kiểm tra toast notification: xuất hiện → chứa text → biến mất sau vài giây.</p></div>',
+
+'<hr class="sep">',
+buildExam('exam_m9', 'Bài kiểm tra Module 9 — Assertions & Tổ chức Test', 8, [
+  {q:'<code>await expect(page).toHaveTitle(/Dashboard/)</code> kiểm tra gì?', opts:['URL chứa Dashboard','Title trang chứa "Dashboard"','Có text Dashboard trên trang','Page đã load'], answer:1, explain:'toHaveTitle kiểm tra thẻ <title> của trang, hỗ trợ regex.'},
+  {q:'Soft assertion khác assertion thường ở điểm nào?', opts:['Nhanh hơn','Không dừng test khi fail','Không cần await','Chạy sau test'], answer:1, explain:'expect.soft() ghi nhận fail nhưng test vẫn chạy tiếp. Báo cáo cuối liệt kê tất cả lỗi.'},
+  {q:'<code>test.beforeEach</code> chạy khi nào?', opts:['1 lần đầu tiên','Trước MỖI test trong describe','Sau mỗi test','Khi test fail'], answer:1, explain:'beforeEach chạy TRƯỚC mỗi test — dùng để setup (mở trang, login...).'},
+  {q:'Parameterized test dùng để làm gì?', opts:['Chạy test nhanh hơn','Test 1 flow với nhiều bộ dữ liệu khác nhau','Tạo report','Skip test'], answer:1, explain:'Lặp test với mỗi bộ data (credentials, input...) — viết code 1 lần, test nhiều case.'},
+  {q:'<code>test.skip("reason")</code> làm gì?', opts:['Xóa test','Bỏ qua test, đánh dấu skipped','Chạy test 2 lần','Fail test'], answer:1, explain:'test.skip bỏ qua test, hiện "skipped" trong report. Dùng khi test chưa viết xong hoặc tạm tắt.'},
+  {q:'<code>await expect(locator).toHaveCount(5)</code> kiểm tra gì?', opts:['Text có 5 ký tự','Có 5 phần tử khớp locator','Trang load 5 giây','5 test pass'], answer:1, explain:'toHaveCount đếm số phần tử khớp locator. VD: kiểm tra có 5 items trong danh sách.'}
+]),
 ].join('\n')});
 
 // =============================================
@@ -1234,10 +1299,30 @@ D.push({id:10,title:"Page Object Model (POM)",week:"Tuần 8",phase:3,html:[
 
 '<div class="b ok">So sánh: test ngắn gọn, dễ đọc, không có locator nào lộ ra. UI đổi → chỉ sửa LoginPage.js!</div>',
 
+'<h2>4. Thêm InventoryPage — ví dụ trang phức tạp hơn</h2>',
+'<pre>const BasePage = require("./BasePage");\n\nclass InventoryPage extends BasePage {\n  constructor(page) {\n    super(page);\n    this.productList = page.locator(".inventory_item");\n    this.sortDropdown = page.locator("[data-test=\\"product_sort_container\\"]");\n    this.cartBadge = page.locator(".shopping_cart_badge");\n    this.cartLink = page.locator(".shopping_cart_link");\n  }\n\n  async getProductCount() {\n    return await this.productList.count();\n  }\n\n  async addToCart(productName) {\n    await this.productList\n      .filter({ hasText: productName })\n      .getByRole("button", { name: "Add to cart" })\n      .click();\n  }\n\n  async removeFromCart(productName) {\n    await this.productList\n      .filter({ hasText: productName })\n      .getByRole("button", { name: "Remove" })\n      .click();\n  }\n\n  async sortBy(option) {\n    await this.sortDropdown.selectOption(option);\n  }\n\n  async getProductNames() {\n    return await this.productList\n      .locator(".inventory_item_name").allTextContents();\n  }\n\n  async getProductPrices() {\n    const texts = await this.productList\n      .locator(".inventory_item_price").allTextContents();\n    return texts.map(t => parseFloat(t.replace("$", "")));\n  }\n}\nmodule.exports = InventoryPage;</pre>',
+
+'<h3>Test dùng InventoryPage</h3>',
+'<pre>test("Sort by price low to high", async ({ page }) => {\n  const inventory = new InventoryPage(page);\n  await inventory.sortBy("lohi");\n\n  const prices = await inventory.getProductPrices();\n  // Kiểm tra giá tăng dần\n  for (let i = 1; i < prices.length; i++) {\n    expect(prices[i]).toBeGreaterThanOrEqual(prices[i-1]);\n  }\n});</pre>',
+
+'<h2>5. Best Practices POM</h2>',
+'<div class="b ok"><strong>Quy tắc viết POM tốt:</strong><br>1. <strong>1 Page = 1 File</strong> — không gộp nhiều trang<br>2. <strong>Locator ở constructor</strong> — dễ tìm, dễ sửa<br>3. <strong>Method = hành động có nghĩa</strong> — <code>login()</code> thay vì <code>fillAndClick()</code><br>4. <strong>Method return Page Object</strong> — <code>login() → InventoryPage</code> cho method chaining<br>5. <strong>Không có assertion trong Page</strong> — assertion chỉ ở test file<br>6. <strong>BasePage cho code chung</strong> — goto, screenshot, waitForLoad</div>',
+
+'<pre>// Method chaining — trả về page object tiếp theo\nclass LoginPage extends BasePage {\n  async login(user, pass) {\n    await this.usernameInput.fill(user);\n    await this.passwordInput.fill(pass);\n    await this.submitBtn.click();\n    return new InventoryPage(this.page); // ← trả về trang tiếp theo\n  }\n}\n\n// Trong test — chain gọn gàng:\nconst inventory = await loginPage.login("standard_user", "secret_sauce");\nawait inventory.addToCart("Backpack");</pre>',
+
 '<hr class="sep">',
-'<h2>Bài tập cuối Module 9</h2>',
+'<h2>Bài tập cuối Module 10</h2>',
 '<div class="ex"><span class="tag ty">🟡 Bài 1</span><p>Refactor tất cả test login từ Module 6-8 sang POM.</p></div>',
 '<div class="ex"><span class="tag tr">🔴 Bài 2</span><p>Tạo POM cho saucedemo.com: LoginPage, InventoryPage, CartPage, CheckoutPage.</p></div>',
+
+'<hr class="sep">',
+buildExam('exam_m10', 'Bài kiểm tra Module 10 — Page Object Model', 6, [
+  {q:'POM giải quyết vấn đề gì?', opts:['Test chạy nhanh hơn','Gom locator vào 1 file, dễ bảo trì','Tự viết test','Không cần browser'], answer:1, explain:'UI đổi → chỉ sửa 1 file Page Object thay vì 50 file test.'},
+  {q:'<code>super(page)</code> trong constructor của LoginPage dùng để?', opts:['Tạo page mới','Gọi constructor BasePage, truyền page','Skip test','Mở trình duyệt'], answer:1, explain:'super() gọi constructor class cha (BasePage) để lưu this.page.'},
+  {q:'Trong POM, locator nên đặt ở đâu?', opts:['Trong file test','Trong constructor của Page class','Trong config','Trong helper'], answer:1, explain:'Gom tất cả locator vào constructor → đổi UI chỉ sửa 1 chỗ.'},
+  {q:'Method <code>login(user, pass)</code> trong LoginPage thuộc loại gì?', opts:['Locator','Action method','Assertion','Config'], answer:1, explain:'Action method = nhóm nhiều thao tác thành 1 hàm có nghĩa (fill + fill + click = login).'},
+  {q:'Khi nào KHÔNG nên dùng POM?', opts:['Khi có 50 file test','Khi project nhỏ, chỉ 1-2 test','Khi test phức tạp','Luôn nên dùng POM'], answer:1, explain:'POM thêm complexity. Nếu chỉ 1-2 test đơn giản → viết thẳng cho nhanh.'}
+]),
 ].join('\n')});
 
 // =============================================
@@ -1275,7 +1360,19 @@ D.push({id:11,title:"API Testing & Data-driven",week:"Tuần 9",phase:3,html:[
 
 '<hr class="sep">',
 
-'<h2>8. Data-driven Testing — Test từ file dữ liệu</h2>',
+'<h2>8. Authentication — Test API cần đăng nhập</h2>',
+'<div class="b idea">💡 Nhiều API cần token/cookie để truy cập. Playwright hỗ trợ gửi headers trong mỗi request.</div>',
+
+'<pre>test("GET with auth token", async ({ request }) => {\n  // Bước 1: Login để lấy token\n  const loginRes = await request.post("https://api.example.com/login", {\n    data: { email: "admin@test.com", password: "123456" }\n  });\n  const { token } = await loginRes.json();\n\n  // Bước 2: Gọi API với token\n  const res = await request.get("https://api.example.com/profile", {\n    headers: { Authorization: "Bearer " + token }\n  });\n  expect(res.status()).toBe(200);\n  const body = await res.json();\n  expect(body.email).toBe("admin@test.com");\n});</pre>',
+
+'<pre>// Hoặc cấu hình baseURL + headers trong config:\n// playwright.config.js\nuse: {\n  baseURL: "https://api.example.com",\n  extraHTTPHeaders: {\n    Authorization: "Bearer YOUR_TOKEN",\n    "Content-Type": "application/json"\n  }\n}</pre>',
+
+'<h2>9. Response Validation — Kiểm tra response chi tiết</h2>',
+'<pre>test("Validate response schema", async ({ request }) => {\n  const res = await request.get("https://reqres.in/api/users/1");\n  const body = await res.json();\n\n  // Kiểm tra cấu trúc response\n  expect(body).toHaveProperty("data");\n  expect(body.data).toHaveProperty("id");\n  expect(body.data).toHaveProperty("email");\n  expect(body.data).toHaveProperty("first_name");\n\n  // Kiểm tra kiểu dữ liệu\n  expect(typeof body.data.id).toBe("number");\n  expect(typeof body.data.email).toBe("string");\n  expect(body.data.email).toMatch(/@/);\n\n  // Kiểm tra headers\n  expect(res.headers()["content-type"]).toContain("application/json");\n});</pre>',
+
+'<hr class="sep">',
+
+'<h2>10. Data-driven Testing — Test từ file dữ liệu</h2>',
 '<div class="b idea">💡 Thay vì hardcode test data trong code, đọc từ file JSON/CSV. Thêm test case mới = thêm 1 dòng data, không sửa code!</div>',
 
 '<h3>8.1. Test data từ JSON file</h3>',
@@ -1294,6 +1391,17 @@ D.push({id:11,title:"API Testing & Data-driven",week:"Tuần 9",phase:3,html:[
 '<div class="ex"><span class="tag tg">🟢 Bài 1</span><p>GET /api/users từ reqres.in, kiểm tra status 200 và có ít nhất 1 user.</p></div>',
 '<div class="ex"><span class="tag ty">🟡 Bài 2</span><p>CRUD: POST tạo → verify → PUT update → DELETE → verify đã xóa.</p></div>',
 '<div class="ex"><span class="tag tr">🔴 Bài 3</span><p>Tạo file JSON chứa 5 bộ login data. Viết data-driven test đọc file và chạy tất cả.</p></div>',
+
+'<hr class="sep">',
+buildExam('exam_m11', 'Bài kiểm tra Module 11 — API Testing', 8, [
+  {q:'API test khác UI test ở điểm nào?', opts:['Chạy chậm hơn','Không cần mở trình duyệt, test trực tiếp server','Cần trình duyệt','Không kiểm tra được gì'], answer:1, explain:'API test gọi server trực tiếp bằng request, nhanh hơn rất nhiều so với UI test.'},
+  {q:'Status code 201 nghĩa là gì?', opts:['OK','Created (đã tạo thành công)','Not Found','Server Error'], answer:1, explain:'201 = resource đã được tạo thành công (thường sau POST).'},
+  {q:'Status code 404 nghĩa là gì?', opts:['OK','Unauthorized','Not Found (không tìm thấy)','Bad Request'], answer:2, explain:'404 = server không tìm thấy resource tại URL đó.'},
+  {q:'Mock API dùng để làm gì?', opts:['Gọi API thật','Giả lập response để test UI trong mọi tình huống','Tạo API mới','Xóa data'], answer:1, explain:'Mock = giả response (lỗi 500, data trống...) để test UI xử lý edge case.'},
+  {q:'<code>page.route("**/api/users", ...)</code> làm gì?', opts:['Tạo API','Chặn request đến /api/users và trả response giả','Xóa API','Redirect URL'], answer:1, explain:'page.route chặn request, cho phép bạn fulfill với response tùy ý.'},
+  {q:'Data-driven testing lợi ích gì?', opts:['Chạy nhanh hơn','Thêm test case = thêm dòng data, không sửa code','Code ngắn hơn','Không cần setup'], answer:1, explain:'Tách data khỏi code → QA thêm data mà không cần biết code.'},
+  {q:'CRUD flow test gồm mấy bước?', opts:['2: tạo và xóa','3: tạo, đọc, xóa','4: Create, Read, Update, Delete','5 bước'], answer:2, explain:'CRUD = Create (POST) → Read (GET) → Update (PUT) → Delete (DELETE). Test toàn bộ vòng đời.'}
+]),
 ].join('\n')});
 
 // =============================================
@@ -1417,5 +1525,235 @@ D.push({id:12,title:"Config, CI/CD & Capstone",week:"Tuần 10-11",phase:3,html:
 '</table>',
 
 '<div class="b ok">🎉 <strong>Chúc mừng!</strong> Hoàn thành Capstone = bạn đã có đủ kỹ năng làm Automation Tester.<br><br><strong>Bước tiếp theo:</strong><br>1. Push project lên GitHub.<br>2. Thêm link GitHub vào CV.<br>3. Viết README.md thật đẹp (giới thiệu, hướng dẫn cài đặt, cách chạy test).<br>4. Tự tin đi phỏng vấn! 💪</div>',
+
+'<hr class="sep">',
+buildExam('exam_m12', 'Bài kiểm tra cuối khóa — Tổng hợp', 15, [
+  {q:'<code>playwright.config.js</code> dùng để?', opts:['Viết test','Cấu hình: browser, timeout, retry, report...','Lưu test data','Deploy'], answer:1, explain:'Config file = "bảng điều khiển" thiết lập mọi thứ cho Playwright.'},
+  {q:'<code>retries: 2</code> trong config nghĩa là?', opts:['Chạy 2 lần','Fail thì thử lại tối đa 2 lần','Chạy 2 browser','Timeout 2 giây'], answer:1, explain:'Test fail → Playwright tự chạy lại tối đa 2 lần. Nếu pass lần retry → coi như pass.'},
+  {q:'GitHub Actions CI/CD chạy test khi nào?', opts:['Thủ công','Tự động mỗi lần push/PR','Mỗi ngày 1 lần','Khi deploy'], answer:1, explain:'CI/CD trigger khi push code hoặc tạo PR → tự động chạy test → báo pass/fail.'},
+  {q:'Fixture trong Playwright dùng để?', opts:['Fix bug','Chia sẻ setup giữa các test','Chạy test nhanh hơn','Tạo report'], answer:1, explain:'Fixture = setup sẵn (login, tạo page object...) rồi truyền vào test.'},
+  {q:'Visual testing so sánh gì?', opts:['Code','Screenshot trang web với ảnh chuẩn','Performance','API response'], answer:1, explain:'Chụp screenshot → so với baseline. Khác = UI đã thay đổi (có thể là bug).'},
+  {q:'<code>let</code> khác <code>const</code> ở điểm nào?', opts:['Không khác','let gán lại được, const không','const nhanh hơn','let dùng trong hàm, const dùng ngoài'], answer:1, explain:'let = có thể gán lại. const = "khóa", không gán lại được.'},
+  {q:'<code>[1,2,3].filter(n => n > 1)</code> trả về?', opts:['[1]','[2,3]','3','true'], answer:1, explain:'filter giữ lại phần tử thỏa điều kiện > 1.'},
+  {q:'<code>async/await</code> dùng để?', opts:['Chạy code nhanh hơn','Viết code bất đồng bộ dễ đọc hơn','Tạo thread mới','Import module'], answer:1, explain:'async/await giúp code async trông giống sync — dễ đọc, dễ debug.'},
+  {q:'Class dùng <code>extends</code> để?', opts:['Thêm method','Kế thừa từ class cha','Import file','Tạo instance'], answer:1, explain:'extends = class con thừa hưởng properties và methods từ class cha.'},
+  {q:'Trong POM, locator nên đặt ở đâu?', opts:['Trong test','Trong Page class constructor','Trong config','Random'], answer:1, explain:'Gom locator vào Page class → UI đổi chỉ sửa 1 nơi.'},
+  {q:'<code>expect(res.status()).toBe(200)</code> kiểm tra gì?', opts:['Response body','HTTP status code = 200 (OK)','URL','Header'], answer:1, explain:'status() trả về HTTP status code. 200 = request thành công.'},
+  {q:'Mock API trả 500 dùng để test gì?', opts:['Happy path','UI hiển thị thông báo lỗi khi server down','Performance','Security'], answer:1, explain:'Giả lập server error để kiểm tra UI xử lý lỗi đúng (hiện thông báo, retry...).'}
+]),
+].join('\n')});
+
+// =============================================
+// MODULE 13 — TEST STRATEGY & BUG REPORTING
+// =============================================
+D.push({id:13,title:"Test Strategy & Bug Reporting",week:"Tuần 11",phase:3,html:[
+
+'<h2>1. Tại sao cần Test Strategy?</h2>',
+'<div class="b idea">💡 Code test mà không có chiến lược giống <strong>xây nhà không có bản vẽ</strong>. Bạn có thể viết 100 test nhưng bỏ sót bug nghiêm trọng vì không plan trước.</div>',
+
+'<p>Trước khi viết code test, QA cần:</p>',
+'<ol>',
+'<li><strong>Đọc requirement/spec</strong> — hiểu tính năng cần test</li>',
+'<li><strong>Viết test case</strong> — liệt kê kịch bản cần kiểm tra</li>',
+'<li><strong>Phân loại test</strong> — positive, negative, edge case</li>',
+'<li><strong>Viết code test</strong> — implement từng test case</li>',
+'<li><strong>Report bug</strong> — khi tìm thấy lỗi</li>',
+'</ol>',
+
+'<hr class="sep">',
+
+'<h2>2. Viết Test Case từ Requirement</h2>',
+'<div class="b idea">💡 Test case = 1 kịch bản kiểm tra cụ thể. Mỗi test case trả lời: "NẾU user làm X THÌ hệ thống phải làm Y."</div>',
+
+'<h3>2.1. Template Test Case</h3>',
+'<table>',
+'<tr><th>Field</th><th>Mô tả</th><th>Ví dụ</th></tr>',
+'<tr><td><strong>ID</strong></td><td>Mã định danh</td><td>TC-LOGIN-001</td></tr>',
+'<tr><td><strong>Title</strong></td><td>Mô tả ngắn</td><td>Login thành công với credentials đúng</td></tr>',
+'<tr><td><strong>Precondition</strong></td><td>Điều kiện trước khi test</td><td>User đã đăng ký, đang ở trang login</td></tr>',
+'<tr><td><strong>Steps</strong></td><td>Từng bước thực hiện</td><td>1. Nhập username 2. Nhập password 3. Click Login</td></tr>',
+'<tr><td><strong>Expected Result</strong></td><td>Kết quả mong đợi</td><td>Chuyển sang trang Dashboard</td></tr>',
+'<tr><td><strong>Priority</strong></td><td>Mức ưu tiên</td><td>High / Medium / Low</td></tr>',
+'<tr><td><strong>Type</strong></td><td>Loại test</td><td>Positive / Negative / Edge</td></tr>',
+'</table>',
+
+'<h3>2.2. Ví dụ: Test Cases cho Login</h3>',
+'<div class="b info"><strong>Requirement:</strong> Trang login có ô username, password, nút Login. Login đúng → vào Dashboard. Login sai → hiện lỗi.</div>',
+
+'<table>',
+'<tr><th>ID</th><th>Title</th><th>Type</th><th>Priority</th></tr>',
+'<tr><td>TC-001</td><td>Login đúng username + password</td><td>🟢 Positive</td><td>High</td></tr>',
+'<tr><td>TC-002</td><td>Login sai password</td><td>🔴 Negative</td><td>High</td></tr>',
+'<tr><td>TC-003</td><td>Username trống</td><td>🔴 Negative</td><td>Medium</td></tr>',
+'<tr><td>TC-004</td><td>Password có ký tự đặc biệt</td><td>🟡 Edge</td><td>Low</td></tr>',
+'<tr><td>TC-005</td><td>SQL injection: admin\' OR 1=1--</td><td>🟡 Edge</td><td>High</td></tr>',
+'</table>',
+
+'<h3>2.3. Từ Test Case → Code Test</h3>',
+'<pre>// TC-001: Login thành công\ntest("TC-001: Login thanh cong", async ({ page }) => {\n  await page.goto("https://www.saucedemo.com");\n  await page.fill("#user-name", "standard_user");\n  await page.fill("#password", "secret_sauce");\n  await page.click("#login-button");\n  await expect(page).toHaveURL(/inventory/);\n});\n\n// TC-002: Login sai password\ntest("TC-002: Sai password", async ({ page }) => {\n  await page.goto("https://www.saucedemo.com");\n  await page.fill("#user-name", "standard_user");\n  await page.fill("#password", "wrong");\n  await page.click("#login-button");\n  await expect(page.locator("[data-test=\\"error\\"]")).toBeVisible();\n});</pre>',
+
+'<hr class="sep">',
+
+'<h2>3. Phân loại Test</h2>',
+'<h3>🟢 Positive Test — Happy path</h3>',
+'<div class="term">Test với dữ liệu ĐÚNG, kiểm tra hệ thống hoạt động bình thường.</div>',
+'<pre>// ✅ Login đúng → vào dashboard\n// ✅ Thêm sản phẩm → giỏ hàng tăng\n// ✅ Checkout thành công</pre>',
+
+'<h3>🔴 Negative Test — Unhappy path</h3>',
+'<div class="term">Test với dữ liệu SAI, kiểm tra hệ thống xử lý lỗi đúng.</div>',
+'<pre>// ❌ Login sai password → hiện lỗi\n// ❌ Email sai format → validation\n// ❌ Truy cập admin khi chưa login → redirect</pre>',
+
+'<h3>🟡 Edge Case — Trường hợp biên</h3>',
+'<div class="term">Test dữ liệu ở ranh giới — nơi bug thường ẩn nấp.</div>',
+'<pre>// 🟡 Input rỗng, cực dài (10000 chars)\n// 🟡 Ký tự đặc biệt, Unicode, emoji\n// 🟡 SQL injection, XSS\n// 🟡 Double-click submit, Back button sau submit</pre>',
+
+'<div class="b warn"><strong>Quy tắc 80/20:</strong> 80% bug nằm ở negative + edge case. Viết negative test NHIỀU hơn positive!</div>',
+
+'<hr class="sep">',
+
+'<h2>4. Bug Report chuẩn</h2>',
+'<div class="b idea">💡 Report bug tốt = dev fix nhanh. Report tệ = bug tồn tại mãi.</div>',
+
+'<h3>Template</h3>',
+'<table>',
+'<tr><th>Field</th><th>Mô tả</th></tr>',
+'<tr><td><strong>Title</strong></td><td>[Trang] — Hành vi sai</td></tr>',
+'<tr><td><strong>Severity</strong></td><td>🔴 Critical / 🟠 Major / 🟡 Minor / ⚪ Trivial</td></tr>',
+'<tr><td><strong>Steps</strong></td><td>Từng bước tái hiện (chi tiết!)</td></tr>',
+'<tr><td><strong>Expected</strong></td><td>Hệ thống lẽ ra phải...</td></tr>',
+'<tr><td><strong>Actual</strong></td><td>Hệ thống thực tế...</td></tr>',
+'<tr><td><strong>Screenshot</strong></td><td>Playwright tự chụp!</td></tr>',
+'</table>',
+
+'<h3>Ví dụ bug report tốt</h3>',
+'<div class="b err"><strong>Title:</strong> [Login] — Không hiện lỗi khi password sai<br><strong>Severity:</strong> 🟠 Major<br><strong>Steps:</strong> 1. Mở saucedemo.com 2. Nhập user: standard_user 3. Nhập pass: wrong 4. Click Login<br><strong>Expected:</strong> Hiện thông báo lỗi<br><strong>Actual:</strong> Trang đứng yên, không phản hồi</div>',
+
+'<h3>Bug report TỆ</h3>',
+'<div class="b warn">"Login không được" — ❌ Dev không hiểu gì!</div>',
+
+'<hr class="sep">',
+
+'<h2>5. Test Plan</h2>',
+'<pre>## Test Plan: SauceDemo\n\n### Scope: Login, Product, Cart, Checkout\n### Out of Scope: Payment gateway, Email\n### Test Types:\n- Smoke: 10 critical cases (mỗi deploy)\n- Regression: 50 full cases (mỗi sprint)\n### Tools: Playwright, GitHub Actions\n### Schedule:\n- Week 1-2: Login + Product\n- Week 3-4: Cart + Checkout</pre>',
+
+'<hr class="sep">',
+
+'<h2>Bài tập cuối Module 13</h2>',
+
+buildExercise('m13_ex1', 'green', 'Bài 1: Viết Test Cases',
+  'Viết 5 test cases cho "Thêm sản phẩm vào giỏ hàng" trên saucedemo.com. Gồm: 2 positive, 2 negative, 1 edge case.',
+  'Nghĩ: thêm 1 sản phẩm, thêm nhiều, xóa, thêm trùng, giỏ hàng sau logout...',
+  '// TC-CART-001: ...\n// Type: Positive\n// Steps: ...\n// Expected: ...\n\n// TC-CART-002: ...\n',
+  '// TC-CART-001: Thêm 1 sản phẩm\n// Type: Positive | Priority: High\n// Steps: Login → Click "Add to cart"\n// Expected: Badge hiện "1"\n\n// TC-CART-002: Thêm 3 sản phẩm khác nhau\n// Type: Positive | Priority: High\n// Expected: Badge hiện "3"\n\n// TC-CART-003: Xóa sản phẩm → Click "Remove"\n// Type: Negative | Priority: High\n// Expected: Badge biến mất\n\n// TC-CART-004: Thêm cùng SP 2 lần\n// Type: Negative | Priority: Medium\n// Expected: Không trùng hoặc tăng quantity\n\n// TC-CART-005: Giỏ hàng sau logout+login lại\n// Type: Edge | Priority: Low\n// Expected: Giỏ trống (session-based)',
+  'Test case tốt cover cả happy path lẫn edge case. Priority dựa trên tần suất user sử dụng.',
+  null, 10),
+
+buildExercise('m13_ex2', 'yellow', 'Bài 2: Viết Bug Report',
+  'Giả sử: sort "Price high to low" trên saucedemo.com KHÔNG sắp đúng. Viết bug report đầy đủ.',
+  'Template: Title, Severity, Steps, Expected, Actual, Environment',
+  '// Bug Report:\n// Title: \n// Severity: \n// Steps: 1. ... 2. ... 3. ...\n// Expected: \n// Actual: \n',
+  '// Title: [Inventory] Sort "Price high to low" sai thứ tự\n// Severity: Minor | Priority: Medium\n// Steps: 1. Login saucedemo 2. Chọn sort "Price (high to low)" 3. Xem giá\n// Expected: Giá giảm dần $49.99 → $7.99\n// Actual: Giá lộn xộn\n// Environment: Chrome 120, Windows 11',
+  'Bug report tốt = dev đọc 1 lần hiểu. Steps phải đủ chi tiết để TÁI HIỆN bug.',
+  null, 8),
+
+'<hr class="sep">',
+buildExam('exam_m13', 'Bài kiểm tra Module 13 — Test Strategy', 8, [
+  {q:'Trước khi viết code test, QA cần làm gì?', opts:['Code ngay','Đọc requirement → viết test case','Cài tool','Tạo repo'], answer:1, explain:'Hiểu requirement → viết test case → rồi mới code.'},
+  {q:'Positive test kiểm tra gì?', opts:['Xử lý lỗi','Hệ thống hoạt động bình thường','Edge case','Performance'], answer:1, explain:'Positive = happy path: dữ liệu đúng → kết quả đúng.'},
+  {q:'80% bug thường nằm ở đâu?', opts:['Positive test','Negative + Edge case','API test','UI test'], answer:1, explain:'Phần lớn bug ở negative/edge case!'},
+  {q:'Severity "Critical" nghĩa là?', opts:['UI lệch','Hệ thống sập, mất data','Feature phụ hỏng','Typo'], answer:1, explain:'Critical = không dùng được, mất data. Fix ngay!'},
+  {q:'Bug report thiếu gì thì dev không fix được?', opts:['Screenshot','Steps to Reproduce','Title','Priority'], answer:1, explain:'Không steps → không tái hiện → không fix.'},
+  {q:'"Login không được" là report tốt hay tệ?', opts:['Tốt','Tệ — thiếu chi tiết','Bình thường','Tùy'], answer:1, explain:'Cần: account nào, trang nào, lỗi gì, expected gì.'},
+  {q:'Smoke test chạy khi nào?', opts:['Mỗi deploy — test nhanh critical case','Cuối sprint','Khi có bug','Hàng tháng'], answer:0, explain:'Smoke = test nhanh 10-15 case quan trọng nhất sau deploy.'},
+  {q:'Edge case cho ô email?', opts:['test@gmail.com','Email 255 ký tự + format sai','Bỏ trống','Cả B và C'], answer:3, explain:'Edge = ranh giới: quá dài, format sai, trống...'}
+]),
+].join('\n')});
+
+// =============================================
+// MODULE 14 — PLAYWRIGHT NÂNG CAO
+// =============================================
+D.push({id:14,title:"Playwright Nâng cao",week:"Tuần 12",phase:3,html:[
+
+'<h2>1. Mobile & Responsive Testing</h2>',
+'<div class="b idea">💡 60%+ user dùng điện thoại. Playwright giả lập mobile viewport mà không cần thiết bị thật.</div>',
+
+'<h3>1.1. Test trên mobile</h3>',
+'<pre>const { test, devices } = require("@playwright/test");\n\ntest.use(devices["iPhone 13"]);\n\ntest("Mobile: hamburger menu", async ({ page }) => {\n  await page.goto("https://example.com");\n  await expect(page.locator(".hamburger")).toBeVisible();\n  await expect(page.locator(".desktop-nav")).toBeHidden();\n});</pre>',
+
+'<h3>1.2. Multi-device config</h3>',
+'<pre>// playwright.config.js\nconst { devices } = require("@playwright/test");\nmodule.exports = defineConfig({\n  projects: [\n    { name: "Desktop", use: { ...devices["Desktop Chrome"] } },\n    { name: "iPhone", use: { ...devices["iPhone 13"] } },\n    { name: "iPad", use: { ...devices["iPad Pro 11"] } },\n  ],\n});</pre>',
+
+'<hr class="sep">',
+
+'<h2>2. storageState — Login 1 lần, dùng nhiều test</h2>',
+'<div class="b idea">💡 50 test × 3s login = 150s lãng phí. storageState: login 1 lần → tất cả test dùng lại!</div>',
+
+'<h3>Global Setup</h3>',
+'<pre>// global-setup.js\nconst { chromium } = require("@playwright/test");\nasync function globalSetup() {\n  const browser = await chromium.launch();\n  const page = await browser.newPage();\n  await page.goto("https://www.saucedemo.com");\n  await page.fill("#user-name", "standard_user");\n  await page.fill("#password", "secret_sauce");\n  await page.click("#login-button");\n  await page.context().storageState({ path: "auth.json" });\n  await browser.close();\n}\nmodule.exports = globalSetup;</pre>',
+
+'<pre>// playwright.config.js\nmodule.exports = defineConfig({\n  globalSetup: "./global-setup.js",\n  use: { storageState: "auth.json" }, // đã login sẵn!\n});</pre>',
+
+'<pre>// Test KHÔNG cần login nữa!\ntest("Xem sản phẩm", async ({ page }) => {\n  await page.goto("https://www.saucedemo.com/inventory.html");\n  await expect(page.locator(".inventory_item")).toHaveCount(6);\n});</pre>',
+
+'<hr class="sep">',
+
+'<h2>3. Network Intercept</h2>',
+'<h3>Chờ API response</h3>',
+'<pre>test("Chờ API load", async ({ page }) => {\n  const res = page.waitForResponse("**/api/products");\n  await page.goto("https://example.com/shop");\n  expect((await res).status()).toBe(200);\n  await expect(page.locator(".product")).toHaveCount(10);\n});</pre>',
+
+'<h3>Block resource</h3>',
+'<pre>// Chặn ảnh → test nhanh hơn\nawait page.route("**/*.{png,jpg}", r => r.abort());</pre>',
+
+'<hr class="sep">',
+
+'<h2>4. Multiple Tabs</h2>',
+'<pre>const [newPage] = await Promise.all([\n  context.waitForEvent("page"),\n  page.click("a[target=_blank]")\n]);\nawait newPage.waitForLoadState();\nconsole.log(await newPage.title());</pre>',
+
+'<hr class="sep">',
+
+'<h2>5. Playwright vs Selenium</h2>',
+'<table>',
+'<tr><th>Tiêu chí</th><th>Playwright</th><th>Selenium</th></tr>',
+'<tr><td>Auto-wait</td><td>✅ Tự động</td><td>❌ Phải tự viết wait</td></tr>',
+'<tr><td>Tốc độ</td><td>🚀 Nhanh 2-3x</td><td>🐢 Chậm hơn</td></tr>',
+'<tr><td>API testing</td><td>✅ Có sẵn</td><td>❌ Cần thêm lib</td></tr>',
+'<tr><td>Codegen</td><td>✅ Có</td><td>❌ Không</td></tr>',
+'<tr><td>Trace Viewer</td><td>✅ Có</td><td>❌ Không</td></tr>',
+'<tr><td>Mobile</td><td>✅ Emulation</td><td>Cần Appium</td></tr>',
+'<tr><td>Cộng đồng</td><td>Mới, đang phát triển</td><td>Lớn, lâu đời</td></tr>',
+'</table>',
+
+'<div class="b ok"><strong>Phỏng vấn:</strong> "Playwright auto-wait giảm flaky test, nhanh hơn Selenium 2-3x, có Codegen + Trace Viewer tích hợp sẵn."</div>',
+
+'<hr class="sep">',
+
+'<h2>6. Tips phỏng vấn</h2>',
+'<div class="b ok"><strong>Câu hỏi thường gặp:</strong><br>1. Auto-wait hoạt động thế nào? → Chờ visible, stable, enabled<br>2. POM là gì? → Gom locator vào Page class<br>3. Flaky test? → Dùng auto-wait, retries, tránh hardcoded wait<br>4. API vs UI test? → API nhanh hơn, UI sát user hơn<br>5. CI/CD pipeline? → Push → auto test → report → block merge nếu fail</div>',
+
+'<hr class="sep">',
+
+'<h2>Bài tập cuối Module 14</h2>',
+
+buildExercise('m14_ex1', 'yellow', 'Bài: Config multi-device',
+  'Viết <code>playwright.config.js</code> chạy test trên Desktop Chrome, iPhone 13, iPad Pro. Screenshot + trace on failure.',
+  'Dùng <code>devices</code> import từ @playwright/test',
+  'const { defineConfig, devices } = require("@playwright/test");\nmodule.exports = defineConfig({\n  // TODO\n});',
+  'const { defineConfig, devices } = require("@playwright/test");\nmodule.exports = defineConfig({\n  testDir: "./tests",\n  retries: 1,\n  projects: [\n    { name: "Desktop", use: { ...devices["Desktop Chrome"] } },\n    { name: "iPhone", use: { ...devices["iPhone 13"] } },\n    { name: "iPad", use: { ...devices["iPad Pro 11"] } },\n  ],\n  use: { screenshot: "only-on-failure", trace: "retain-on-failure" }\n});',
+  'devices chứa preset viewport + userAgent. Spread ...devices["iPhone 13"] kế thừa tất cả.',
+  null, 8),
+
+'<hr class="sep">',
+buildExam('exam_m14', 'Bài kiểm tra cuối khóa — Tổng hợp', 10, [
+  {q:'devices["iPhone 13"] dùng để?', opts:['Kết nối iPhone','Giả lập viewport iPhone 13','Cài app','Test cloud'], answer:1, explain:'Emulate device: viewport, userAgent, touch — không cần thiết bị thật.'},
+  {q:'storageState dùng để?', opts:['Lưu file','Lưu cookies/session tái sử dụng','Backup DB','Cache'], answer:1, explain:'Login 1 lần → lưu state → tất cả test dùng lại.'},
+  {q:'globalSetup chạy khi nào?', opts:['Mỗi test','1 lần TRƯỚC tất cả test','Sau test','Khi fail'], answer:1, explain:'1 lần duy nhất trước toàn bộ suite.'},
+  {q:'Playwright nhanh hơn Selenium nhờ?', opts:['Java','Auto-wait + protocol trực tiếp','Plugin','Cộng đồng'], answer:1, explain:'CDP protocol trực tiếp, auto-wait giảm flaky.'},
+  {q:'Flaky test là gì?', opts:['Luôn pass','Luôn fail','Lúc pass lúc fail','Chạy chậm'], answer:2, explain:'Không ổn định, kết quả khác mỗi lần. Nguyên nhân: timing, network.'},
+  {q:'Cách giảm flaky test?', opts:['sleep(5000)','Auto-wait + retry + tránh hardcoded wait','Ít test hơn','Không test'], answer:1, explain:'Auto-wait chờ đúng điều kiện. KHÔNG dùng sleep.'},
+  {q:'Block resource dùng để?', opts:['Download file','Chặn load ảnh/video → test nhanh hơn','Hack','Cache'], answer:1, explain:'Chặn resource không cần → trang load nhanh → test nhanh.'},
+  {q:'page.waitForResponse dùng khi?', opts:['Chờ trang','Chờ API trả về trước khi assert UI','Gọi API','Mock'], answer:1, explain:'Đảm bảo data đã load trước khi kiểm tra UI.'},
+  {q:'Negative test kiểm tra gì?', opts:['Happy path','Hệ thống xử lý dữ liệu sai đúng cách','Edge case','Speed'], answer:1, explain:'VD: login sai → phải hiện lỗi, không crash.'},
+  {q:'Khi phỏng vấn hỏi "Tại sao Playwright?", đáp?', opts:['Vì dễ','Auto-wait, nhanh, API testing + Codegen sẵn','Microsoft','Free'], answer:1, explain:'Nhấn mạnh: auto-wait, nhanh 2-3x, tooling mạnh.'}
+]),
 ].join('\n')});
 
