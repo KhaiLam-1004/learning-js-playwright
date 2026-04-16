@@ -52,6 +52,7 @@ function submitWelcome() {
         gtag('event', 'user_login', { user_name: userName });
       }
       fbSaveUser();
+      startPresence();
     } else {
       // New user — create, reset all progress from previous user
       userId = 'u_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
@@ -73,6 +74,7 @@ function submitWelcome() {
         gtag('event', 'user_register', { user_name: userName, user_id_custom: userId });
       }
       fbSaveUser();
+      startPresence();
       showAchievement({ icon: '🎉', name: 'Welcome ' + userName + '!', desc: 'Hành trình từ zero đến hero bắt đầu!' });
     }
   }).catch(function(err) {
@@ -112,6 +114,7 @@ function editUserName() {
 function logoutUser() {
   if (!confirm('Đăng xuất khỏi ' + userName + '?\nTiến độ vẫn được lưu trên server.')) return;
   // Save current user to Firebase before logout
+  if (_heartbeatInterval) { clearInterval(_heartbeatInterval); _heartbeatInterval = null; }
   fbSaveUser();
   // Clear all in-memory + localStorage
   userName = '';
@@ -209,6 +212,32 @@ function fbSaveCode(code, moduleId, label, output) {
   }).catch(function(e){ console.warn('Firebase code save error:', e); });
 }
 
+// ===== ONLINE PRESENCE HEARTBEAT =====
+var _heartbeatInterval = null;
+
+function startPresence() {
+  if (!db || !userId) return;
+  console.log('[Presence] Starting for', userName, userId);
+  // Ping immediately
+  _pingPresence();
+  // Heartbeat every 30s
+  if (_heartbeatInterval) clearInterval(_heartbeatInterval);
+  _heartbeatInterval = setInterval(_pingPresence, 30000);
+}
+
+function _pingPresence() {
+  if (!db || !userId) return;
+  var now = new Date().toISOString();
+  console.log('[Presence] Ping at', now);
+  db.collection('users').doc(userId).set({
+    lastSeen: now
+  }, { merge: true }).catch(function(e) { console.warn('[Presence] Error:', e); });
+}
+
+function stopPresence() {
+  if (_heartbeatInterval) { clearInterval(_heartbeatInterval); _heartbeatInterval = null; }
+}
+
 // Show welcome popup if first visit
 function checkWelcome() {
   if (!userName) {
@@ -221,6 +250,7 @@ function checkWelcome() {
       gtag('set', 'user_properties', { user_name: userName, user_id_custom: userId });
     }
     fbSaveUser(); // update lastActive on return
+    startPresence();
   }
 }
 

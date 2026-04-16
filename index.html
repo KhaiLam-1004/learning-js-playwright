@@ -153,6 +153,20 @@ var userId = localStorage.getItem('pw-userid') || '';
 <script src="js/search.js"></script>
 <script src="js/firebase-helpers.js"></script>
 <script src="js/init.js"></script>
+<script>
+// ===== AUTO VERSION CHECK =====
+// Tăng số này mỗi khi deploy code mới → user tự reload
+var APP_VERSION = 2;
+(function() {
+  var saved = localStorage.getItem('pw-app-version');
+  if (saved && Number(saved) < APP_VERSION) {
+    localStorage.setItem('pw-app-version', APP_VERSION);
+    location.reload(true);
+    return;
+  }
+  localStorage.setItem('pw-app-version', APP_VERSION);
+})();
+</script>
 
 </body>
 </html>
