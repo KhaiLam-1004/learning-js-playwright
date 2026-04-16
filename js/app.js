@@ -1,6 +1,19 @@
 // App logic - render, navigation, theme
 // Globals used: active, completed, darkMode, D, MODULE_TIME (from index.html + gamification.js)
 
+function toggleTocSidebar() {
+  var toc = document.getElementById('tocSidebar');
+  var ct = document.getElementById('ct');
+  var btn = document.getElementById('tocToggle');
+  var backBtn = document.getElementById('backToToc');
+  var isHidden = toc.classList.toggle('toc-hidden');
+  ct.classList.toggle('toc-collapsed', isHidden);
+  ct.classList.toggle('toc-expanded', !isHidden);
+  btn.title = isHidden ? 'Hiện mục lục' : 'Ẩn mục lục';
+  if (backBtn) backBtn.style.right = isHidden ? '20px' : '';
+  localStorage.setItem('pw-toc-hidden', isHidden ? '1' : '');
+}
+
 function renderSidebar() {
   var nav = document.getElementById('sidebarNav');
   var phases = {0:'Giới thiệu', 1:'Phase 1: JS & OOP Cơ bản', 2:'Phase 2: Playwright', 3:'Phase 3: Nâng cao'};
@@ -88,6 +101,14 @@ function render() {
     tocSidebar.innerHTML = '<div class="toc-inner"><h4>📑 Mục lục</h4>' + tocListHtml + '</div>';
     tocSidebar.style.display = '';
     ct.classList.add('has-toc');
+
+    // Restore TOC visibility preference
+    var tocHidden = localStorage.getItem('pw-toc-hidden') === '1';
+    tocSidebar.classList.toggle('toc-hidden', tocHidden);
+    ct.classList.toggle('toc-collapsed', tocHidden);
+    ct.classList.toggle('toc-expanded', !tocHidden);
+    var backBtn = document.getElementById('backToToc');
+    if (backBtn && tocHidden) backBtn.style.right = '20px';
 
     // Inline TOC for mobile
     var inlineTocHtml = '<details class="toc-inline" id="moduleToc"><summary>📑 Mục lục (' + tocItems.length + ' phần)</summary>';
