@@ -934,9 +934,9 @@ D.push({id:6,title:"Class, OOP & HTML",week:"Tuần 3-4",phase:1,html:[
 defined_pg('Thử Class', 'class Animal {\n  // constructor = "khởi tạo" — chạy khi tạo object mới\n  constructor(ten, tuoi) {\n    this.ten = ten;   // this = chính object này\n    this.tuoi = tuoi;\n  }\n\n  // Method = hàm bên trong class\n  gioi_thieu() {\n    return `Toi la ${this.ten}, ${this.tuoi} tuoi.`;\n  }\n}\n\n// Tạo object từ class (gọi là "instance")\nconst meo = new Animal("Miu", 3);\nconst cho = new Animal("Lucky", 5);\n\nconsole.log(meo.gioi_thieu()); // "Toi la Miu, 3 tuoi."\nconsole.log(cho.gioi_thieu()); // "Toi la Lucky, 5 tuoi."\nconsole.log(meo.ten);          // "Miu"', 18),
 
 '<h3>2.0. Trace step-by-step: <code>new Animal("Miu", 3)</code> làm gì?</h3>',
-'<pre>// Khi viết:\nconst meo = new Animal("Miu", 3);\n\n// JavaScript thực hiện 4 bước:\n// Bước 1: Tạo 1 object rỗng → {}\n// Bước 2: Gọi constructor("Miu", 3) với "this" trỏ vào object rỗng đó\n//         → constructor chạy: this.ten = "Miu"; this.tuoi = 3;\n//         → object trở thành {ten: "Miu", tuoi: 3}\n// Bước 3: Gắn object đó vào "prototype" của Animal\n//         → object có thể gọi method gioi_thieu() được\n// Bước 4: Trả object về cho biến `meo`\n\n// Nên cuối cùng: meo = {ten: "Miu", tuoi: 3} + biết gọi gioi_thieu()</pre>',
+'<pre>// Khi viết:\nconst meo = new Animal("Miu", 3);\n\n// JavaScript thực hiện 4 bước (theo thứ tự):\n// Bước 1: Tạo 1 object rỗng → {}\n// Bước 2: Liên kết object đó với class Animal\n//         → object thừa hưởng được các method (gioi_thieu, ...) định nghĩa trong class\n// Bước 3: Gọi constructor("Miu", 3) với "this" trỏ vào object rỗng đó\n//         → this.ten = "Miu"; this.tuoi = 3;\n//         → object trở thành {ten: "Miu", tuoi: 3}\n// Bước 4: Trả object về cho biến `meo`\n\n// Nên cuối cùng: meo = {ten: "Miu", tuoi: 3} + gọi được gioi_thieu()</pre>',
 
-'<div class="b warn"><strong>Quên <code>new</code> = sai hoàn toàn:</strong><br><code>const meo = Animal("Miu", 3);</code> → <code>meo</code> là <code>undefined</code>, và <code>this</code> trong constructor sẽ trỏ vào global → bug rất khó debug.<br><strong>Quy tắc:</strong> Khi tạo instance từ class, LUÔN có <code>new</code>.</div>',
+'<div class="b warn"><strong>Quên <code>new</code> = lỗi ngay:</strong><br><code>const meo = Animal("Miu", 3);</code> → JS throw <code>TypeError: Class constructor Animal cannot be invoked without \'new\'</code>.<br>(Lưu ý: với <em>function</em> kiểu cũ thì gọi không <code>new</code> sẽ chạy nhưng làm bẩn <code>window</code>. ES6 <code>class</code> được thiết kế để báo lỗi ngay → an toàn hơn.)<br><strong>Quy tắc:</strong> Khi tạo instance từ class, LUÔN có <code>new</code>.</div>',
 
 '<table>',
 '<tr><th>Khái niệm</th><th>Nghĩa</th><th>Ví dụ</th></tr>',
@@ -1443,7 +1443,7 @@ D.push({id:8,title:"Locator & Actions",week:"Tuần 5-6",phase:2,html:[
 '<tr><td>Receives events</td><td>Không bị phần tử khác che lên (overlay, modal)</td></tr>',
 '<tr><td>Enabled</td><td>Không có thuộc tính <code>disabled</code></td></tr>',
 '</table>',
-'<p>Nếu sau <strong>5 giây</strong> (default timeout) phần tử vẫn không đủ điều kiện → throw error. Đây là lý do bạn không cần <code>sleep()</code>.</p>',
+'<p>Nếu sau timeout (mặc định 30 giây cho action như <code>click</code>/<code>fill</code>, 5 giây cho assertion <code>expect</code>) phần tử vẫn không đủ điều kiện → throw error. Đây là lý do bạn không cần <code>sleep()</code>.</p>',
 
 '<h3>So sánh Selenium vs Playwright</h3>',
 '<pre>// Selenium (cũ) — phải sleep cứng\ndriver.get("https://app.com");\nThread.sleep(3000);  // chờ 3s, mong là đủ\ndriver.findElement(By.id("btn")).click();  // có thể fail nếu vẫn chưa load\n\n// Playwright (mới) — auto-wait\nawait page.goto("https://app.com");\nawait page.locator("#btn").click();  // tự chờ button visible + enabled + stable</pre>',
