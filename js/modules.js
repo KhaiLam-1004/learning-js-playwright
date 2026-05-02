@@ -880,6 +880,8 @@ buildExercise('m5_ex3', 'red', 'Bài 3: Chuỗi API calls',
   '<strong>Giải thích:</strong> Mỗi bước dùng kết quả của bước trước: user.id → layDonHang → order.orderId → layChiTiet. Đây là pattern phổ biến khi gọi API thực tế.',
   null, 6),
 
+'<div class="b ok"><strong>Kết nối thực tế — Reward Hub:</strong> Pattern chuỗi async ở bài 3 chính xác là cách bạn sẽ gọi API thực tế ở Module 15:<br><code>getProducts()</code> → chọn sản phẩm → <code>exchangeProduct(productId)</code> → <code>getHistory()</code><br>Mỗi bước dùng kết quả bước trước. Nắm vững bài 3 = nắm vững 80% Module 15.</div>',
+
 '<hr class="sep">',
 
 buildExam('exam_m5', 'Bài kiểm tra Module 5 — Async/Await', 8, [
@@ -902,6 +904,27 @@ buildChallenge('m5_race', 'Đua server: ai nhanh hơn?',
   'function server(name, ms) {\n  return new Promise(resolve => {\n    setTimeout(() => resolve({ name, time: ms }), ms);\n  });\n}\n\nasync function main() {\n  console.log("Dang goi 3 server...");\n  \n  const winner = await Promise.race([\n    server("VN", 200),\n    server("SG", 500),\n    server("US", 800)\n  ]);\n  \n  console.log(`${winner.name} nhanh nhat: ${winner.time}ms`);\n}\n\nmain();', 15),
 
 defined_pg('Làm bài tập tại đây', '// Viết code bài tập tại đây\n', 4),
+
+'<hr class="sep">',
+'<h2>Bonus: Async với Reward Hub API</h2>',
+'<p>Áp dụng async/await vào API thực tế — dùng mock fetch để chạy ngay trong playground.</p>',
+
+buildExercise('m5_ex4', 'green', 'Bonus 1: Fetch danh sách sản phẩm',
+  'Viết hàm async <code>getProducts(token)</code>: gọi GET /products với Bearer token. In tổng số và tên từng sản phẩm. Dùng mock fetch có sẵn.',
+  'await fetch(url, {headers}), await res.json(). data.data là array, data.meta.total là tổng.',
+  '// Mock fetch\nconst BASE = "/api/rewardhub/v1.1";\nconst fetch = (url, opts) => Promise.resolve({\n  ok: true,\n  json: () => Promise.resolve({\n    data: [\n      {id:1, name:"Voucher Shopee 50k", type:"voucher", point_price:500},\n      {id:2, name:"Voucher Grab 30k",   type:"voucher", point_price:300},\n      {id:3, name:"The Cafe Amazon",    type:"voucher", point_price:200}\n    ],\n    meta: {total: 3, current_page: 1}\n  })\n});\n\nasync function getProducts(token) {\n  // TODO: fetch /products, in Tong: va ten - diem\n}\n\ngetProducts("my_token");',
+  'async function getProducts(token) {\n  const res = await fetch(BASE + "/products", {\n    headers: {"Authorization": "Bearer " + token}\n  });\n  const data = await res.json();\n  console.log("Tong:", data.meta.total, "san pham");\n  data.data.forEach(function(p) {\n    console.log(p.name + " — " + p.point_price + " diem");\n  });\n}\n\ngetProducts("my_token");',
+  'Pattern chuẩn: async function → await fetch → await res.json() → xử lý data. Đây là xương sống của mọi API call.',
+  null, 10),
+
+buildExercise('m5_ex5', 'red', 'Bonus 2: Chuỗi — Lấy sản phẩm → Đổi điểm → Kiểm tra lịch sử',
+  'Viết 3 hàm async (đều có mock fetch): <code>getProducts()</code>, <code>exchangeProduct(id)</code>, <code>getHistory()</code>. Gọi tuần tự: lấy products → đổi sản phẩm đầu tiên → in lịch sử. Dùng try/catch.',
+  'Lưu kết quả mỗi bước vào biến. exchange nhận product.id từ bước trước. Xem lại bài 3 để nhớ pattern.',
+  '// Mock fetch tự động nhận request\nconst BASE = "/api/rewardhub/v1.1";\nconst fetch = (url, opts) => {\n  if (url.includes("/histories")) return Promise.resolve({\n    ok: true,\n    json: () => Promise.resolve({data:[{order_id:"ORD_001",product_name:"Voucher Shopee 50k",status:"pending"}]})\n  });\n  if ((opts && opts.method === "POST")) return Promise.resolve({\n    ok: true,\n    json: () => Promise.resolve({order_id:"ORD_001", status:"pending", message:"Doi diem thanh cong"})\n  });\n  return Promise.resolve({\n    ok: true,\n    json: () => Promise.resolve({data:[{id:1,name:"Voucher Shopee 50k",point_price:500}],meta:{total:1}})\n  });\n};\nconst headers = {"Authorization": "Bearer my_token"};\n\nasync function getProducts() {\n  // TODO: GET /products, return data.data\n}\nasync function exchangeProduct(productId) {\n  // TODO: POST /cart/exchange {product_id, quantity:1, address_id:1}, return json()\n}\nasync function getHistory() {\n  // TODO: GET /histories, return data.data\n}\n\nasync function main() {\n  try {\n    // TODO: goi 3 ham tuan tu, dung ket qua buoc truoc\n  } catch(e) {\n    console.log("Loi:", e.message);\n  }\n}\nmain();',
+  'const BASE = "/api/rewardhub/v1.1";\nconst fetch = (url, opts) => {\n  if (url.includes("/histories")) return Promise.resolve({\n    ok: true,\n    json: () => Promise.resolve({data:[{order_id:"ORD_001",product_name:"Voucher Shopee 50k",status:"pending"}]})\n  });\n  if ((opts && opts.method === "POST")) return Promise.resolve({\n    ok: true,\n    json: () => Promise.resolve({order_id:"ORD_001", status:"pending", message:"Doi diem thanh cong"})\n  });\n  return Promise.resolve({\n    ok: true,\n    json: () => Promise.resolve({data:[{id:1,name:"Voucher Shopee 50k",point_price:500}],meta:{total:1}})\n  });\n};\nconst headers = {"Authorization": "Bearer my_token"};\n\nasync function getProducts() {\n  const res = await fetch(BASE + "/products", {headers});\n  const data = await res.json();\n  console.log("Tim thay", data.data.length, "san pham");\n  return data.data;\n}\nasync function exchangeProduct(productId) {\n  const res = await fetch(BASE + "/cart/exchange", {\n    method: "POST",\n    headers: Object.assign({"Content-Type":"application/json"}, headers),\n    body: JSON.stringify({product_id: productId, quantity: 1, address_id: 1})\n  });\n  const data = await res.json();\n  console.log("Doi diem:", data.message);\n  return data;\n}\nasync function getHistory() {\n  const res = await fetch(BASE + "/histories", {headers});\n  const data = await res.json();\n  return data.data;\n}\n\nasync function main() {\n  try {\n    const products = await getProducts();\n    const order = await exchangeProduct(products[0].id);\n    const history = await getHistory();\n    console.log("Lich su:", history[0].product_name, "—", history[0].status);\n  } catch(e) {\n    console.log("Loi:", e.message);\n  }\n}\nmain();',
+  'Ba hàm độc lập → gọi tuần tự trong main(). Kết quả products[0].id → exchangeProduct → order.order_id có thể dùng verify history. Đây là flow đầy đủ của Reward Hub.',
+  null, 16),
+
 ].join('\n')});
 
 // =============================================
@@ -934,6 +957,46 @@ defined_pg('Thử extends', 'class Animal {\n  constructor(ten) {\n    this.ten 
 
 '<h3>2.2. Tại sao liên quan đến Playwright?</h3>',
 '<pre>// Đây chính xác là cấu trúc Page Object Model:\nclass BasePage {\n  constructor(page) {\n    this.page = page;  // lưu page của Playwright\n  }\n  async goto(url) {\n    await this.page.goto(url);\n  }\n}\n\nclass LoginPage extends BasePage {\n  constructor(page) {\n    super(page);  // truyền page cho BasePage\n    this.username = page.locator("#username");\n    this.password = page.locator("#password");\n  }\n  async login(user, pass) {\n    await this.username.fill(user);\n    await this.password.fill(pass);\n  }\n}\n\n// Bây giờ bạn hiểu POM rồi! 🎉</pre>',
+
+'<hr class="sep">',
+
+'<h3>2.3. Cạm bẫy: <code>this</code> bị mất trong callback</h3>',
+'<div class="b warn"><strong>Bug phổ biến nhất khi học class:</strong> Truyền method vào callback (<code>setTimeout</code>, <code>forEach</code>, event handler...) với <code>function() {}</code> → <code>this</code> bị mất, trỏ vào <code>undefined</code> hoặc <code>window</code>.<br><br><strong>Fix:</strong> Luôn dùng <strong>arrow function</strong> <code>() => {}</code> trong class. Arrow function không có <code>this</code> riêng — nó mượn <code>this</code> từ scope bên ngoài (chính xác là instance của bạn).</div>',
+
+defined_pg('Thử this binding', 'class Counter {\n  constructor() { this.count = 0; }\n\n  // BUG: regular function co "this" rieng, khong phai Counter instance\n  startBug() {\n    setTimeout(function() {\n      this.count++;           // "this" = undefined (strict mode)\n      console.log("Bug:", this.count); // NaN\n    }, 100);\n  }\n\n  // FIX: arrow function muon "this" tu scope ngoai\n  startFix() {\n    setTimeout(() => {\n      this.count++;           // "this" = Counter instance\n      console.log("Fix:", this.count); // 1\n    }, 100);\n  }\n}\n\nconst c = new Counter();\nc.startFix();\n// c.startBug(); // bo comment de thay loi', 18),
+
+'<div class="b ok"><strong>Quy tắc:</strong> Trong class, luôn dùng <code>() => {}</code> khi truyền callback. Regular function <code>function() {}</code> có <code>this</code> riêng → không trỏ vào object của bạn.</div>',
+
+'<hr class="sep">',
+
+'<h3>2.4. Async method trong class</h3>',
+'<div class="b idea">💡 Method hoàn toàn có thể là <code>async</code> — thêm từ khóa <code>async</code> trước tên method. Đây là pattern bạn dùng mỗi ngày với POM:<br><code>async login(user, pass) { await this.emailInput.fill(user); }</code></div>',
+
+defined_pg('Thử async method', '// Mock fetch cho playground\nconst fetch = (url, opts) => Promise.resolve({\n  ok: true,\n  json: () => Promise.resolve({\n    data: [\n      {id:1, name:"Voucher Shopee", point_price:500},\n      {id:2, name:"Voucher Grab",   point_price:300}\n    ]\n  })\n});\n\nclass ApiClient {\n  constructor(baseUrl, token) {\n    this.baseUrl = baseUrl;\n    this.token   = token;\n  }\n\n  // async method — dung await nhu binh thuong ben trong\n  async get(path) {\n    const res = await fetch(this.baseUrl + path, {\n      headers: {"Authorization": "Bearer " + this.token}\n    });\n    return res.json();\n  }\n\n  async getProducts() {\n    const data = await this.get("/products"); // goi async method khac bang await\n    return data.data;\n  }\n}\n\nconst client = new ApiClient("/api/rewardhub/v1.1", "my_token");\n\n// Async method tra ve Promise — dung .then() hoac await\nclient.getProducts().then(products => {\n  products.forEach(p => console.log(p.name + " — " + p.point_price + " diem"));\n});', 26),
+
+'<div class="b ok"><strong>Kết nối POM:</strong> Trong Playwright: <code>await loginPage.login("user","pass")</code> — <code>login()</code> là async method của class LoginPage. Bây giờ bạn đã hiểu tại sao nó cần <code>await</code>!</div>',
+
+'<hr class="sep">',
+
+'<h3>2.5. Static method — Tiện ích không cần <code>new</code></h3>',
+'<div class="b idea">💡 <code>static</code> = method thuộc về <strong>class</strong>, không phải instance. Gọi trực tiếp: <code>ClassName.method()</code> mà không cần <code>new</code>. Dùng cho helper functions, formatters, validators.</div>',
+
+defined_pg('Thử static', 'class PointHelper {\n  static format(pts) {\n    return pts.toLocaleString("vi-VN") + " diem";\n  }\n  static canExchange(userPts, required) {\n    return userPts >= required\n      ? "Du diem"\n      : "Thieu " + (required - userPts) + " diem";\n  }\n  static getLevel(pts) {\n    if (pts >= 10000) return "Diamond";\n    if (pts >= 5000)  return "Gold";\n    if (pts >= 1000)  return "Silver";\n    return "Bronze";\n  }\n}\n\n// Goi TRUC TIEP qua ten class — khong can new PointHelper()\nconsole.log(PointHelper.format(1500000));\nconsole.log(PointHelper.canExchange(800, 500));\nconsole.log(PointHelper.canExchange(200, 500));\nconsole.log(PointHelper.getLevel(6000));', 20),
+
+'<hr class="sep">',
+
+'<h3>2.6. Getter — Computed property</h3>',
+'<div class="b idea">💡 <code>get ten()</code> định nghĩa một "computed property". Đọc như property bình thường (không có <code>()</code>), nhưng thực ra là function chạy ngầm mỗi lần bạn truy cập.</div>',
+
+defined_pg('Thử getter', 'class GioHang {\n  constructor() { this.items = []; }\n  them(ten, diem) { this.items.push({ten, diem}); }\n\n  // getter: truy cap nhu property, KHONG co ()\n  get soLuong() { return this.items.length; }\n  get tongDiem() { return this.items.reduce((s, i) => s + i.diem, 0); }\n  get isEmpty()  { return this.items.length === 0; }\n  get tomTat()   { return this.soLuong + " SP | " + this.tongDiem + " diem"; }\n}\n\nconst gio = new GioHang();\nconsole.log("Trong?",     gio.isEmpty);    // true  — doc nhu property\ngio.them("Voucher Shopee", 500);\ngio.them("Voucher Grab",   300);\nconsole.log("So luong:",   gio.soLuong);   // 2\nconsole.log("Tong diem:",  gio.tongDiem);  // 800\nconsole.log("Tom tat:",    gio.tomTat);    // "2 SP | 800 diem"\nconsole.log("Trong?",      gio.isEmpty);   // false', 20),
+
+'<div class="b ok"><strong>Getter vs Method:</strong><br>• <code>gio.tongDiem</code> — getter, không có <code>()</code>, như đọc property<br>• <code>gio.tongDiem()</code> — regular method, có <code>()</code><br>Dùng getter cho giá trị đọc (read-only, no side effect). Dùng method khi cần nhận tham số hoặc có action.</div>',
+
+'<hr class="sep">',
+
+'<h3>2.7. <code>instanceof</code> — Kiểm tra kiểu object</h3>',
+
+defined_pg('Thử instanceof', 'class Animal {}\nclass Dog extends Animal {}\nclass Cat extends Animal {}\n\nconst d = new Dog();\nconsole.log(d instanceof Dog);    // true\nconsole.log(d instanceof Animal); // true — Dog ke thua Animal\nconsole.log(d instanceof Cat);    // false\n\n// Ung dung: xu ly nhieu loai object trong cung 1 ham\nfunction chuanBi(vat) {\n  if (vat instanceof Dog) return "Mua xuong cho cho :)";\n  if (vat instanceof Cat) return "Mua ca cho meo :)";\n  return "Khong ro can gi...";\n}\nconsole.log(chuanBi(new Dog()));\nconsole.log(chuanBi(new Cat()));\nconsole.log(chuanBi({ten: "other"}));', 18),
 
 '<hr class="sep">',
 
@@ -975,7 +1038,11 @@ buildExam('exam_m6', 'Bài kiểm tra Module 6 — Class/OOP & HTML', 8, [
   {q:'<code>class Dog extends Animal</code> — Dog gọi constructor Animal bằng?', opts:['Animal()','this.Animal()','super()','parent()'], answer:2, explain:'super() gọi constructor của class cha. Bắt buộc gọi trước khi dùng this.'},
   {q:'Thẻ HTML nào tạo nút bấm?', opts:['&lt;a&gt;','&lt;div&gt;','&lt;button&gt;','&lt;input&gt;'], answer:2, explain:'<button> tạo nút bấm. <a> tạo link, <div> tạo khối chứa.'},
   {q:'<code>id</code> và <code>class</code> trong HTML khác gì?', opts:['Giống nhau','id duy nhất, class có thể trùng','class duy nhất, id trùng được','Không có sự khác biệt'], answer:1, explain:'id phải DUY NHẤT trên trang (như CMND). class có thể dùng lại nhiều phần tử.'},
-  {q:'Playwright ưu tiên locator nào nhất?', opts:['CSS Selector','getByRole','getByTestId','XPath'], answer:1, explain:'getByRole tốt nhất vì nó giống cách user thấy trang (nút, link, heading...).'}
+  {q:'Playwright ưu tiên locator nào nhất?', opts:['CSS Selector','getByRole','getByTestId','XPath'], answer:1, explain:'getByRole tốt nhất vì nó giống cách user thấy trang (nút, link, heading...).'},
+  {q:'Async method trong class viết như thế nào?', opts:['function async ten() {}','async ten() { await ... }','ten = async () => {}','Không hỗ trợ trong class'], answer:1, explain:'Cú pháp: async tenMethod() { await ... }. Không cần từ khóa function — đây là method, không phải function declaration.'},
+  {q:'Static method gọi bằng cách nào?', opts:['new ClassName().method()','ClassName.method()','this.method()','super.method()'], answer:1, explain:'Static gọi qua tên class: ClassName.method(). Không cần tạo instance. Dùng cho helper/utility functions.'},
+  {q:'Getter: gio.tongDiem không có () là vì?', opts:['Bug','Getter đọc như property, chạy ngầm bên trong','tongDiem là biến thường','Method không cần ()'], answer:1, explain:'get tongDiem() định nghĩa computed property. Truy cập như property nhưng thực ra là function tính toán mỗi lần đọc.'},
+  {q:'this bị mất trong callback — fix bằng cách nào?', opts:['Dùng var thay const','Arrow function () =>','Gọi .bind(this)','Cả B và C đều đúng'], answer:3, explain:'Cả 2 đều fix được: arrow function (cách thông dụng nhất trong class) và .bind(this) (cách cũ hơn). Arrow function ngắn gọn hơn.'}
 ]),
 
 '<h2>Bài tập cuối Module 6</h2>',
@@ -994,6 +1061,35 @@ buildExercise('m6_ex2', 'yellow', 'Bài 2: Kế thừa Class',
   'class NhanVien {\n  constructor(ten, luong) {\n    this.ten = ten;\n    this.luong = luong;\n  }\n}\nclass QuanLy extends NhanVien {\n  constructor(ten, luong, soPhoiHop) {\n    super(ten, luong);\n    this.soPhoiHop = soPhoiHop;\n  }\n  thuong() { return this.luong * 0.2; }\n}\nconst ql = new QuanLy("Minh", 20000000, 5);\nconsole.log(ql.ten, "thuong:", ql.thuong());',
   '<strong>Giải thích:</strong> <code>extends</code> kế thừa. <code>super(ten, luong)</code> gọi constructor cha. QuanLy có thêm soPhoiHop và method thuong().',
   null, 8),
+
+buildExercise('m6_ex_async', 'yellow', 'Bài 3: Class với Async method',
+  'Tạo class <code>ApiService</code>(baseUrl, token):<br>• Async method <code>getProducts()</code>: GET /products, trả về data.data<br>• Async method <code>exchange(productId)</code>: POST /cart/exchange {product_id, quantity:1, address_id:1}, trả về json<br>Tạo instance, gọi getProducts(), in tên và điểm từng sản phẩm.',
+  '<code>async getProducts() { const res = await fetch(...); ... }</code>. Mỗi method là async function riêng. Dùng <code>this.baseUrl</code>, <code>this.token</code>.',
+  '// Mock fetch\nconst fetch = (url, opts) => {\n  if (opts && opts.method === "POST") return Promise.resolve({\n    ok:true, json:()=>Promise.resolve({order_id:"ORD_001", message:"Doi diem thanh cong"})\n  });\n  return Promise.resolve({\n    ok:true, json:()=>Promise.resolve({\n      data:[{id:1,name:"Voucher Shopee",point_price:500},{id:2,name:"Voucher Grab",point_price:300}]\n    })\n  });\n};\n\nclass ApiService {\n  constructor(baseUrl, token) {\n    this.baseUrl = baseUrl;\n    this.token   = token;\n  }\n\n  async getProducts() {\n    // TODO: fetch GET /products, return data.data\n  }\n\n  async exchange(productId) {\n    // TODO: fetch POST /cart/exchange, return res.json()\n  }\n}\n\nconst api = new ApiService("/api/rewardhub/v1.1", "my_token");\napi.getProducts().then(products => {\n  products.forEach(p => console.log(p.name + " — " + p.point_price + " diem"));\n});',
+  '// Mock fetch\nconst fetch = (url, opts) => {\n  if (opts && opts.method === "POST") return Promise.resolve({\n    ok:true, json:()=>Promise.resolve({order_id:"ORD_001", message:"Doi diem thanh cong"})\n  });\n  return Promise.resolve({\n    ok:true, json:()=>Promise.resolve({\n      data:[{id:1,name:"Voucher Shopee",point_price:500},{id:2,name:"Voucher Grab",point_price:300}]\n    })\n  });\n};\n\nclass ApiService {\n  constructor(baseUrl, token) {\n    this.baseUrl = baseUrl;\n    this.token   = token;\n  }\n  async getProducts() {\n    const res = await fetch(this.baseUrl + "/products", {\n      headers: {"Authorization": "Bearer " + this.token}\n    });\n    const data = await res.json();\n    return data.data;\n  }\n  async exchange(productId) {\n    const res = await fetch(this.baseUrl + "/cart/exchange", {\n      method: "POST",\n      headers: {"Authorization": "Bearer " + this.token, "Content-Type": "application/json"},\n      body: JSON.stringify({product_id: productId, quantity: 1, address_id: 1})\n    });\n    return res.json();\n  }\n}\n\nconst api = new ApiService("/api/rewardhub/v1.1", "my_token");\napi.getProducts().then(products => {\n  products.forEach(p => console.log(p.name + " — " + p.point_price + " diem"));\n});',
+  'Async method trong class = async function thông thường, nhưng có thể dùng <code>this</code>. POM là tập hợp nhiều async methods — bạn vừa tự xây POM mini của Reward Hub.',
+  null, 14),
+
+'<hr class="sep">',
+'<h2>Bonus: Class thực tế — Reward Hub</h2>',
+'<p>Áp dụng OOP vào domain thực tế: sản phẩm và giỏ hàng trong hệ thống đổi điểm.</p>',
+
+buildExercise('m6_ex3', 'green', 'Bonus 1: Class SanPham',
+  'Tạo class <code>SanPham</code>: constructor(id, ten, type, pointPrice, stock).<br>Method <code>moTa()</code>: trả về "[type] TEN - X diem".<br>Method <code>coThe(userPoints)</code>: true nếu đủ điểm VÀ còn hàng.',
+  'this.pointPrice, this.stock dùng trong method. coThe() kiểm tra 2 điều kiện cùng lúc với &&.',
+  'class SanPham {\n  // TODO: constructor + moTa() + coThe(userPoints)\n}\n\nconst sp1 = new SanPham(1, "Voucher Shopee 50k", "voucher", 500, 10);\nconst sp2 = new SanPham(2, "Voucher Grab 30k", "voucher", 300, 5);\nconsole.log(sp1.moTa());\nconsole.log("Doi sp1 (400 diem):", sp1.coThe(400));\nconsole.log("Doi sp2 (400 diem):", sp2.coThe(400));',
+  'class SanPham {\n  constructor(id, ten, type, pointPrice, stock) {\n    this.id = id;\n    this.ten = ten;\n    this.type = type;\n    this.pointPrice = pointPrice;\n    this.stock = stock;\n  }\n  moTa() {\n    return "[" + this.type + "] " + this.ten + " - " + this.pointPrice + " diem";\n  }\n  coThe(userPoints) {\n    return userPoints >= this.pointPrice && this.stock > 0;\n  }\n}\n\nconst sp1 = new SanPham(1, "Voucher Shopee 50k", "voucher", 500, 10);\nconst sp2 = new SanPham(2, "Voucher Grab 30k", "voucher", 300, 5);\nconsole.log(sp1.moTa());\nconsole.log("Doi sp1 (400 diem):", sp1.coThe(400));\nconsole.log("Doi sp2 (400 diem):", sp2.coThe(400));',
+  'SanPham phản ánh data thực từ API: type (voucher/physical), pointPrice (điểm cần), stock (tồn kho). coThe() = logic nghiệp vụ trước khi gọi POST /cart/exchange.',
+  null, 10),
+
+buildExercise('m6_ex4', 'red', 'Bonus 2: Class GioHang',
+  'Dùng class SanPham có sẵn. Tạo class <code>GioHang</code> (userPoints):<br>• <code>them(sp, soLuong)</code>: thêm vào giỏ<br>• <code>tongDiem()</code>: tổng điểm cần (dùng reduce)<br>• <code>doiDuoc()</code>: true nếu đủ điểm<br>• <code>tomTat()</code>: in từng item + tổng',
+  'tongDiem() dùng this.items.reduce(). doiDuoc() gọi this.tongDiem() để so sánh.',
+  'class SanPham {\n  constructor(id, ten, type, pointPrice, stock) {\n    this.id = id; this.ten = ten; this.type = type;\n    this.pointPrice = pointPrice; this.stock = stock;\n  }\n}\n\nclass GioHang {\n  // TODO: constructor(userPoints)\n  // TODO: them(sp, soLuong)\n  // TODO: tongDiem()\n  // TODO: doiDuoc()\n  // TODO: tomTat()\n}\n\nconst gio = new GioHang(800);\ngio.them(new SanPham(1, "Voucher Shopee", "voucher", 500, 10), 1);\ngio.them(new SanPham(2, "Voucher Grab", "voucher", 300, 5), 1);\ngio.tomTat();\nconsole.log("Tong diem:", gio.tongDiem());\nconsole.log("Doi duoc:", gio.doiDuoc());',
+  'class SanPham {\n  constructor(id, ten, type, pointPrice, stock) {\n    this.id = id; this.ten = ten; this.type = type;\n    this.pointPrice = pointPrice; this.stock = stock;\n  }\n}\n\nclass GioHang {\n  constructor(userPoints) {\n    this.userPoints = userPoints;\n    this.items = [];\n  }\n  them(sp, soLuong) {\n    this.items.push({sp: sp, soLuong: soLuong});\n  }\n  tongDiem() {\n    return this.items.reduce(function(s, i) { return s + i.sp.pointPrice * i.soLuong; }, 0);\n  }\n  doiDuoc() {\n    return this.userPoints >= this.tongDiem();\n  }\n  tomTat() {\n    this.items.forEach(function(i) {\n      console.log(i.sp.ten + " x" + i.soLuong + " = " + (i.sp.pointPrice * i.soLuong) + " diem");\n    });\n    console.log("--- Tong:", this.tongDiem(), "diem");\n  }\n}\n\nconst gio = new GioHang(800);\ngio.them(new SanPham(1, "Voucher Shopee", "voucher", 500, 10), 1);\ngio.them(new SanPham(2, "Voucher Grab", "voucher", 300, 5), 1);\ngio.tomTat();\nconsole.log("Tong diem:", gio.tongDiem());\nconsole.log("Doi duoc:", gio.doiDuoc());',
+  'GioHang.tongDiem() → doiDuoc() là logic chạy TRƯỚC khi gọi POST /cart/exchange. Đây là pattern validate phía client — tiết kiệm 1 API call khi biết chắc sẽ lỗi.',
+  null, 14),
+
 ].join('\n')});
 
 // =============================================
@@ -1058,6 +1154,17 @@ buildExercise('gp1_code3', 'red', 'Bài 3: Class + OOP — Quản lý sinh viên
   'class SinhVien {\n  constructor(ten, diem) {\n    this.ten = ten;\n    this.diem = diem;\n  }\n  xepLoai() {\n    if (this.diem >= 8) return "Gioi";\n    if (this.diem >= 6.5) return "Kha";\n    if (this.diem >= 5) return "TB";\n    return "Yeu";\n  }\n}\n\nclass LopHoc {\n  constructor() { this.ds = []; }\n  them(sv) { this.ds.push(sv); }\n  diemTB() {\n    var tong = this.ds.reduce(function(s,sv){ return s + sv.diem; }, 0);\n    return (tong / this.ds.length).toFixed(1);\n  }\n  topSV() {\n    return this.ds.reduce(function(top, sv){ return sv.diem > top.diem ? sv : top; });\n  }\n}\n\nconst lop = new LopHoc();\nlop.them(new SinhVien("An", 8.5));\nlop.them(new SinhVien("Binh", 6.0));\nlop.them(new SinhVien("Cuong", 7.2));\nconsole.log("TB lop:", lop.diemTB());\nconsole.log("Top:", lop.topSV().ten, lop.topSV().diem);',
   'Kết hợp class + array method. SinhVien chứa logic cá nhân, LopHoc quản lý danh sách.',
   null, 14),
+
+'<hr class="sep">',
+'<div class="b info"><strong>Bài Bonus:</strong> Không bắt buộc để mở khóa Phase 2, nhưng giúp bạn luyện OOP với domain thực tế trước khi sang Playwright.</div>',
+
+buildExercise('gp1_rh', 'red', 'Bonus: Reward Hub — Product + RewardCart',
+  'Xây dựng hệ thống đổi thưởng:<br>• Class <code>Product</code>(name, type, points, stock). Method <code>canExchange(pts)</code>: đủ điểm và còn hàng. Method <code>toString()</code>: "[type] name - X pts".<br>• Class <code>RewardCart</code>(userPoints). Methods: <code>add(p, qty)</code>, <code>totalPoints()</code> (reduce), <code>checkout()</code>: in "Thanh cong" hoặc "Khong du diem".<br>Tạo cart 800 điểm, thêm 2 SP, in danh sách và checkout.',
+  'totalPoints dùng reduce. checkout() so sánh userPoints với totalPoints(). toString() dùng [] + concatenate.',
+  'class Product {\n  // TODO: constructor(name, type, points, stock)\n  // TODO: canExchange(pts)\n  // TODO: toString()\n}\n\nclass RewardCart {\n  // TODO: constructor(userPoints)\n  // TODO: add(p, qty)\n  // TODO: totalPoints()\n  // TODO: checkout()\n}\n\nconst cart = new RewardCart(800);\ncart.add(new Product("Voucher Shopee", "voucher", 500, 10), 1);\ncart.add(new Product("Voucher Grab", "voucher", 300, 5), 1);\n// In danh sach va thuc hien checkout',
+  'class Product {\n  constructor(name, type, points, stock) {\n    this.name = name; this.type = type;\n    this.points = points; this.stock = stock;\n  }\n  canExchange(pts) { return pts >= this.points && this.stock > 0; }\n  toString() { return "[" + this.type + "] " + this.name + " - " + this.points + " pts"; }\n}\n\nclass RewardCart {\n  constructor(userPoints) {\n    this.userPoints = userPoints;\n    this.items = [];\n  }\n  add(p, qty) { this.items.push({p: p, qty: qty}); }\n  totalPoints() {\n    return this.items.reduce(function(s, i) { return s + i.p.points * i.qty; }, 0);\n  }\n  checkout() {\n    var total = this.totalPoints();\n    if (this.userPoints >= total) {\n      console.log("Thanh cong! Doi " + total + " diem — " + this.items.length + " san pham.");\n    } else {\n      console.log("Khong du diem. Can: " + total + ", Co: " + this.userPoints);\n    }\n  }\n}\n\nconst cart = new RewardCart(800);\ncart.add(new Product("Voucher Shopee", "voucher", 500, 10), 1);\ncart.add(new Product("Voucher Grab", "voucher", 300, 5), 1);\ncart.items.forEach(function(i) { console.log(i.p.toString() + " x" + i.qty); });\nconsole.log("Total:", cart.totalPoints(), "pts");\ncart.checkout();',
+  'Product + RewardCart tách biệt rõ ràng: Product biết về chính nó, Cart biết về collection. Đây là Single Responsibility Principle (SRP) trong OOP thực tế.',
+  null, 18),
 
 ].join('\n')});
 
@@ -1401,6 +1508,17 @@ buildExercise('gp2_code3', 'red', 'Bài 3: Test Suite hoàn chỉnh',
   'const { test, expect } = require("@playwright/test");\n\ntest.describe("Login Suite", function() {\n  test.beforeEach(async ({ page }) => {\n    // TODO\n  });\n\n  test("login dung", async ({ page }) => {\n    // TODO\n  });\n\n  test("login sai", async ({ page }) => {\n    // TODO\n  });\n\n  test("username trong", async ({ page }) => {\n    // TODO\n  });\n});',
   'const { test, expect } = require("@playwright/test");\n\ntest.describe("Login Suite", function() {\n  test.beforeEach(async ({ page }) => {\n    await page.goto("https://the-internet.herokuapp.com/login");\n  });\n\n  test("login dung", async ({ page }) => {\n    await page.fill("#username", "tomsmith");\n    await page.fill("#password", "SuperSecretPassword!");\n    await page.click(\'button[type="submit"]\');\n    await expect(page.locator(".flash")).toContainText("secure area");\n  });\n\n  test("login sai", async ({ page }) => {\n    await page.fill("#username", "wrong");\n    await page.fill("#password", "wrong");\n    await page.click(\'button[type="submit"]\');\n    await expect(page.locator(".flash.error")).toBeVisible();\n  });\n\n  test("username trong", async ({ page }) => {\n    await page.fill("#password", "abc");\n    await page.click(\'button[type="submit"]\');\n    await expect(page.locator(".flash.error")).toBeVisible();\n  });\n});',
   'Test suite chuẩn: describe nhóm, beforeEach setup, mỗi test kiểm tra 1 scenario.',
+  null, 20),
+
+'<hr class="sep">',
+'<div class="b info"><strong>Bài Bonus:</strong> Không bắt buộc để mở khóa Phase 3, nhưng là bài thực hành API testing với domain Reward Hub — preview cho Module 15.</div>',
+
+buildExercise('gp2_rh', 'red', 'Bonus: Playwright — Reward Hub API Test Suite',
+  'Viết <code>test.describe</code> cho Reward Hub API gồm 3 test:<br>1. GET /products → status 200, data là array<br>2. POST /cart/exchange → status 200, có order_id<br>3. Sau khi exchange, GET /histories → có ít nhất 1 record<br>Base: <code>/api/rewardhub/v1.1</code>. Auth: <code>Bearer test_token</code>.',
+  'request.get/post nhận {headers, data}. Lưu kết quả từ test 2 để dùng trong test 3.',
+  'const { test, expect } = require("@playwright/test");\n\ntest.describe("Reward Hub API", function() {\n  const BASE = "/api/rewardhub/v1.1";\n  const headers = {"Authorization": "Bearer test_token"};\n\n  test("GET /products tra ve danh sach", async ({ request }) => {\n    // TODO: status 200, data.data la array\n  });\n\n  test("POST /cart/exchange co order_id", async ({ request }) => {\n    // TODO: post exchange, kiem tra order_id\n  });\n\n  test("GET /histories co record", async ({ request }) => {\n    // TODO: exchange truoc, roi lay history kiem tra length\n  });\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest.describe("Reward Hub API", function() {\n  const BASE = "/api/rewardhub/v1.1";\n  const headers = {"Authorization": "Bearer test_token"};\n\n  test("GET /products tra ve danh sach", async ({ request }) => {\n    const res = await request.get(BASE + "/products", {headers});\n    expect(res.status()).toBe(200);\n    const data = await res.json();\n    expect(Array.isArray(data.data)).toBe(true);\n  });\n\n  test("POST /cart/exchange co order_id", async ({ request }) => {\n    const res = await request.post(BASE + "/cart/exchange", {\n      headers,\n      data: {product_id: 1, quantity: 1, address_id: 1}\n    });\n    expect(res.status()).toBe(200);\n    const data = await res.json();\n    expect(data.order_id).toBeTruthy();\n  });\n\n  test("GET /histories co record", async ({ request }) => {\n    await request.post(BASE + "/cart/exchange", {\n      headers, data: {product_id: 1, quantity: 1, address_id: 1}\n    });\n    const res = await request.get(BASE + "/histories", {headers});\n    const hist = await res.json();\n    expect(hist.data.length).toBeGreaterThan(0);\n  });\n});',
+  'API test suite thực tế: GET list → POST action → GET result. test.describe nhóm related tests, shared headers ở scope ngoài.',
   null, 20),
 
 ].join('\n')});
@@ -1936,5 +2054,156 @@ buildExam('exam_m14', 'Bài kiểm tra cuối khóa — Tổng hợp', 10, [
   {q:'Negative test kiểm tra gì?', opts:['Happy path','Hệ thống xử lý dữ liệu sai đúng cách','Edge case','Speed'], answer:1, explain:'VD: login sai → phải hiện lỗi, không crash.'},
   {q:'Khi phỏng vấn hỏi "Tại sao Playwright?", đáp?', opts:['Vì dễ','Auto-wait, nhanh, API testing + Codegen sẵn','Microsoft','Free'], answer:1, explain:'Nhấn mạnh: auto-wait, nhanh 2-3x, tooling mạnh.'}
 ]),
+].join('\n')});
+
+D.push({id:15,title:'Got It Reward Hub API',week:'Tuần 13',phase:3,html:[
+
+'<h1>Module 15: Got It Reward Hub API</h1>',
+'<p>Thực hành với REST API thực tế: <strong>Got It Reward Hub v1.1</strong> — hệ thống quản lý phần thưởng doanh nghiệp.</p>',
+
+'<div class="b info"><strong>API Overview:</strong><br>• Base URL: <code>/api/rewardhub/v1.1</code><br>• Auth: <code>Authorization: Bearer {token}</code><br>• Loại sản phẩm: voucher, physical, promotion, donation<br>• Tính năng: duyệt sản phẩm, đổi điểm, lịch sử, quà tặng</div>',
+
+'<h2>1. Cấu trúc Response</h2>',
+'<pre><code>// List response\n{ data: [...], meta: { current_page, per_page, total, last_page } }\n// Single item\n{ id, name, type, point_price, description, stock }\n// Exchange response\n{ order_id, status, message, points_deducted }</code></pre>',
+
+'<h2>2. Authentication Header</h2>',
+'<pre><code>const headers = {\n  "Authorization": "Bearer YOUR_TOKEN",\n  "Content-Type": "application/json"\n};</code></pre>',
+
+'<hr class="sep">',
+'<h2>Phần A: JavaScript Fetch API</h2>',
+'<p>Các bài dùng <em>mock fetch</em> — chạy được ngay trong playground không cần backend thật.</p>',
+
+buildExercise('rh_a1', 'yellow', 'A1: Lấy danh sách sản phẩm',
+  'Gọi API GET /products. In ra tên và điểm của từng sản phẩm.',
+  'Dùng fetch() với Authorization header. Response có .data (array) và .meta.total.',
+  '// Mock fetch — khong can thay doi\nconst BASE = "/api/rewardhub/v1.1";\nconst TOKEN = "demo_token";\nconst fetch = (url, opts) => Promise.resolve({\n  ok: true,\n  json: () => Promise.resolve({\n    data: [\n      {id:1, name:"Voucher Shopee 50k", type:"voucher", point_price:500},\n      {id:2, name:"Voucher Grab 30k", type:"voucher", point_price:300}\n    ],\n    meta: {current_page:1, per_page:10, total:2, last_page:1}\n  })\n});\n\nasync function getProducts() {\n  // TODO: fetch /products, in Tong: va ten - diem\n}\ngetProducts();',
+  'async function getProducts() {\n  const res = await fetch(BASE + "/products?page=1&type=voucher", {\n    headers: {"Authorization": "Bearer " + TOKEN}\n  });\n  const data = await res.json();\n  console.log("Tong:", data.meta.total);\n  data.data.forEach(function(p) { console.log(p.name + " - " + p.point_price + " diem"); });\n}\ngetProducts();',
+  'await fetch(...) → await res.json() → forEach trên data.data.',
+  null, 10),
+
+buildExercise('rh_a2', 'yellow', 'A2: Chi tiết sản phẩm',
+  'Gọi GET /products/1 lấy chi tiết. In ra: tên, mô tả, loại, điểm cần.',
+  'URL: /products/{id}. Response là single object (không có .data wrapper).',
+  '// Mock fetch\nconst BASE = "/api/rewardhub/v1.1";\nconst TOKEN = "demo_token";\nconst fetch = () => Promise.resolve({\n  ok: true,\n  json: () => Promise.resolve({\n    id:1, name:"Voucher Shopee 50k", type:"voucher",\n    description:"Giam 50k don tu 150k", point_price:500, stock:100\n  })\n});\n\nasync function getProductDetail(id) {\n  // TODO: in Ten:, Mo ta:, Loai:, Diem:\n}\ngetProductDetail(1);',
+  'async function getProductDetail(id) {\n  const res = await fetch(BASE + "/products/" + id, {\n    headers: {"Authorization": "Bearer " + TOKEN}\n  });\n  const p = await res.json();\n  console.log("Ten:", p.name);\n  console.log("Mo ta:", p.description);\n  console.log("Loai:", p.type);\n  console.log("Diem:", p.point_price);\n}\ngetProductDetail(1);',
+  'URL nối: /products/ + id. Response là object trực tiếp, không qua .data.',
+  null, 8),
+
+buildExercise('rh_a3', 'red', 'A3: Đổi điểm lấy sản phẩm',
+  'Gọi POST /cart/exchange. Body: { product_id, quantity, address_id }. In Order ID và message.',
+  'POST cần method:"POST", body:JSON.stringify({...}), và Content-Type header.',
+  '// Mock fetch\nconst BASE = "/api/rewardhub/v1.1";\nconst TOKEN = "demo_token";\nconst fetch = () => Promise.resolve({\n  ok: true,\n  json: () => Promise.resolve({\n    order_id: "ORD_001", status: "pending",\n    message: "Doi diem thanh cong", points_deducted: 300\n  })\n});\n\nasync function exchangeProduct(productId, qty) {\n  // TODO: POST /cart/exchange, in Order ID va message\n}\nexchangeProduct(2, 1);',
+  'async function exchangeProduct(productId, qty) {\n  const res = await fetch(BASE + "/cart/exchange", {\n    method: "POST",\n    headers: {"Authorization": "Bearer " + TOKEN, "Content-Type": "application/json"},\n    body: JSON.stringify({product_id: productId, quantity: qty, address_id: 1})\n  });\n  const data = await res.json();\n  console.log("Order ID:", data.order_id);\n  console.log(data.message);\n}\nexchangeProduct(2, 1);',
+  'POST: thêm method, body (JSON.stringify), Content-Type. order_id và message từ response.',
+  null, 10),
+
+buildExercise('rh_a4', 'green', 'A4: Lịch sử giao dịch',
+  'Gọi GET /histories. Lọc completed. In ngày, sản phẩm, điểm đã dùng.',
+  'data.data là array. Dùng .filter(h => h.status === "completed") rồi forEach.',
+  '// Mock fetch\nconst BASE = "/api/rewardhub/v1.1";\nconst TOKEN = "demo_token";\nconst fetch = () => Promise.resolve({\n  ok: true,\n  json: () => Promise.resolve({\n    data: [\n      {id:1, product_name:"Voucher Shopee", points_used:500, status:"completed", created_at:"2025-04-01"},\n      {id:2, product_name:"Voucher Grab", points_used:300, status:"pending", created_at:"2025-04-15"}\n    ]\n  })\n});\n\nasync function getHistory() {\n  // TODO: lay histories, filter completed, in ra\n}\ngetHistory();',
+  'async function getHistory() {\n  const res = await fetch(BASE + "/histories", {\n    headers: {"Authorization": "Bearer " + TOKEN}\n  });\n  const data = await res.json();\n  const done = data.data.filter(function(h) { return h.status === "completed"; });\n  done.forEach(function(h) {\n    console.log(h.created_at + " | " + h.product_name + " | -" + h.points_used + " diem");\n  });\n}\ngetHistory();',
+  'filter() lọc array theo điều kiện, forEach() in từng phần tử.',
+  null, 8),
+
+buildExercise('rh_a5', 'red', 'A5: Xử lý lỗi API',
+  'Gọi API với token không hợp lệ. Xử lý lỗi 401 không crash app — in "Da xu ly loi: ...".',
+  'Pattern: if (!res.ok) throw new Error() bên trong try/catch.',
+  '// Mock tra ve 401\nconst BASE = "/api/rewardhub/v1.1";\nconst TOKEN = "invalid_token";\nconst fetch = () => Promise.resolve({\n  ok: false, status: 401,\n  json: () => Promise.resolve({message: "Unauthenticated"})\n});\n\nasync function safeGetProducts() {\n  // TODO: xu ly loi 401, in "Da xu ly loi:"\n}\nsafeGetProducts();',
+  'async function safeGetProducts() {\n  try {\n    const res = await fetch(BASE + "/products", {\n      headers: {"Authorization": "Bearer " + TOKEN}\n    });\n    if (!res.ok) {\n      const err = await res.json();\n      throw new Error("Loi " + res.status + ": " + err.message);\n    }\n    const data = await res.json();\n    console.log("OK:", data);\n  } catch(e) {\n    console.log("Da xu ly loi:", e.message);\n  }\n}\nsafeGetProducts();',
+  'if (!res.ok) → throw Error → catch bắt lỗi. App không crash khi API trả về lỗi.',
+  null, 10),
+
+'<hr class="sep">',
+'<h2>Phần B: Playwright API Testing</h2>',
+'<p>Luyện viết Playwright test cho API. Code không chạy trong playground — copy vào project thật để chạy.</p>',
+
+buildExercise('rh_b1', 'yellow', 'B1: Test GET /products',
+  'Playwright API test: GET /products → status 200, có data array, meta.total > 0.',
+  'Dùng request fixture. res.status() và await res.json() để kiểm tra.',
+  'const { test, expect } = require("@playwright/test");\n\ntest("GET /products tra ve 200", async ({ request }) => {\n  // TODO\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("GET /products tra ve 200", async ({ request }) => {\n  const res = await request.get("/api/rewardhub/v1.1/products", {\n    headers: {"Authorization": "Bearer test_token"}\n  });\n  expect(res.status()).toBe(200);\n  const data = await res.json();\n  expect(Array.isArray(data.data)).toBe(true);\n  expect(data.meta.total).toBeGreaterThan(0);\n});',
+  'request.get(url, {headers}) — không dùng fetch(). expect(res.status()).toBe(200).',
+  null, 8),
+
+buildExercise('rh_b2', 'yellow', 'B2: Test phân trang',
+  'Test: per_page=5 → data.length <= 5 và meta.current_page === 1.',
+  'Dùng params:{page:1, per_page:5}. Playwright tự thêm query string.',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Phan trang per_page=5", async ({ request }) => {\n  // TODO: params: {page:1, per_page:5}\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Phan trang per_page=5", async ({ request }) => {\n  const res = await request.get("/api/rewardhub/v1.1/products", {\n    headers: {"Authorization": "Bearer test_token"},\n    params: {page: 1, per_page: 5}\n  });\n  expect(res.status()).toBe(200);\n  const data = await res.json();\n  expect(data.data.length).toBeLessThanOrEqual(5);\n  expect(data.meta.current_page).toBe(1);\n});',
+  'params:{} tự convert thành ?page=1&per_page=5. toBeLessThanOrEqual(5) linh hoạt hơn toBe(5).',
+  null, 8),
+
+buildExercise('rh_b3', 'red', 'B3: Test POST /cart/exchange',
+  'Test POST /cart/exchange → status 200, response có order_id.',
+  'request.post() dùng data:{} thay vì body:JSON.stringify(). Playwright tự set Content-Type.',
+  'const { test, expect } = require("@playwright/test");\n\ntest("POST exchange co order_id", async ({ request }) => {\n  // TODO: POST /cart/exchange {product_id:1, quantity:1, address_id:1}\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("POST exchange co order_id", async ({ request }) => {\n  const res = await request.post("/api/rewardhub/v1.1/cart/exchange", {\n    headers: {"Authorization": "Bearer test_token"},\n    data: {product_id: 1, quantity: 1, address_id: 1}\n  });\n  expect(res.status()).toBe(200);\n  const data = await res.json();\n  expect(data.order_id).toBeTruthy();\n});',
+  'request.post() + data:{} — Playwright tự JSON serialize và set Content-Type.',
+  null, 8),
+
+buildExercise('rh_b4', 'red', 'B4: Mock API với page.route()',
+  'Mock GET /products trả về 1 sản phẩm cố định. Navigate đến /products, verify tên hiển thị.',
+  'page.route("**/products**", handler). route.fulfill({status, body:JSON.stringify(...)}).',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Mock products API", async ({ page }) => {\n  // TODO: route.fulfill 1 product {name:"Test Voucher"}\n  // page.goto("/products")\n  // expect "Test Voucher" toBeVisible()\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Mock products API", async ({ page }) => {\n  await page.route("**/api/rewardhub/v1.1/products**", function(route) {\n    route.fulfill({\n      status: 200,\n      contentType: "application/json",\n      body: JSON.stringify({data:[{id:1,name:"Test Voucher",point_price:100}],meta:{total:1}})\n    });\n  });\n  await page.goto("/products");\n  await expect(page.locator("text=Test Voucher")).toBeVisible();\n});',
+  '** wildcard match bất kỳ path. route.fulfill() trả về response giả không qua network.',
+  null, 10),
+
+buildExercise('rh_b5', 'red', 'B5: Test error cases (401, 404)',
+  'Viết 2 test: token không hợp lệ → 401. Product id=999 không tồn tại → 404.',
+  'Negative tests: mỗi case là 1 test() riêng. Kiểm tra đúng status code.',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Token invalid → 401", async ({ request }) => {\n  // TODO\n});\n\ntest("Product 999 → 404", async ({ request }) => {\n  // TODO\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Token invalid → 401", async ({ request }) => {\n  const res = await request.get("/api/rewardhub/v1.1/products", {\n    headers: {"Authorization": "Bearer invalid"}\n  });\n  expect(res.status()).toBe(401);\n  const data = await res.json();\n  expect(data.message).toBeTruthy();\n});\n\ntest("Product 999 → 404", async ({ request }) => {\n  const res = await request.get("/api/rewardhub/v1.1/products/999", {\n    headers: {"Authorization": "Bearer valid_token"}\n  });\n  expect(res.status()).toBe(404);\n});',
+  'Negative test quan trọng như positive. Verify đúng status code cho từng lỗi.',
+  null, 10),
+
+buildExercise('rh_b6', 'red', 'B6: Full exchange flow',
+  'test.step() flow đầy đủ: lấy products → đổi → verify history có order vừa tạo.',
+  'Lưu kết quả từ step trước vào biến để dùng trong step tiếp theo.',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Full exchange flow", async ({ request }) => {\n  const headers = {"Authorization": "Bearer test_token"};\n  // Step 1: lay products\n  // Step 2: doi san pham dau tien\n  // Step 3: kiem tra history\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Full exchange flow", async ({ request }) => {\n  const headers = {"Authorization": "Bearer test_token"};\n  const products = await test.step("Lay products", async () => {\n    const res = await request.get("/api/rewardhub/v1.1/products", {headers});\n    expect(res.status()).toBe(200);\n    return (await res.json()).data;\n  });\n  const order = await test.step("Doi san pham", async () => {\n    const res = await request.post("/api/rewardhub/v1.1/cart/exchange", {\n      headers, data: {product_id: products[0].id, quantity:1, address_id:1}\n    });\n    expect(res.status()).toBe(200);\n    return res.json();\n  });\n  await test.step("Kiem tra history", async () => {\n    const res = await request.get("/api/rewardhub/v1.1/histories", {headers});\n    const hist = await res.json();\n    expect(hist.data.some(function(h){return h.order_id === order.order_id;})).toBe(true);\n  });\n});',
+  'test.step() = named sections trong HTML report. Return value từ step trước để dùng tiếp.',
+  null, 12),
+
+'<hr class="sep">',
+'<h2>Phần C: E2E Flow Testing</h2>',
+'<p>Kết hợp API calls và UI interactions để test luồng người dùng thực tế.</p>',
+
+buildExercise('rh_c1', 'yellow', 'C1: Mock login + duyệt sản phẩm',
+  'Mock /auth/login và /products. Điền form login, submit, verify sản phẩm mock hiển thị.',
+  'Setup page.route() TRƯỚC page.goto(). Mock cả 2 endpoints trước khi navigate.',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Login va duyet san pham", async ({ page }) => {\n  // TODO: mock /auth/login → {token:"test"}\n  // mock /products → [{name:"Voucher Test"}]\n  // goto /login, fill email + password, click submit\n  // verify "Voucher Test" toBeVisible()\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Login va duyet san pham", async ({ page }) => {\n  await page.route("**/auth/login", function(route) {\n    route.fulfill({status:200, body:JSON.stringify({token:"test_token",user:{name:"User",points:1000}})});\n  });\n  await page.route("**/products**", function(route) {\n    route.fulfill({status:200, body:JSON.stringify({data:[{id:1,name:"Voucher Test",point_price:500}],meta:{total:1}})});\n  });\n  await page.goto("/login");\n  await page.fill("[name=email]", "user@example.com");\n  await page.fill("[name=password]", "password123");\n  await page.click("button[type=submit]");\n  await expect(page.locator("text=Voucher Test")).toBeVisible();\n});',
+  'page.route() setup trước goto(). Sau redirect, /products tự dùng mock đã đăng ký.',
+  null, 12),
+
+buildExercise('rh_c2', 'red', 'C2: Filter và đổi sản phẩm',
+  'Mock /products và /cart/exchange. Filter type=voucher → click "Đổi điểm" → confirm → verify "thanh cong".',
+  'selectOption cho dropdown filter. Locator :first-child chọn phần tử đầu tiên.',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Filter va doi san pham", async ({ page }) => {\n  // TODO: mock /products va /cart/exchange\n  // selectOption voucher, click exchange, confirm, verify thanh cong\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Filter va doi san pham", async ({ page }) => {\n  await page.route("**/products**", function(route) {\n    route.fulfill({status:200, body:JSON.stringify({data:[{id:1,name:"Voucher X",point_price:200}],meta:{total:1}})});\n  });\n  await page.route("**/cart/exchange", function(route) {\n    route.fulfill({status:200, body:JSON.stringify({order_id:"ORD_001",status:"pending",message:"Doi diem thanh cong"})});\n  });\n  await page.goto("/products");\n  await page.selectOption("select[name=type]", "voucher");\n  await page.click(".product-card:first-child .exchange-btn");\n  await page.click(".modal .confirm-btn");\n  await expect(page.locator("text=thanh cong")).toBeVisible();\n});',
+  'selectOption cho <select>. mock route.fulfill() cho cả /products và /cart/exchange.',
+  null, 12),
+
+buildExercise('rh_c3', 'red', 'C3: Exchange → verify history',
+  'POST exchange qua API, lưu order_id. Mock GET /histories trả về order đó. Verify UI hiển thị.',
+  'Kết hợp request (API call) và page (UI check) trong cùng 1 test.',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Exchange roi kiem tra history", async ({ page, request }) => {\n  const headers = {"Authorization": "Bearer test_token"};\n  // Step 1: POST exchange, lay order_id\n  // Step 2: Mock GET /histories tra ve order do\n  // Step 3: goto /history, verify order_id va product_name hien thi\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Exchange roi kiem tra history", async ({ page, request }) => {\n  const headers = {"Authorization": "Bearer test_token"};\n  const res = await request.post("/api/rewardhub/v1.1/cart/exchange", {\n    headers, data: {product_id:1, quantity:1, address_id:1}\n  });\n  expect(res.status()).toBe(200);\n  const orderId = (await res.json()).order_id;\n  await page.route("**/histories**", function(route) {\n    route.fulfill({status:200, body:JSON.stringify({\n      data:[{order_id:orderId, product_name:"Voucher Test", status:"pending"}]\n    })});\n  });\n  await page.goto("/history");\n  await expect(page.locator("text=" + orderId)).toBeVisible();\n  await expect(page.locator("text=Voucher Test")).toBeVisible();\n});',
+  'request + page trong cùng test. order_id từ API → cầu nối để verify UI.',
+  null, 12),
+
+'<hr class="sep">',
+buildExam('exam_m15', 'Quiz: Got It Reward Hub API', 8, [
+  {q:'Base URL của Reward Hub API v1.1?', opts:['/api/v1','/api/rewardhub/v1.1','/rewardhub/api','/v1.1/api'], answer:1, explain:'Luôn bao gồm version: /api/rewardhub/v1.1. Version trong URL giúp backward compatibility.'},
+  {q:'Header authentication dùng?', opts:['API-Key: token','Authorization: Bearer token','X-Auth: token','Cookie: token'], answer:1, explain:'Bearer token trong Authorization header — chuẩn OAuth2/JWT phổ biến nhất.'},
+  {q:'POST /cart/exchange body cần gì?', opts:['product_name, email','product_id, quantity, address_id','token, points','user_id, gift_id'], answer:1, explain:'product_id (sản phẩm), quantity (số lượng), address_id (địa chỉ nhận hàng).'},
+  {q:'res.ok === true khi status code?', opts:['Chỉ 200','200-299','Không có error','Response có data'], answer:1, explain:'ok là true khi status trong khoảng 200-299 (successful HTTP responses).'},
+  {q:'Trong Playwright, gọi API dùng?', opts:['page.fetch()','request.get()/post()','axios.get()','XMLHttpRequest'], answer:1, explain:'request fixture — không qua browser, gọi trực tiếp HTTP tốt hơn.'},
+  {q:'page.route() dùng để?', opts:['Điều hướng trang','Intercept và mock network request','Record requests','Block popup'], answer:1, explain:'page.route(pattern, handler) intercept request, cho phép fulfill với data tùy chỉnh.'},
+  {q:'Pattern xử lý lỗi API đúng?', opts:['Bỏ qua lỗi','if (!res.ok) throw + try/catch','console.error()','window.alert()'], answer:1, explain:'if (!res.ok) throw Error → catch xử lý gracefully. App không crash khi API lỗi.'},
+  {q:'test.step() dùng để?', opts:['Chạy parallel','Group bước có tên → report rõ hơn','Skip test','Retry on fail'], answer:1, explain:'test.step("ten", async()=>{}) tạo named section trong HTML report — dễ debug.'}
+]),
+
 ].join('\n')});
 

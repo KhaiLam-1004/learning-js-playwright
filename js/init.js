@@ -106,9 +106,15 @@ registerExercise('m4_ex3', function(logs) { return logs.length >= 2 ? {pass:true
 registerExercise('m5_ex1', function(logs) { return logs.some(function(l){return l.includes('Xin chao')||l.includes('Xong')}) ? {pass:true} : {pass:false}; });
 registerExercise('m5_ex2', function(logs) { return logs.some(function(l){return l.includes('thanh cong')||l.includes('Dang nhap')}) ? {pass:true} : {pass:false}; });
 registerExercise('m5_ex3', function(logs) { return logs.some(function(l){return l.includes('User')||l.includes('Order')||l.includes('Detail')}) ? {pass:true} : {pass:false}; });
+// M5 Bonus — Reward Hub async
+registerExercise('m5_ex4', function(logs, code) { return (code.includes('getProducts') && code.includes('fetch') && logs.some(function(l){return l.includes('Tong') || l.includes('diem');})) ? {pass:true} : {pass:false}; });
+registerExercise('m5_ex5', function(logs, code) { return (code.includes('getProducts') && code.includes('exchangeProduct') && code.includes('getHistory') && logs.some(function(l){return l.includes('diem') || l.includes('thanh cong') || l.includes('Lich su');})) ? {pass:true} : {pass:false}; });
 // M6
 registerExercise('m6_ex1', function(logs, code) { return (logs.some(function(l){return l.includes('15')}) && code.includes('class')) ? {pass:true} : {pass:false}; });
 registerExercise('m6_ex2', function(logs, code) { return (code.includes('extends') && code.includes('super') && logs.length >= 1) ? {pass:true} : {pass:false}; });
+registerExercise('m6_ex_async', function(logs, code) { return (code.includes('class ApiService') && code.includes('async getProducts') && logs.some(function(l){return l.includes('diem') || l.includes('Voucher');})) ? {pass:true} : {pass:false}; });
+registerExercise('m6_ex3', function(logs, code) { return (code.includes('class SanPham') && code.includes('moTa') && code.includes('coThe') && logs.some(function(l){return l.includes('voucher') || l.includes('diem');})) ? {pass:true} : {pass:false}; });
+registerExercise('m6_ex4', function(logs, code) { return (code.includes('class GioHang') && code.includes('tongDiem') && logs.some(function(l){return l.includes('diem');})) ? {pass:true} : {pass:false}; });
 // Phase 1 Gate exercises
 registerExercise('gp1_code1', function(logs, code) {
   return (code.includes('Math.max') && code.includes('filter') && code.includes('reduce') && logs.some(function(l){return l.includes('Max')})) ? {pass:true} : {pass:false};
@@ -119,6 +125,9 @@ registerExercise('gp1_code2', function(logs, code) {
 registerExercise('gp1_code3', function(logs, code) {
   return (code.includes('class SinhVien') && code.includes('class LopHoc') && code.includes('xepLoai') && code.includes('diemTB') && logs.some(function(l){return l.includes('TB')})) ? {pass:true} : {pass:false};
 });
+registerExercise('gp1_rh', function(logs, code) {
+  return (code.includes('class RewardCart') && code.includes('totalPoints') && code.includes('checkout') && logs.some(function(l){return l.includes('diem') || l.includes('Thanh cong') || l.includes('pts');})) ? {pass:true} : {pass:false};
+});
 // Phase 2 Gate exercises
 registerExercise('gp2_code1', function(logs, code) {
   return (code.includes('page.goto') && code.includes('page.fill') && code.includes('page.click') && code.includes('expect') && code.includes('test(')) ? {pass:true} : {pass:false};
@@ -128,6 +137,9 @@ registerExercise('gp2_code2', function(logs, code) {
 });
 registerExercise('gp2_code3', function(logs, code) {
   return (code.includes('test.describe') && code.includes('beforeEach') && code.includes('page.fill') && code.includes('toContainText') && code.includes('toBeVisible')) ? {pass:true} : {pass:false};
+});
+registerExercise('gp2_rh', function(logs, code) {
+  return (code.includes('test.describe') && code.includes('request.get') && code.includes('request.post') && code.includes('/products') && code.includes('cart/exchange')) ? {pass:true} : {pass:false};
 });
 // M7
 registerExercise('m7_ex1', function(logs, code) { return (code.includes('page.goto') && code.includes('toHaveTitle') && code.includes('test(')) ? {pass:true} : {pass:false}; });
@@ -152,3 +164,20 @@ registerExercise('m13_ex1', function(logs, code) { return (code.includes('TC-CAR
 registerExercise('m13_ex2', function(logs, code) { return (code.includes('Title') && code.includes('Steps') && code.includes('Expected') && code.includes('Actual')) ? {pass:true} : {pass:false}; });
 // M14
 registerExercise('m14_ex1', function(logs, code) { return (code.includes('devices') && code.includes('projects') && code.includes('screenshot')) ? {pass:true} : {pass:false}; });
+// M15 — Reward Hub API: Section A (JS Fetch, runs in playground)
+registerExercise('rh_a1', function(logs, code) { return (code.includes('fetch') && code.includes('getProducts') && logs.some(function(l){return l.includes('Tong') || l.includes('diem');})) ? {pass:true} : {pass:false}; });
+registerExercise('rh_a2', function(logs, code) { return (code.includes('fetch') && code.includes('getProductDetail') && logs.some(function(l){return l.includes('Ten:') || l.includes('Mo ta:');})) ? {pass:true} : {pass:false}; });
+registerExercise('rh_a3', function(logs, code) { return (code.includes('POST') && code.includes('exchangeProduct') && logs.some(function(l){return l.includes('Order ID') || l.includes('thanh cong');})) ? {pass:true} : {pass:false}; });
+registerExercise('rh_a4', function(logs, code) { return (code.includes('filter') && code.includes('getHistory') && logs.some(function(l){return l.includes('diem');})) ? {pass:true} : {pass:false}; });
+registerExercise('rh_a5', function(logs, code) { return (code.includes('try') && code.includes('catch') && logs.some(function(l){return l.includes('Da xu ly loi') || l.includes('Loi 401');})) ? {pass:true} : {pass:false}; });
+// M15 — Section B (Playwright, code-pattern only)
+registerExercise('rh_b1', function(logs, code) { return (code.includes('request.get') && code.includes('toBe(200)') && code.includes('test(')) ? {pass:true} : {pass:false}; });
+registerExercise('rh_b2', function(logs, code) { return (code.includes('params') && code.includes('per_page') && code.includes('current_page')) ? {pass:true} : {pass:false}; });
+registerExercise('rh_b3', function(logs, code) { return (code.includes('request.post') && code.includes('cart/exchange') && code.includes('order_id')) ? {pass:true} : {pass:false}; });
+registerExercise('rh_b4', function(logs, code) { return (code.includes('page.route') && code.includes('route.fulfill') && code.includes('toBeVisible')) ? {pass:true} : {pass:false}; });
+registerExercise('rh_b5', function(logs, code) { return (code.includes('toBe(401)') && code.includes('toBe(404)') && code.includes('test(')) ? {pass:true} : {pass:false}; });
+registerExercise('rh_b6', function(logs, code) { return (code.includes('test.step') && code.includes('cart/exchange') && code.includes('histories')) ? {pass:true} : {pass:false}; });
+// M15 — Section C (E2E)
+registerExercise('rh_c1', function(logs, code) { return (code.includes('page.route') && code.includes('auth/login') && code.includes('page.fill')) ? {pass:true} : {pass:false}; });
+registerExercise('rh_c2', function(logs, code) { return (code.includes('selectOption') && code.includes('cart/exchange') && code.includes('toBeVisible')) ? {pass:true} : {pass:false}; });
+registerExercise('rh_c3', function(logs, code) { return (code.includes('request.post') && code.includes('page.route') && code.includes('histories')) ? {pass:true} : {pass:false}; });

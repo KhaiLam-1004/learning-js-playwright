@@ -212,12 +212,29 @@ function fbSaveCode(code, moduleId, label, output) {
   }).catch(function(e){ console.warn('Firebase code save error:', e); });
 }
 
-// ===== ONLINE PRESENCE HEARTBEAT =====
+// ===== ONLINE PRESENCE HEARTBEAT + SESSION TRACKING =====
 var _heartbeatInterval = null;
+var _currentSessionId = null;
+var _sessionStartTime = null;
+var _lastPingTime = null;
 
 function startPresence() {
   if (!db || !userId) return;
   console.log('[Presence] Starting for', userName, userId);
+
+  // Create a new session document
+  _sessionStartTime = new Date().toISOString();
+  _lastPingTime = null;
+  var sessionRef = db.collection('sessions').doc();
+  _currentSessionId = sessionRef.id;
+  sessionRef.set({
+    userId: userId,
+    userName: userName,
+    startTime: _sessionStartTime,
+    endTime: _sessionStartTime,
+    duration: 0
+  }).catch(function(e) { console.warn('[Session] Create error:', e); });
+
   // Ping immediately
   _pingPresence();
   // Heartbeat every 30s
@@ -227,15 +244,42 @@ function startPresence() {
 
 function _pingPresence() {
   if (!db || !userId) return;
-  var now = new Date().toISOString();
-  console.log('[Presence] Ping at', now);
-  db.collection('users').doc(userId).set({
-    lastSeen: now
-  }, { merge: true }).catch(function(e) { console.warn('[Presence] Error:', e); });
+  var now = new Date();
+  var nowISO = now.toISOString();
+
+  // Update lastSeen + increment totalStudySeconds (30s per ping after first)
+  var userUpdate = { lastSeen: nowISO };
+  if (_lastPingTime) {
+    userUpdate.totalStudySeconds = firebase.firestore.FieldValue.increment(30);
+  }
+  _lastPingTime = now;
+  db.collection('users').doc(userId).set(userUpdate, { merge: true })
+    .catch(function(e) { console.warn('[Presence] Error:', e); });
+
+  // Update session endTime + duration
+  if (_currentSessionId && _sessionStartTime) {
+    var elapsed = Math.floor((now - new Date(_sessionStartTime)) / 1000);
+    db.collection('sessions').doc(_currentSessionId).update({
+      endTime: nowISO,
+      duration: elapsed
+    }).catch(function(e) { console.warn('[Session] Update error:', e); });
+  }
 }
 
 function stopPresence() {
   if (_heartbeatInterval) { clearInterval(_heartbeatInterval); _heartbeatInterval = null; }
+  // Finalize session on explicit logout
+  if (_currentSessionId && _sessionStartTime && db) {
+    var now = new Date();
+    var elapsed = Math.floor((now - new Date(_sessionStartTime)) / 1000);
+    db.collection('sessions').doc(_currentSessionId).update({
+      endTime: now.toISOString(),
+      duration: elapsed
+    }).catch(function(){});
+  }
+  _currentSessionId = null;
+  _sessionStartTime = null;
+  _lastPingTime = null;
 }
 
 // Show welcome popup if first visit
