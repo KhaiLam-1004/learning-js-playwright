@@ -1749,6 +1749,21 @@ D.push({id:10,title:"Page Object Model (POM)",week:"Tuần 8",phase:3,html:[
 '<tr><td>Code lặp lại nhiều</td><td>Gọi hàm gọn gàng</td></tr>',
 '</table>',
 
+'<h3>POM là gì? — Định nghĩa cho người mới</h3>',
+'<div class="b info"><strong>POM (Page Object Model)</strong> = mỗi <strong>trang web</strong> trong app được mô tả bằng 1 <strong>class</strong>. Class đó chứa:<br>• <strong>Locator</strong> (nơi tìm phần tử) ở constructor<br>• <strong>Method</strong> (hành động trên trang) như <code>login()</code>, <code>addToCart()</code><br>Test KHÔNG còn viết locator/action thô — chỉ gọi method từ Page Object.</div>',
+
+'<p>Hình dung: thay vì test "biết cả thế giới" (HTML, locator, action), test chỉ "biết tên trang + tên hành động". Page Object là <strong>người phiên dịch</strong> giữa test và HTML thật.</p>',
+
+'<h3>Lợi ích chi tiết của POM</h3>',
+'<table>',
+'<tr><th>Lợi ích</th><th>Ý nghĩa thực tế</th></tr>',
+'<tr><td><strong>Tái sử dụng</strong></td><td><code>login()</code> dùng ở 30 test → viết 1 lần. Đổi flow → sửa 1 chỗ</td></tr>',
+'<tr><td><strong>Bảo trì</strong></td><td>Dev đổi <code>#login</code> → <code>#login-btn</code> → sửa 1 dòng trong LoginPage.js, 30 test tự ổn</td></tr>',
+'<tr><td><strong>Đọc dễ</strong></td><td><code>await loginPage.login("user","pass")</code> > 4 dòng <code>fill</code>+<code>click</code> rời rạc</td></tr>',
+'<tr><td><strong>Phân chia công việc</strong></td><td>Senior viết Page Object, Junior viết test gọi method — không cần biết HTML</td></tr>',
+'<tr><td><strong>Test ổn định hơn</strong></td><td>Locator tập trung → review/audit dễ → ít flaky</td></tr>',
+'</table>',
+
 '<h2>2. Cấu trúc POM</h2>',
 '<pre>my-automation/\n├── pages/               ← MỖI TRANG = 1 FILE\n│   ├── BasePage.js\n│   ├── LoginPage.js\n│   └── DashboardPage.js\n├── tests/               ← Test gọi hàm từ pages/\n│   └── login.spec.js\n└── playwright.config.js</pre>',
 
@@ -1773,6 +1788,30 @@ D.push({id:10,title:"Page Object Model (POM)",week:"Tuần 8",phase:3,html:[
 
 '<h2>5. Best Practices POM</h2>',
 '<div class="b ok"><strong>Quy tắc viết POM tốt:</strong><br>1. <strong>1 Page = 1 File</strong> — không gộp nhiều trang<br>2. <strong>Locator ở constructor</strong> — dễ tìm, dễ sửa<br>3. <strong>Method = hành động có nghĩa</strong> — <code>login()</code> thay vì <code>fillAndClick()</code><br>4. <strong>Method return Page Object</strong> — <code>login() → InventoryPage</code> cho method chaining<br>5. <strong>Không có assertion trong Page</strong> — assertion chỉ ở test file<br>6. <strong>BasePage cho code chung</strong> — goto, screenshot, waitForLoad</div>',
+
+'<h3>Tại sao mỗi quy tắc?</h3>',
+'<table>',
+'<tr><th>Quy tắc</th><th>Lý do</th></tr>',
+'<tr><td>1 Page = 1 File</td><td>File &gt; 300 dòng = khó đọc. Tách rõ ràng → dễ tìm</td></tr>',
+'<tr><td>Locator ở constructor</td><td>Tất cả locator ở 1 chỗ → review nhanh, đổi UI dễ tìm</td></tr>',
+'<tr><td>Method = hành động</td><td>Test đọc như doc: "<code>login</code>", "<code>addToCart</code>" — không cần xem implementation</td></tr>',
+'<tr><td>Không assertion trong Page</td><td>Page mô tả "trang có gì". Assertion là "test kiểm tra điều gì" → tách trách nhiệm. Page tái sử dụng được ở nhiều test với assertion khác nhau</td></tr>',
+'<tr><td>BasePage chung</td><td>Tránh lặp <code>this.page = page</code>, <code>goto()</code> ở mỗi class. DRY (Don\'t Repeat Yourself)</td></tr>',
+'</table>',
+
+'<h3>❌ POM SAI thường gặp</h3>',
+'<pre>// ❌ SAI 1: Assertion trong Page Object\nclass LoginPage {\n  async loginAndCheck(user, pass) {\n    await this.usernameInput.fill(user);\n    await this.passwordInput.fill(pass);\n    await this.submitBtn.click();\n    await expect(this.flashMsg).toBeVisible(); // ❌ assertion trong Page!\n  }\n}\n// → Vấn đề: nếu test khác cần kiểm tra điều khác (URL, text, count) → phải duplicate method\n\n// ✅ ĐÚNG: Page chỉ thực hiện action, test tự assert\nclass LoginPage {\n  async login(user, pass) { /* fill + click */ }\n}\n// Test:\nawait loginPage.login("user", "pass");\nawait expect(page).toHaveURL(/dashboard/); // assertion ở test, linh hoạt</pre>',
+
+'<pre>// ❌ SAI 2: Locator phân tán trong method\nclass LoginPage {\n  async login(user, pass) {\n    await this.page.locator("#username").fill(user);   // ❌ locator inline\n    await this.page.locator("#password").fill(pass);   // ❌\n    await this.page.locator(\'button[type="submit"]\').click(); // ❌\n  }\n}\n// → Khi đổi #username → sửa method (khó tìm). Nếu có 5 method dùng locator này → sửa 5 chỗ\n\n// ✅ ĐÚNG: Locator ở constructor, method chỉ dùng this.xxx\nclass LoginPage {\n  constructor(page) {\n    this.usernameInput = page.locator("#username");  // ✅ tập trung\n    this.passwordInput = page.locator("#password");\n    this.submitBtn = page.locator(\'button[type="submit"]\');\n  }\n  async login(user, pass) {\n    await this.usernameInput.fill(user);  // ✅ dùng this.xxx\n    await this.passwordInput.fill(pass);\n    await this.submitBtn.click();\n  }\n}</pre>',
+
+'<h3>Khi nào KHÔNG nên dùng POM?</h3>',
+'<div class="b warn">POM thêm complexity (file mới, class, import...). <strong>Tránh</strong> POM khi:</div>',
+'<ul>',
+'<li><strong>Project nhỏ, &lt; 5 test:</strong> overkill — viết thẳng cho nhanh</li>',
+'<li><strong>Test 1 lần dùng (smoke 1 luồng đơn giản):</strong> không cần tái sử dụng</li>',
+'<li><strong>Trang động hoàn toàn (form thay đổi liên tục):</strong> Page Object phải sửa liên tục → mất công</li>',
+'</ul>',
+'<div class="b ok"><strong>Quy tắc:</strong> Bắt đầu &gt; 5 test cùng trang HOẶC trang dùng ở nhiều test → tạo Page Object. Trước đó cứ viết thẳng.</div>',
 
 '<pre>// Method chaining — trả về page object tiếp theo\nclass LoginPage extends BasePage {\n  async login(user, pass) {\n    await this.usernameInput.fill(user);\n    await this.passwordInput.fill(pass);\n    await this.submitBtn.click();\n    return new InventoryPage(this.page); // ← trả về trang tiếp theo\n  }\n}\n\n// Trong test — chain gọn gàng:\nconst inventory = await loginPage.login("standard_user", "secret_sauce");\nawait inventory.addToCart("Backpack");</pre>',
 
@@ -1814,10 +1853,44 @@ D.push({id:11,title:"API Testing & Data-driven",week:"Tuần 9",phase:3,html:[
 
 '<p>Trong Playwright, API test dùng <code>request</code> thay vì <code>page</code> — không cần mở trình duyệt.</p>',
 
+'<h3>API là gì? — Nhắc lại cho người mới</h3>',
+'<p><strong>API (Application Programming Interface)</strong> = cách 2 phần mềm "nói chuyện" qua HTTP. Frontend (web/app) gọi API → Backend trả data. Mọi web hiện đại đều hoạt động kiểu này.</p>',
+'<pre>// Vi du: User mo trang san pham\n//\n// 1. Browser → GET /api/products  (yeu cau: lay danh sach san pham)\n// 2. Backend → tra ve JSON: { data: [{id:1, name:"iPhone"}, ...] }\n// 3. Browser → render danh sach len UI</pre>',
+'<p>API test test bước 1-2: gửi request → kiểm tra response (status, body, headers). Bỏ qua bước render UI → nhanh hơn 10-100 lần.</p>',
+
+'<h3>So sánh chi tiết: API test vs UI test</h3>',
+'<table>',
+'<tr><th>Tiêu chí</th><th>API Test</th><th>UI Test</th></tr>',
+'<tr><td>Tốc độ</td><td>~50-200ms / test</td><td>~3-10s / test (slow 30-50x)</td></tr>',
+'<tr><td>Stable (ít flaky)</td><td>✅ Rất ổn (không phụ thuộc CSS, animation)</td><td>⚠️ Dễ flaky (timing, viewport...)</td></tr>',
+'<tr><td>Cover được gì</td><td>Logic backend, validation, status, data</td><td>Toàn bộ flow user từ click → render</td></tr>',
+'<tr><td>KHÔNG cover được</td><td>UI rendering, CSS, JS browser-side</td><td>(cover hết)</td></tr>',
+'<tr><td>Khi nào nên viết</td><td>Mọi endpoint quan trọng</td><td>Critical user journey (login, checkout)</td></tr>',
+'</table>',
+'<div class="b ok"><strong>Quy tắc thực tế:</strong> Test pyramid — viết NHIỀU API test (nhanh, ổn) + ÍT UI test cho critical journey. Không viết UI test cho mọi case.</div>',
+
 '<h2>2. GET — Lấy dữ liệu</h2>',
 '<pre>const { test, expect } = require("@playwright/test");\n\ntest("GET danh sach users", async ({ request }) => {\n  const res = await request.get("https://reqres.in/api/users?page=1");\n\n  // Kiểm tra status code\n  expect(res.status()).toBe(200); // 200 = OK\n\n  // Kiểm tra body\n  const body = await res.json();\n  expect(body.data.length).toBeGreaterThan(0);\n  expect(body.data[0]).toHaveProperty("email");\n});</pre>',
 
 '<div class="term"><strong>Status code phổ biến:</strong><br>200 = OK | 201 = Created | 204 = No Content (deleted) | 400 = Bad Request | 401 = Unauthorized | 404 = Not Found | 500 = Server Error</div>',
+
+'<h3>Status code chi tiết — đọc xong là hiểu API</h3>',
+'<table>',
+'<tr><th>Range</th><th>Ý nghĩa</th><th>Khi gặp test nên làm gì</th></tr>',
+'<tr><td><strong>2xx</strong> (Success)</td><td>Request OK</td><td>Pass test, parse body kiểm tra data</td></tr>',
+'<tr><td>200 OK</td><td>Tổng quát thành công (GET, PUT)</td><td>Verify body có đúng data mong đợi</td></tr>',
+'<tr><td>201 Created</td><td>POST tạo resource mới thành công</td><td>Verify response có ID mới</td></tr>',
+'<tr><td>204 No Content</td><td>Thành công, không có body (DELETE)</td><td>Không cần check body</td></tr>',
+'<tr><td><strong>4xx</strong> (Client error)</td><td>Lỗi từ phía request</td><td>Negative test → verify đúng code 4xx</td></tr>',
+'<tr><td>400 Bad Request</td><td>Request sai format/missing field</td><td>Test thiếu field → verify 400</td></tr>',
+'<tr><td>401 Unauthorized</td><td>Chưa login / token sai</td><td>Test gọi API không token → verify 401</td></tr>',
+'<tr><td>403 Forbidden</td><td>Đã login nhưng không có quyền</td><td>Test user thường gọi admin API → verify 403</td></tr>',
+'<tr><td>404 Not Found</td><td>Resource không tồn tại</td><td>Test GET /users/999999 → verify 404</td></tr>',
+'<tr><td>422 Unprocessable</td><td>Validation fail (sai format email...)</td><td>Test data sai → verify 422</td></tr>',
+'<tr><td><strong>5xx</strong> (Server error)</td><td>Backend bị lỗi</td><td>Báo bug ngay — không phải lỗi của test</td></tr>',
+'<tr><td>500 Internal Server</td><td>Backend crash</td><td>Bug cần dev fix — không retry</td></tr>',
+'<tr><td>503 Service Unavailable</td><td>Backend tạm down</td><td>Retry sau hoặc skip test</td></tr>',
+'</table>',
 
 '<h2>3. POST — Tạo dữ liệu mới</h2>',
 '<pre>test("POST tao user", async ({ request }) => {\n  const res = await request.post("https://reqres.in/api/users", {\n    data: { name: "Minh", job: "Tester" }\n  });\n\n  expect(res.status()).toBe(201);\n  const body = await res.json();\n  expect(body.name).toBe("Minh");\n  expect(body).toHaveProperty("id");\n});</pre>',
@@ -1833,6 +1906,18 @@ D.push({id:11,title:"API Testing & Data-driven",week:"Tuần 9",phase:3,html:[
 '<h2>6. Mock API — "Giả lập" response</h2>',
 '<div class="b idea">💡 Mock giống <strong>diễn viên đóng thế</strong>: thay vì gọi API thật (chậm, không kiểm soát được), bạn "giả" response để test UI khi API lỗi, trả dữ liệu trống, hay chậm.</div>',
 
+'<h3>Khi nào CẦN mock?</h3>',
+'<table>',
+'<tr><th>Tình huống</th><th>Tại sao mock?</th></tr>',
+'<tr><td>Test UI lỗi 500</td><td>Khó tạo lỗi 500 thật → mock cho nhanh</td></tr>',
+'<tr><td>Test UI khi data trống</td><td>DB thật khó dọn sạch → mock <code>{ data: [] }</code></td></tr>',
+'<tr><td>Test UI khi API chậm</td><td>Mock <code>delay: 5000ms</code> để xem loading state</td></tr>',
+'<tr><td>API chưa build xong</td><td>Frontend test trước khi backend ready</td></tr>',
+'<tr><td>API tốn tiền (Stripe, SMS)</td><td>Mock để không charge thật</td></tr>',
+'<tr><td>API bên ngoài unstable</td><td>Mock để test không phụ thuộc third-party</td></tr>',
+'</table>',
+'<div class="b warn"><strong>Khi nào KHÔNG nên mock?</strong> Test integration giữa FE và BE. Mock = giả → không đảm bảo API thật hoạt động đúng. Phải có thêm test với real API (smoke test).</div>',
+
 '<pre>test("Mock API loi 500", async ({ page }) => {\n  // Chặn mọi request đến /api/users\n  await page.route("**/api/users", function(route) {\n    route.fulfill({\n      status: 500,\n      contentType: "application/json",\n      body: JSON.stringify({ error: "Server Error" })\n    });\n  });\n\n  await page.goto("https://example.com/users");\n  // Kiểm tra UI hiển thị thông báo lỗi\n});\n\ntest("Mock API du lieu rong", async ({ page }) => {\n  await page.route("**/api/users", function(route) {\n    route.fulfill({\n      status: 200,\n      contentType: "application/json",\n      body: JSON.stringify({ data: [] }) // mảng rỗng\n    });\n  });\n  // Kiểm tra UI hiển thị "Không có dữ liệu"\n});</pre>',
 
 '<h2>7. Intercept &amp; Modify — Chặn và sửa response</h2>',
@@ -1842,6 +1927,10 @@ D.push({id:11,title:"API Testing & Data-driven",week:"Tuần 9",phase:3,html:[
 
 '<h2>8. Authentication — Test API cần đăng nhập</h2>',
 '<div class="b idea">💡 Nhiều API cần token/cookie để truy cập. Playwright hỗ trợ gửi headers trong mỗi request.</div>',
+
+'<h3>Token Auth flow (Bearer token)</h3>',
+'<pre>// Buoc 1: Client gui credentials\nPOST /api/login\nBody: { email: "user@x.com", password: "123456" }\n\n// Buoc 2: Server verify, tra ve token\nResponse: { token: "eyJhbGc...xyz" }   ← chuoi ma hoa thong tin user\n\n// Buoc 3: Client luu token, gui kem moi request sau\nGET /api/profile\nHeaders: { Authorization: "Bearer eyJhbGc...xyz" }\n\n// Buoc 4: Server verify token, tra data hoac 401 neu sai/het han</pre>',
+'<div class="b ok"><strong>Tại sao dùng token thay vì gửi password mỗi lần?</strong> An toàn (password không lộ), token có thể expire (giới hạn thời gian), revoke được khi logout, không cần lưu password ở client.</div>',
 
 '<pre>test("GET with auth token", async ({ request }) => {\n  // Bước 1: Login để lấy token\n  const loginRes = await request.post("https://api.example.com/login", {\n    data: { email: "admin@test.com", password: "123456" }\n  });\n  const { token } = await loginRes.json();\n\n  // Bước 2: Gọi API với token\n  const res = await request.get("https://api.example.com/profile", {\n    headers: { Authorization: "Bearer " + token }\n  });\n  expect(res.status()).toBe(200);\n  const body = await res.json();\n  expect(body.email).toBe("admin@test.com");\n});</pre>',
 
@@ -1908,6 +1997,22 @@ D.push({id:12,title:"Config, CI/CD & Capstone",week:"Tuần 10-11",phase:3,html:
 
 '<pre>const { defineConfig } = require("@playwright/test");\n\nmodule.exports = defineConfig({\n  testDir: "./tests",\n  timeout: 30000,          // mỗi test tối đa 30 giây\n  retries: 2,              // fail thì thử lại 2 lần\n  workers: 4,              // chạy 4 test song song\n\n  use: {\n    baseURL: "https://the-internet.herokuapp.com",\n    headless: true,                     // chạy ẩn\n    screenshot: "only-on-failure",      // chụp ảnh khi fail\n    video: "retain-on-failure",         // quay video khi fail\n    trace: "retain-on-failure",         // ghi trace khi fail\n  },\n\n  projects: [\n    { name: "chromium", use: { browserName: "chromium" } },\n    { name: "firefox", use: { browserName: "firefox" } },\n    { name: "webkit", use: { browserName: "webkit" } },\n  ],\n\n  reporter: [["html"], ["list"]],\n});</pre>',
 
+'<h3>Giải thích từng option</h3>',
+'<table>',
+'<tr><th>Option</th><th>Nghĩa</th><th>Khi nào đổi giá trị?</th></tr>',
+'<tr><td><code>testDir</code></td><td>Thư mục chứa file test</td><td>Default <code>./tests</code> — thường ổn</td></tr>',
+'<tr><td><code>timeout</code></td><td>Test tối đa chạy bao lâu (ms)</td><td>Tăng lên 60000 nếu test có flow dài (CRUD, payment...)</td></tr>',
+'<tr><td><code>retries</code></td><td>Fail tối đa retry mấy lần</td><td>Local <code>0</code> (debug rõ). CI <code>2</code> (giảm flaky)</td></tr>',
+'<tr><td><code>workers</code></td><td>Số test chạy song song</td><td>Tăng theo số CPU. CI thường để default <code>undefined</code></td></tr>',
+'<tr><td><code>use.baseURL</code></td><td>URL gốc — <code>page.goto("/login")</code> tự thêm baseURL</td><td>Đổi theo môi trường (dev/staging/prod)</td></tr>',
+'<tr><td><code>use.headless</code></td><td>Chạy ẩn browser (true) hay hiện (false)</td><td><code>true</code> cho CI, dev có thể đổi <code>false</code> tạm thời</td></tr>',
+'<tr><td><code>use.screenshot</code></td><td>Khi nào chụp ảnh: <code>off</code> / <code>on</code> / <code>only-on-failure</code></td><td>Default <code>only-on-failure</code> — đỡ tốn dung lượng</td></tr>',
+'<tr><td><code>use.video</code></td><td>Tương tự, quay video khi nào</td><td><code>retain-on-failure</code> phổ biến</td></tr>',
+'<tr><td><code>use.trace</code></td><td>Ghi trace (cho time-travel debug)</td><td><code>retain-on-failure</code> để debug fail dễ</td></tr>',
+'<tr><td><code>projects</code></td><td>Mỗi project = 1 browser/device riêng</td><td>Thêm bớt theo nhu cầu test</td></tr>',
+'<tr><td><code>reporter</code></td><td>Loại báo cáo: html, list, json, junit</td><td><code>html</code> đẹp nhất, <code>junit</code> cho CI integration</td></tr>',
+'</table>',
+
 '<h2>2. HTML Report</h2>',
 '<pre>npx playwright test          # chạy test\nnpx playwright show-report   # mở báo cáo đẹp</pre>',
 
@@ -1918,6 +2023,17 @@ D.push({id:12,title:"Config, CI/CD & Capstone",week:"Tuần 10-11",phase:3,html:
 '<h2>4. GitHub Actions CI/CD</h2>',
 '<div class="b idea">💡 CI/CD giống <strong>bảo vệ cổng</strong>: mỗi lần push code, hệ thống TỰ ĐỘNG chạy test. Fail → báo ngay, không cho merge code lỗi.</div>',
 
+'<h3>CI vs CD — phân biệt</h3>',
+'<table>',
+'<tr><th>Thuật ngữ</th><th>Đầy đủ</th><th>Làm gì</th></tr>',
+'<tr><td><strong>CI</strong></td><td>Continuous Integration</td><td>Mỗi push → tự động build + test → đảm bảo code không break</td></tr>',
+'<tr><td><strong>CD</strong></td><td>Continuous Deployment</td><td>Sau CI pass → tự động deploy lên staging/production</td></tr>',
+'</table>',
+'<p>QA chủ yếu quan tâm CI (chạy test). CD là phần dev/devops.</p>',
+
+'<h3>Workflow CI/CD chuẩn</h3>',
+'<pre>Developer push code\n    ↓\nGitHub trigger workflow (theo file .github/workflows/*.yml)\n    ↓\n┌──────────────────┐\n│ 1. Checkout code │\n│ 2. Setup Node.js │\n│ 3. npm ci        │\n│ 4. install browsers │\n│ 5. Run tests     │  ← bước quan trọng\n│ 6. Upload report │  ← để xem khi fail\n└──────────────────┘\n    ↓\n  PASS → cho merge PR / deploy\n  FAIL → block merge, gửi noti</pre>',
+
 '<p>Tạo file <code>.github/workflows/playwright.yml</code>:</p>',
 '<pre>name: Playwright Tests\non:\n  push:\n    branches: [main]\n  pull_request:\n    branches: [main]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 20\n      - run: npm ci\n      - run: npx playwright install --with-deps\n      - run: npx playwright test\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: playwright-report\n          path: playwright-report/</pre>',
 
@@ -1925,6 +2041,16 @@ D.push({id:12,title:"Config, CI/CD & Capstone",week:"Tuần 10-11",phase:3,html:
 
 '<h2>5. Fixtures — Chia sẻ setup giữa các test</h2>',
 '<div class="b idea">💡 <strong>Fixture</strong> giống "bộ dụng cụ" được chuẩn bị sẵn cho mỗi test. Thay vì mỗi test tự tạo LoginPage, bạn tạo fixture 1 lần → tất cả test dùng chung.</div>',
+
+'<h3>Fixture vs beforeEach — khác gì?</h3>',
+'<table>',
+'<tr><th>Tiêu chí</th><th>beforeEach</th><th>Fixture</th></tr>',
+'<tr><td>Phạm vi</td><td>Chỉ trong file/describe đó</td><td>Dùng được ở mọi file test (export ra)</td></tr>',
+'<tr><td>Truyền vào test</td><td>Dùng biến closure (let loginPage; ...)</td><td>Truyền qua tham số <code>{ loginPage }</code></td></tr>',
+'<tr><td>Cleanup tự động</td><td>Phải viết afterEach</td><td>Code sau <code>use()</code> tự chạy như cleanup</td></tr>',
+'<tr><td>Compose</td><td>Khó kết hợp nhiều setup</td><td>Fixture có thể phụ thuộc fixture khác</td></tr>',
+'<tr><td>Khi nào dùng</td><td>Setup đơn giản, 1 file</td><td>Setup phức tạp/dùng nhiều file</td></tr>',
+'</table>',
 
 '<pre>// fixtures.js\nconst { test: base } = require("@playwright/test");\nconst LoginPage = require("./pages/LoginPage");\nconst InventoryPage = require("./pages/InventoryPage");\n\n// Tạo custom fixtures\nconst test = base.extend({\n  // Fixture "loginPage" — tự tạo LoginPage cho mỗi test\n  loginPage: async ({ page }, use) => {\n    const loginPage = new LoginPage(page);\n    await loginPage.goto();\n    await use(loginPage);  // truyền vào test\n  },\n\n  // Fixture "loggedInPage" — đã login sẵn!\n  loggedInPage: async ({ page }, use) => {\n    const loginPage = new LoginPage(page);\n    await loginPage.goto();\n    await loginPage.login("standard_user", "secret_sauce");\n    const inventoryPage = new InventoryPage(page);\n    await use(inventoryPage);\n  },\n});\n\nmodule.exports = { test };</pre>',
 
@@ -2118,12 +2244,42 @@ D.push({id:13,title:"Test Strategy & Bug Reporting",week:"Tuần 11",phase:3,htm
 '<div class="term">Test dữ liệu ở ranh giới — nơi bug thường ẩn nấp.</div>',
 '<pre>// 🟡 Input rỗng, cực dài (10000 chars)\n// 🟡 Ký tự đặc biệt, Unicode, emoji\n// 🟡 SQL injection, XSS\n// 🟡 Double-click submit, Back button sau submit</pre>',
 
+'<h3>Equivalence Partitioning + Boundary Value — Kỹ thuật thiết kế test</h3>',
+'<div class="b idea">💡 Không thể test mọi giá trị (vô hạn). 2 kỹ thuật giảm số test mà vẫn cover được:</div>',
+'<p><strong>Equivalence Partitioning</strong>: chia input thành "lớp tương đương" — mỗi lớp test 1 đại diện.</p>',
+'<pre>// VD: Input "tuoi" - thiet ke test\n// Yeu cau: tuoi >= 18 va <= 65 thi cho dang ky\n//\n// Cac lop tuong duong:\n//   Lop 1: tuoi < 18 (invalid)        → test 1 gia tri: 17\n//   Lop 2: 18 <= tuoi <= 65 (valid)   → test 1 gia tri: 30\n//   Lop 3: tuoi > 65 (invalid)        → test 1 gia tri: 70\n//\n// Tu ~100 gia tri → 3 test la du</pre>',
+'<p><strong>Boundary Value Analysis</strong>: bug thường ở RANH GIỚI (dùng <code>&lt;</code> thay vì <code>&lt;=</code>).</p>',
+'<pre>// VD: Tuoi 18-65 → test boundaries:\n//   17 → invalid (just below)\n//   18 → valid (boundary)\n//   65 → valid (boundary)\n//   66 → invalid (just above)\n//\n// 4 test → cover boundary bug 99%</pre>',
+'<div class="b ok"><strong>Quy tắc:</strong> Combine 2 kỹ thuật → mỗi field input có 4-6 test thay vì 100. Đủ cover, không thừa.</div>',
+
+'<h3>Test Pyramid — Tỷ lệ test theo loại</h3>',
+'<pre>           E2E (UI test)\n          /─────────\\          ← 10%   (chậm, đắt, ít)\n         /───────────\\\n        / Integration \\        ← 20%   (vừa)\n       /───────────────\\\n      /     Unit         \\     ← 70%   (nhanh, rẻ, nhiều)\n     /─────────────────────\\\n</pre>',
+'<p>Pyramid này nói: viết NHIỀU unit test (dev viết), ít integration, RẤT ÍT E2E (QA tập trung). Tránh "ice cream cone" (nhiều E2E, ít unit) — chậm, flaky.</p>',
+
 '<div class="b warn"><strong>Quy tắc 80/20:</strong> 80% bug nằm ở negative + edge case. Viết negative test NHIỀU hơn positive!</div>',
 
 '<hr class="sep">',
 
 '<h2>4. Bug Report chuẩn</h2>',
 '<div class="b idea">💡 Report bug tốt = dev fix nhanh. Report tệ = bug tồn tại mãi.</div>',
+
+'<h3>Severity vs Priority — đừng nhầm</h3>',
+'<table>',
+'<tr><th></th><th>Severity (mức nghiêm trọng)</th><th>Priority (mức ưu tiên fix)</th></tr>',
+'<tr><td>Ai đặt?</td><td>QA — dựa vào impact kỹ thuật</td><td>PM/PO — dựa vào business</td></tr>',
+'<tr><td>Trả lời câu hỏi</td><td>"Bug này tệ thế nào?"</td><td>"Khi nào cần fix?"</td></tr>',
+'<tr><td>VD Critical Severity nhưng Low Priority</td><td>Crash xảy ra ở 1 trang ít user dùng → chờ sprint sau</td><td></td></tr>',
+'<tr><td>VD Low Severity nhưng High Priority</td><td>Logo công ty sai trên landing page → fix ngay (CEO chú ý)</td><td></td></tr>',
+'</table>',
+
+'<h3>Severity scale chi tiết</h3>',
+'<table>',
+'<tr><th>Severity</th><th>Tiêu chí</th><th>Ví dụ</th></tr>',
+'<tr><td>🔴 <strong>Critical</strong></td><td>Hệ thống sập / Mất data / Security hole</td><td>Crash khi click Login. SQL injection.</td></tr>',
+'<tr><td>🟠 <strong>Major</strong></td><td>Feature chính KHÔNG hoạt động, không workaround</td><td>Checkout không submit được. Email reset password không gửi.</td></tr>',
+'<tr><td>🟡 <strong>Minor</strong></td><td>Feature lệch / có workaround</td><td>Sort sai 1 vài record. Validation message không rõ.</td></tr>',
+'<tr><td>⚪ <strong>Trivial</strong></td><td>Cosmetic, không ảnh hưởng dùng</td><td>Typo, padding lệch 2px, màu nhạt.</td></tr>',
+'</table>',
 
 '<h3>Template</h3>',
 '<table>',
@@ -2188,6 +2344,16 @@ D.push({id:14,title:"Playwright Nâng cao",week:"Tuần 12",phase:3,html:[
 '<h2>1. Mobile & Responsive Testing</h2>',
 '<div class="b idea">💡 60%+ user dùng điện thoại. Playwright giả lập mobile viewport mà không cần thiết bị thật.</div>',
 
+'<h3>Emulation vs Thiết bị thật</h3>',
+'<table>',
+'<tr><th></th><th>Playwright emulation</th><th>Thiết bị thật</th></tr>',
+'<tr><td>Tốc độ</td><td>Nhanh — chỉ thay đổi viewport + userAgent</td><td>Chậm — phải kết nối thiết bị</td></tr>',
+'<tr><td>Cover được</td><td>Layout, responsive CSS, touch event</td><td>Tất cả + iOS Safari quirks, hardware</td></tr>',
+'<tr><td>KHÔNG cover</td><td>Native gesture, GPU rendering, network throttling thật</td><td>(cover hết)</td></tr>',
+'<tr><td>Khi nào đủ</td><td>90% case responsive — đủ cho regression</td><td>Test final trước release lớn</td></tr>',
+'</table>',
+'<div class="b ok"><strong>Quy tắc:</strong> Bắt đầu với emulation (chiếm 90% effort). Cuối release test thiết bị thật cho critical path. Không cần mua iPhone để test mỗi commit.</div>',
+
 '<h3>1.1. Test trên mobile</h3>',
 '<pre>const { test, devices } = require("@playwright/test");\n\ntest.use(devices["iPhone 13"]);\n\ntest("Mobile: hamburger menu", async ({ page }) => {\n  await page.goto("https://example.com");\n  await expect(page.locator(".hamburger")).toBeVisible();\n  await expect(page.locator(".desktop-nav")).toBeHidden();\n});</pre>',
 
@@ -2199,6 +2365,19 @@ D.push({id:14,title:"Playwright Nâng cao",week:"Tuần 12",phase:3,html:[
 '<h2>2. storageState — Login 1 lần, dùng nhiều test</h2>',
 '<div class="b idea">💡 50 test × 3s login = 150s lãng phí. storageState: login 1 lần → tất cả test dùng lại!</div>',
 
+'<h3>storageState là gì?</h3>',
+'<p>Browser context (cookies, localStorage, sessionStorage) được serialize ra file JSON. Playwright load lại file → context có sẵn cookie/token → giống như đã login.</p>',
+'<pre>// Noi dung file auth.json (sau khi login)\n{\n  "cookies": [\n    { "name": "session_id", "value": "abc123", "domain": ".saucedemo.com", ... }\n  ],\n  "origins": [\n    {\n      "origin": "https://www.saucedemo.com",\n      "localStorage": [{ "name": "user_token", "value": "xyz" }]\n    }\n  ]\n}</pre>',
+'<p>Khi test mở browser với <code>storageState: "auth.json"</code>, Playwright tự inject cookies + localStorage vào → trang nghĩ user đã login.</p>',
+
+'<h3>Khi nào KHÔNG dùng storageState?</h3>',
+'<ul>',
+'<li>Test bản thân flow login (<code>test("Login OK")</code>) — phải bắt đầu chưa login</li>',
+'<li>Test với nhiều user role khác nhau (admin, user, guest) — cần multiple storageState files</li>',
+'<li>Token expire ngắn (15 phút) — chạy test xong là hết hạn → phải refresh thường</li>',
+'</ul>',
+'<div class="b ok"><strong>Pattern thực tế:</strong> Có file <code>tests/auth/login.spec.js</code> không dùng storageState (test login). Các file khác dùng storageState để bypass login.</div>',
+
 '<h3>Global Setup</h3>',
 '<pre>// global-setup.js\nconst { chromium } = require("@playwright/test");\nasync function globalSetup() {\n  const browser = await chromium.launch();\n  const page = await browser.newPage();\n  await page.goto("https://www.saucedemo.com");\n  await page.fill("#user-name", "standard_user");\n  await page.fill("#password", "secret_sauce");\n  await page.click("#login-button");\n  await page.context().storageState({ path: "auth.json" });\n  await browser.close();\n}\nmodule.exports = globalSetup;</pre>',
 
@@ -2209,6 +2388,8 @@ D.push({id:14,title:"Playwright Nâng cao",week:"Tuần 12",phase:3,html:[
 '<hr class="sep">',
 
 '<h2>3. Network Intercept</h2>',
+'<div class="b idea">💡 <code>page.route()</code> = "<strong>chặn xe</strong>" trên đường: bạn quyết định cho qua, đổi nội dung, hay từ chối. <code>waitForResponse()</code> = "<strong>chờ xe đến</strong>" để verify.</div>',
+
 '<h3>Chờ API response</h3>',
 '<pre>test("Chờ API load", async ({ page }) => {\n  const res = page.waitForResponse("**/api/products");\n  await page.goto("https://example.com/shop");\n  expect((await res).status()).toBe(200);\n  await expect(page.locator(".product")).toHaveCount(10);\n});</pre>',
 
@@ -2218,7 +2399,9 @@ D.push({id:14,title:"Playwright Nâng cao",week:"Tuần 12",phase:3,html:[
 '<hr class="sep">',
 
 '<h2>4. Multiple Tabs</h2>',
+'<div class="b idea">💡 Khi click <code>&lt;a target="_blank"&gt;</code> hoặc <code>window.open()</code> → tab mới mở. Test cần "đón" tab mới này để tương tác.</div>',
 '<pre>const [newPage] = await Promise.all([\n  context.waitForEvent("page"),\n  page.click("a[target=_blank]")\n]);\nawait newPage.waitForLoadState();\nconsole.log(await newPage.title());</pre>',
+'<p><strong>Tại sao Promise.all?</strong> Nếu <code>click()</code> trước, tab mở ngay → <code>waitForEvent()</code> bị miss. Promise.all chạy song song: setup listener + click cùng lúc → không miss event.</p>',
 
 '<hr class="sep">',
 
