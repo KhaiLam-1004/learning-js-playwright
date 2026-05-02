@@ -880,7 +880,7 @@ buildExercise('m5_ex3', 'red', 'Bài 3: Chuỗi API calls',
   '<strong>Giải thích:</strong> Mỗi bước dùng kết quả của bước trước: user.id → layDonHang → order.orderId → layChiTiet. Đây là pattern phổ biến khi gọi API thực tế.',
   null, 6),
 
-'<div class="b ok"><strong>Kết nối thực tế — Reward Hub:</strong> Pattern chuỗi async ở bài 3 chính xác là cách bạn sẽ gọi API thực tế ở Module 15:<br><code>getProducts()</code> → chọn sản phẩm → <code>exchangeProduct(productId)</code> → <code>getHistory()</code><br>Mỗi bước dùng kết quả bước trước. Nắm vững bài 3 = nắm vững 80% Module 15.</div>',
+'<div class="b ok"><strong>Sang phase sau:</strong> Pattern chuỗi async ở bài 3 chính là cách gọi API thực tế. Module 15 sẽ áp dụng pattern này vào Got It Reward Hub API — nắm vững bài 3 = nắm vững 80% Module 15.</div>',
 
 '<hr class="sep">',
 
@@ -905,25 +905,7 @@ buildChallenge('m5_race', 'Đua server: ai nhanh hơn?',
 
 defined_pg('Làm bài tập tại đây', '// Viết code bài tập tại đây\n', 4),
 
-'<hr class="sep">',
-'<h2>Bonus: Async với Reward Hub API</h2>',
-'<p>Áp dụng async/await vào API thực tế — dùng mock fetch để chạy ngay trong playground.</p>',
-
-buildExercise('m5_ex4', 'green', 'Bonus 1: Fetch danh sách sản phẩm',
-  'Viết hàm async <code>getProducts(token)</code>: gọi GET /products với Bearer token. In tổng số và tên từng sản phẩm. Dùng mock fetch có sẵn.',
-  'await fetch(url, {headers}), await res.json(). data.data là array, data.meta.total là tổng.',
-  '// Mock fetch\nconst BASE = "/api/rewardhub/v1.1";\nconst fetch = (url, opts) => Promise.resolve({\n  ok: true,\n  json: () => Promise.resolve({\n    data: [\n      {id:1, name:"Voucher Shopee 50k", type:"voucher", point_price:500},\n      {id:2, name:"Voucher Grab 30k",   type:"voucher", point_price:300},\n      {id:3, name:"The Cafe Amazon",    type:"voucher", point_price:200}\n    ],\n    meta: {total: 3, current_page: 1}\n  })\n});\n\nasync function getProducts(token) {\n  // TODO: fetch /products, in Tong: va ten - diem\n}\n\ngetProducts("my_token");',
-  'async function getProducts(token) {\n  const res = await fetch(BASE + "/products", {\n    headers: {"Authorization": "Bearer " + token}\n  });\n  const data = await res.json();\n  console.log("Tong:", data.meta.total, "san pham");\n  data.data.forEach(function(p) {\n    console.log(p.name + " — " + p.point_price + " diem");\n  });\n}\n\ngetProducts("my_token");',
-  'Pattern chuẩn: async function → await fetch → await res.json() → xử lý data. Đây là xương sống của mọi API call.',
-  null, 10),
-
-buildExercise('m5_ex5', 'red', 'Bonus 2: Chuỗi — Lấy sản phẩm → Đổi điểm → Kiểm tra lịch sử',
-  'Viết 3 hàm async (đều có mock fetch): <code>getProducts()</code>, <code>exchangeProduct(id)</code>, <code>getHistory()</code>. Gọi tuần tự: lấy products → đổi sản phẩm đầu tiên → in lịch sử. Dùng try/catch.',
-  'Lưu kết quả mỗi bước vào biến. exchange nhận product.id từ bước trước. Xem lại bài 3 để nhớ pattern.',
-  '// Mock fetch tự động nhận request\nconst BASE = "/api/rewardhub/v1.1";\nconst fetch = (url, opts) => {\n  if (url.includes("/histories")) return Promise.resolve({\n    ok: true,\n    json: () => Promise.resolve({data:[{order_id:"ORD_001",product_name:"Voucher Shopee 50k",status:"pending"}]})\n  });\n  if ((opts && opts.method === "POST")) return Promise.resolve({\n    ok: true,\n    json: () => Promise.resolve({order_id:"ORD_001", status:"pending", message:"Doi diem thanh cong"})\n  });\n  return Promise.resolve({\n    ok: true,\n    json: () => Promise.resolve({data:[{id:1,name:"Voucher Shopee 50k",point_price:500}],meta:{total:1}})\n  });\n};\nconst headers = {"Authorization": "Bearer my_token"};\n\nasync function getProducts() {\n  // TODO: GET /products, return data.data\n}\nasync function exchangeProduct(productId) {\n  // TODO: POST /cart/exchange {product_id, quantity:1, address_id:1}, return json()\n}\nasync function getHistory() {\n  // TODO: GET /histories, return data.data\n}\n\nasync function main() {\n  try {\n    // TODO: goi 3 ham tuan tu, dung ket qua buoc truoc\n  } catch(e) {\n    console.log("Loi:", e.message);\n  }\n}\nmain();',
-  'const BASE = "/api/rewardhub/v1.1";\nconst fetch = (url, opts) => {\n  if (url.includes("/histories")) return Promise.resolve({\n    ok: true,\n    json: () => Promise.resolve({data:[{order_id:"ORD_001",product_name:"Voucher Shopee 50k",status:"pending"}]})\n  });\n  if ((opts && opts.method === "POST")) return Promise.resolve({\n    ok: true,\n    json: () => Promise.resolve({order_id:"ORD_001", status:"pending", message:"Doi diem thanh cong"})\n  });\n  return Promise.resolve({\n    ok: true,\n    json: () => Promise.resolve({data:[{id:1,name:"Voucher Shopee 50k",point_price:500}],meta:{total:1}})\n  });\n};\nconst headers = {"Authorization": "Bearer my_token"};\n\nasync function getProducts() {\n  const res = await fetch(BASE + "/products", {headers});\n  const data = await res.json();\n  console.log("Tim thay", data.data.length, "san pham");\n  return data.data;\n}\nasync function exchangeProduct(productId) {\n  const res = await fetch(BASE + "/cart/exchange", {\n    method: "POST",\n    headers: Object.assign({"Content-Type":"application/json"}, headers),\n    body: JSON.stringify({product_id: productId, quantity: 1, address_id: 1})\n  });\n  const data = await res.json();\n  console.log("Doi diem:", data.message);\n  return data;\n}\nasync function getHistory() {\n  const res = await fetch(BASE + "/histories", {headers});\n  const data = await res.json();\n  return data.data;\n}\n\nasync function main() {\n  try {\n    const products = await getProducts();\n    const order = await exchangeProduct(products[0].id);\n    const history = await getHistory();\n    console.log("Lich su:", history[0].product_name, "—", history[0].status);\n  } catch(e) {\n    console.log("Loi:", e.message);\n  }\n}\nmain();',
-  'Ba hàm độc lập → gọi tuần tự trong main(). Kết quả products[0].id → exchangeProduct → order.order_id có thể dùng verify history. Đây là flow đầy đủ của Reward Hub.',
-  null, 16),
+'<div class="b idea">💡 <strong>Hết Module 5.</strong> Phần bonus áp dụng async vào API thực tế (Reward Hub) đã được chuyển sang <strong>Module 15</strong> — sẽ học sau khi đã qua Playwright và hiểu pattern HTTP API testing.</div>',
 
 ].join('\n')});
 
@@ -1062,33 +1044,39 @@ buildExercise('m6_ex2', 'yellow', 'Bài 2: Kế thừa Class',
   '<strong>Giải thích:</strong> <code>extends</code> kế thừa. <code>super(ten, luong)</code> gọi constructor cha. QuanLy có thêm soPhoiHop và method thuong().',
   null, 8),
 
-buildExercise('m6_ex_async', 'yellow', 'Bài 3: Class với Async method',
-  'Tạo class <code>ApiService</code>(baseUrl, token):<br>• Async method <code>getProducts()</code>: GET /products, trả về data.data<br>• Async method <code>exchange(productId)</code>: POST /cart/exchange {product_id, quantity:1, address_id:1}, trả về json<br>Tạo instance, gọi getProducts(), in tên và điểm từng sản phẩm.',
-  '<code>async getProducts() { const res = await fetch(...); ... }</code>. Mỗi method là async function riêng. Dùng <code>this.baseUrl</code>, <code>this.token</code>.',
-  '// Mock fetch\nconst fetch = (url, opts) => {\n  if (opts && opts.method === "POST") return Promise.resolve({\n    ok:true, json:()=>Promise.resolve({order_id:"ORD_001", message:"Doi diem thanh cong"})\n  });\n  return Promise.resolve({\n    ok:true, json:()=>Promise.resolve({\n      data:[{id:1,name:"Voucher Shopee",point_price:500},{id:2,name:"Voucher Grab",point_price:300}]\n    })\n  });\n};\n\nclass ApiService {\n  constructor(baseUrl, token) {\n    this.baseUrl = baseUrl;\n    this.token   = token;\n  }\n\n  async getProducts() {\n    // TODO: fetch GET /products, return data.data\n  }\n\n  async exchange(productId) {\n    // TODO: fetch POST /cart/exchange, return res.json()\n  }\n}\n\nconst api = new ApiService("/api/rewardhub/v1.1", "my_token");\napi.getProducts().then(products => {\n  products.forEach(p => console.log(p.name + " — " + p.point_price + " diem"));\n});',
-  '// Mock fetch\nconst fetch = (url, opts) => {\n  if (opts && opts.method === "POST") return Promise.resolve({\n    ok:true, json:()=>Promise.resolve({order_id:"ORD_001", message:"Doi diem thanh cong"})\n  });\n  return Promise.resolve({\n    ok:true, json:()=>Promise.resolve({\n      data:[{id:1,name:"Voucher Shopee",point_price:500},{id:2,name:"Voucher Grab",point_price:300}]\n    })\n  });\n};\n\nclass ApiService {\n  constructor(baseUrl, token) {\n    this.baseUrl = baseUrl;\n    this.token   = token;\n  }\n  async getProducts() {\n    const res = await fetch(this.baseUrl + "/products", {\n      headers: {"Authorization": "Bearer " + this.token}\n    });\n    const data = await res.json();\n    return data.data;\n  }\n  async exchange(productId) {\n    const res = await fetch(this.baseUrl + "/cart/exchange", {\n      method: "POST",\n      headers: {"Authorization": "Bearer " + this.token, "Content-Type": "application/json"},\n      body: JSON.stringify({product_id: productId, quantity: 1, address_id: 1})\n    });\n    return res.json();\n  }\n}\n\nconst api = new ApiService("/api/rewardhub/v1.1", "my_token");\napi.getProducts().then(products => {\n  products.forEach(p => console.log(p.name + " — " + p.point_price + " diem"));\n});',
-  'Async method trong class = async function thông thường, nhưng có thể dùng <code>this</code>. POM là tập hợp nhiều async methods — bạn vừa tự xây POM mini của Reward Hub.',
-  null, 14),
+buildExercise('m6_ex3', 'yellow', 'Bài 3: Sửa lỗi this bị mất trong callback',
+  'Class <code>DemNguoc</code> đang BUG — <code>this.giay</code> in ra NaN. Sửa lại bằng arrow function để <code>this</code> trỏ đúng instance.',
+  'Đổi <code>function() {}</code> trong setTimeout/forEach thành arrow function <code>() => {}</code>.',
+  'class DemNguoc {\n  constructor(giay) { this.giay = giay; }\n\n  bat_dau() {\n    // BUG: function() co "this" rieng — khong phai DemNguoc instance\n    setTimeout(function() {\n      this.giay--;\n      console.log("Con:", this.giay, "giay");\n    }, 100);\n  }\n}\n\nnew DemNguoc(5).bat_dau();',
+  'class DemNguoc {\n  constructor(giay) { this.giay = giay; }\n\n  bat_dau() {\n    // FIX: arrow function muon "this" tu scope ngoai (DemNguoc instance)\n    setTimeout(() => {\n      this.giay--;\n      console.log("Con:", this.giay, "giay");\n    }, 100);\n  }\n}\n\nnew DemNguoc(5).bat_dau();',
+  'Quy tắc: trong class, callback luôn dùng <code>() => {}</code>. Regular function <code>function() {}</code> có <code>this</code> riêng nên trỏ về undefined (strict mode).',
+  null, 6),
 
-'<hr class="sep">',
-'<h2>Bonus: Class thực tế — Reward Hub</h2>',
-'<p>Áp dụng OOP vào domain thực tế: sản phẩm và giỏ hàng trong hệ thống đổi điểm.</p>',
+buildExercise('m6_ex4', 'green', 'Bài 4: Static method — Helper class',
+  'Tạo class <code>TienVN</code> chỉ có static methods (không cần new):<br>• <code>format(soTien)</code>: trả về "1,000,000 VND"<br>• <code>doiUSD(soTien, ty_gia)</code>: chuyển VND→USD<br>Gọi <code>TienVN.format(1500000)</code> và <code>TienVN.doiUSD(2400000, 24000)</code>.',
+  'Dùng từ khóa <code>static</code> trước tên method. Gọi qua tên class (không new).',
+  'class TienVN {\n  // TODO: static format(soTien)\n  // TODO: static doiUSD(soTien, ty_gia)\n}\n\nconsole.log(TienVN.format(1500000));\nconsole.log("USD:", TienVN.doiUSD(2400000, 24000));',
+  'class TienVN {\n  static format(soTien) {\n    return soTien.toLocaleString("vi-VN") + " VND";\n  }\n  static doiUSD(soTien, ty_gia) {\n    return (soTien / ty_gia).toFixed(2) + " USD";\n  }\n}\n\nconsole.log(TienVN.format(1500000));         // "1.500.000 VND"\nconsole.log("USD:", TienVN.doiUSD(2400000, 24000)); // "100.00 USD"',
+  'Static method = utility/helper, không cần state. Gọi trực tiếp <code>ClassName.method()</code>. Trong Playwright bạn sẽ gặp pattern này khi viết utility classes.',
+  null, 7),
 
-buildExercise('m6_ex3', 'green', 'Bonus 1: Class SanPham',
-  'Tạo class <code>SanPham</code>: constructor(id, ten, type, pointPrice, stock).<br>Method <code>moTa()</code>: trả về "[type] TEN - X diem".<br>Method <code>coThe(userPoints)</code>: true nếu đủ điểm VÀ còn hàng.',
-  'this.pointPrice, this.stock dùng trong method. coThe() kiểm tra 2 điều kiện cùng lúc với &&.',
-  'class SanPham {\n  // TODO: constructor + moTa() + coThe(userPoints)\n}\n\nconst sp1 = new SanPham(1, "Voucher Shopee 50k", "voucher", 500, 10);\nconst sp2 = new SanPham(2, "Voucher Grab 30k", "voucher", 300, 5);\nconsole.log(sp1.moTa());\nconsole.log("Doi sp1 (400 diem):", sp1.coThe(400));\nconsole.log("Doi sp2 (400 diem):", sp2.coThe(400));',
-  'class SanPham {\n  constructor(id, ten, type, pointPrice, stock) {\n    this.id = id;\n    this.ten = ten;\n    this.type = type;\n    this.pointPrice = pointPrice;\n    this.stock = stock;\n  }\n  moTa() {\n    return "[" + this.type + "] " + this.ten + " - " + this.pointPrice + " diem";\n  }\n  coThe(userPoints) {\n    return userPoints >= this.pointPrice && this.stock > 0;\n  }\n}\n\nconst sp1 = new SanPham(1, "Voucher Shopee 50k", "voucher", 500, 10);\nconst sp2 = new SanPham(2, "Voucher Grab 30k", "voucher", 300, 5);\nconsole.log(sp1.moTa());\nconsole.log("Doi sp1 (400 diem):", sp1.coThe(400));\nconsole.log("Doi sp2 (400 diem):", sp2.coThe(400));',
-  'SanPham phản ánh data thực từ API: type (voucher/physical), pointPrice (điểm cần), stock (tồn kho). coThe() = logic nghiệp vụ trước khi gọi POST /cart/exchange.',
+buildExercise('m6_ex5', 'yellow', 'Bài 5: Getter — Computed property',
+  'Tạo class <code>SinhVien</code> (ten, ds_diem) với getters:<br>• <code>diemTB</code>: trung bình cộng ds_diem<br>• <code>xepLoai</code>: "Gioi" nếu TB ≥ 8, "Kha" ≥ 6.5, "TB" ≥ 5, ngược lại "Yeu"<br>Truy cập như property (<strong>không có dấu ngoặc</strong>).',
+  '<code>get diemTB() { return ... }</code>. Đọc bằng <code>sv.diemTB</code> (không có ()).',
+  'class SinhVien {\n  constructor(ten, ds_diem) {\n    this.ten = ten;\n    this.ds_diem = ds_diem;\n  }\n  // TODO: get diemTB()\n  // TODO: get xepLoai()\n}\n\nconst sv = new SinhVien("An", [8, 9, 7, 8.5]);\nconsole.log(sv.ten + ":", sv.diemTB, "->", sv.xepLoai);',
+  'class SinhVien {\n  constructor(ten, ds_diem) {\n    this.ten = ten;\n    this.ds_diem = ds_diem;\n  }\n  get diemTB() {\n    const tong = this.ds_diem.reduce((s, d) => s + d, 0);\n    return (tong / this.ds_diem.length).toFixed(2);\n  }\n  get xepLoai() {\n    const tb = parseFloat(this.diemTB);\n    if (tb >= 8) return "Gioi";\n    if (tb >= 6.5) return "Kha";\n    if (tb >= 5) return "TB";\n    return "Yeu";\n  }\n}\n\nconst sv = new SinhVien("An", [8, 9, 7, 8.5]);\nconsole.log(sv.ten + ":", sv.diemTB, "->", sv.xepLoai);',
+  'Getter cho phép truy cập như property (đẹp hơn method có ()). Bên trong getter có thể gọi getter khác (this.diemTB).',
+  null, 8),
+
+buildExercise('m6_ex6', 'red', 'Bài 6: Tổng hợp — instanceof + xử lý nhiều loại',
+  'Tạo 3 class: <code>Cho</code>, <code>Meo</code>, <code>Chim</code> đều extends <code>ThuCung</code>(ten).<br>Viết hàm <code>chamSoc(thuCung)</code>:<br>• Nếu là Cho → "Dat ten + dan di dao"<br>• Nếu là Meo → "Dat ten + cho ngu"<br>• Nếu là Chim → "Dat ten + cho hat"<br>Test với 3 instance khác nhau.',
+  'Dùng <code>thuCung instanceof Cho</code> để kiểm tra loại.',
+  'class ThuCung {\n  constructor(ten) { this.ten = ten; }\n}\n// TODO: 3 class extends ThuCung\n\nfunction chamSoc(thuCung) {\n  // TODO: instanceof check\n}\n\nchamSoc(new Cho("Lucky"));\nchamSoc(new Meo("Miu"));\nchamSoc(new Chim("Chich"));',
+  'class ThuCung {\n  constructor(ten) { this.ten = ten; }\n}\nclass Cho extends ThuCung {}\nclass Meo extends ThuCung {}\nclass Chim extends ThuCung {}\n\nfunction chamSoc(t) {\n  if (t instanceof Cho)  return console.log(t.ten + " — dan di dao");\n  if (t instanceof Meo)  return console.log(t.ten + " — cho ngu");\n  if (t instanceof Chim) return console.log(t.ten + " — cho hat");\n  console.log(t.ten + " — khong ro can gi");\n}\n\nchamSoc(new Cho("Lucky"));\nchamSoc(new Meo("Miu"));\nchamSoc(new Chim("Chich"));',
+  '<code>instanceof</code> kiểm tra object có thuộc class nào. Pattern này cực phổ biến khi 1 hàm xử lý nhiều loại object khác nhau.',
   null, 10),
 
-buildExercise('m6_ex4', 'red', 'Bonus 2: Class GioHang',
-  'Dùng class SanPham có sẵn. Tạo class <code>GioHang</code> (userPoints):<br>• <code>them(sp, soLuong)</code>: thêm vào giỏ<br>• <code>tongDiem()</code>: tổng điểm cần (dùng reduce)<br>• <code>doiDuoc()</code>: true nếu đủ điểm<br>• <code>tomTat()</code>: in từng item + tổng',
-  'tongDiem() dùng this.items.reduce(). doiDuoc() gọi this.tongDiem() để so sánh.',
-  'class SanPham {\n  constructor(id, ten, type, pointPrice, stock) {\n    this.id = id; this.ten = ten; this.type = type;\n    this.pointPrice = pointPrice; this.stock = stock;\n  }\n}\n\nclass GioHang {\n  // TODO: constructor(userPoints)\n  // TODO: them(sp, soLuong)\n  // TODO: tongDiem()\n  // TODO: doiDuoc()\n  // TODO: tomTat()\n}\n\nconst gio = new GioHang(800);\ngio.them(new SanPham(1, "Voucher Shopee", "voucher", 500, 10), 1);\ngio.them(new SanPham(2, "Voucher Grab", "voucher", 300, 5), 1);\ngio.tomTat();\nconsole.log("Tong diem:", gio.tongDiem());\nconsole.log("Doi duoc:", gio.doiDuoc());',
-  'class SanPham {\n  constructor(id, ten, type, pointPrice, stock) {\n    this.id = id; this.ten = ten; this.type = type;\n    this.pointPrice = pointPrice; this.stock = stock;\n  }\n}\n\nclass GioHang {\n  constructor(userPoints) {\n    this.userPoints = userPoints;\n    this.items = [];\n  }\n  them(sp, soLuong) {\n    this.items.push({sp: sp, soLuong: soLuong});\n  }\n  tongDiem() {\n    return this.items.reduce(function(s, i) { return s + i.sp.pointPrice * i.soLuong; }, 0);\n  }\n  doiDuoc() {\n    return this.userPoints >= this.tongDiem();\n  }\n  tomTat() {\n    this.items.forEach(function(i) {\n      console.log(i.sp.ten + " x" + i.soLuong + " = " + (i.sp.pointPrice * i.soLuong) + " diem");\n    });\n    console.log("--- Tong:", this.tongDiem(), "diem");\n  }\n}\n\nconst gio = new GioHang(800);\ngio.them(new SanPham(1, "Voucher Shopee", "voucher", 500, 10), 1);\ngio.them(new SanPham(2, "Voucher Grab", "voucher", 300, 5), 1);\ngio.tomTat();\nconsole.log("Tong diem:", gio.tongDiem());\nconsole.log("Doi duoc:", gio.doiDuoc());',
-  'GioHang.tongDiem() → doiDuoc() là logic chạy TRƯỚC khi gọi POST /cart/exchange. Đây là pattern validate phía client — tiết kiệm 1 API call khi biết chắc sẽ lỗi.',
-  null, 14),
+'<div class="b idea">💡 <strong>Hết Module 6.</strong> Phần bonus áp dụng OOP vào domain Reward Hub (class ApiService, SanPham, GioHang) đã được chuyển sang <strong>Module 15</strong> — học sau khi đã qua Playwright.</div>',
 
 ].join('\n')});
 
@@ -1208,6 +1196,16 @@ D.push({id:7,title:"Playwright Cơ bản",week:"Tuần 5",phase:2,html:[
 '<tr><td><code>await expect(page)</code></td><td>Kiểm tra kết quả</td></tr>',
 '</table>',
 
+'<h3>Giải thích kỹ: <code>async ({ page })</code> đến từ đâu?</h3>',
+'<div class="b idea">💡 <code>{ page }</code> là cú pháp <strong>destructuring</strong> trong JavaScript. Playwright gọi đây là <strong>"fixture"</strong> — nó tự động tạo sẵn 1 page (tab trình duyệt) và "đưa" cho test của bạn dùng.<br><br>Mỗi test nhận được 1 <code>page</code> <strong>mới, sạch sẽ</strong> — không bị test trước làm bẩn (test isolation).</div>',
+
+'<pre>// Tuong duong cach viet rieng tung dong:\ntest("Mo trang", async (fixtures) => {\n  const page = fixtures.page;  // lay page tu fixture\n  await page.goto("...");\n});\n\n// Cach destructuring (ngan gon hon, dung trong moi test):\ntest("Mo trang", async ({ page }) => {\n  await page.goto("...");\n});\n\n// Co the destructure them: { page, request, context, browser }\ntest("API + UI", async ({ page, request }) => {\n  await request.get("/api/...");  // call API\n  await page.goto("...");          // mo trang\n});</pre>',
+
+'<h3>Giải thích kỹ: <code>expect</code> là gì?</h3>',
+'<div class="b idea">💡 <code>expect</code> = "tôi <strong>kỳ vọng</strong>...". Đây là cách Playwright hỏi: "kết quả có đúng không?". Nếu sai → test FAIL, ghi log lỗi rõ ràng.<br><br>Cú pháp: <code>expect(thứ_kiểm_tra).matcher(giá_trị_mong_đợi)</code>. Có ~30 matcher khác nhau — Module 9 sẽ học chi tiết.</div>',
+
+'<pre>// Cong thuc chung: expect(X).matcher(Y)\nawait expect(page).toHaveTitle(/Google/);                         // page co title chua "Google"?\nawait expect(page.locator("button")).toBeVisible();              // button hien thi?\nawait expect(page.locator("h1")).toHaveText("Welcome");          // h1 co text "Welcome"?\nawait expect(page.locator(".cart-badge")).toHaveText("3");       // gio hang co 3 san pham?\n\n// Khi assertion fail, Playwright log:\n// Expected: "Welcome"\n// Received: "Hello"\n// → ban biet ngay sai cho nao</pre>',
+
 '<h2>4. Chạy test</h2>',
 '<pre># Chạy tất cả test\nnpx playwright test\n\n# Chạy 1 file cụ thể\nnpx playwright test bai1.spec.js\n\n# Chạy và MỞ TRÌNH DUYỆT cho xem\nnpx playwright test --headed\n\n# Mở UI mode (siêu đẹp, dễ debug)\nnpx playwright test --ui\n\n# Xem báo cáo sau khi chạy\nnpx playwright show-report</pre>',
 
@@ -1270,6 +1268,14 @@ buildExercise('m7_ex2', 'yellow', 'Bài 2: Viết test Login',
   'const { test, expect } = require("@playwright/test");\n\ntest("Login OK", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/login");\n  await page.fill("#username", "tomsmith");\n  await page.fill("#password", "SuperSecretPassword!");\n  await page.click(\'button[type="submit"]\');\n  await expect(page.locator(".flash")).toContainText("secure area");\n});',
   'fill() điền text vào input. click() nhấn nút. toContainText() kiểm tra text hiển thị.',
   null, 8),
+
+buildExercise('m7_ex3', 'green', 'Bài 3: Viết test bằng Codegen (mô phỏng)',
+  'Codegen tự sinh code khi bạn thao tác trên trang. Hãy viết MANUAL phiên bản code mà Codegen sẽ sinh ra cho flow:<br>1. Mở <code>https://the-internet.herokuapp.com/inputs</code><br>2. Click vào input number<br>3. Gõ "42"<br>4. Verify input có value "42"<br><br>Codegen ưu tiên: getByRole, getByLabel.',
+  'Trên trang chỉ có 1 input. Dùng <code>page.locator(\'input[type="number"]\')</code> hoặc <code>getByRole("spinbutton")</code>.',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Input number bang codegen pattern", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/inputs");\n  // TODO: click input, fill "42", verify toHaveValue("42")\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Input number bang codegen pattern", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/inputs");\n  const input = page.getByRole("spinbutton");\n  await input.click();\n  await input.fill("42");\n  await expect(input).toHaveValue("42");\n});',
+  'Hiểu pattern Codegen sinh ra để (1) đọc được code khi nó tự sinh và (2) viết tay khi cần. Workflow thực tế: chạy codegen → copy → tinh chỉnh → có test.',
+  null, 7),
 
 '<hr class="sep">',
 buildExam('exam_m7', 'Bài kiểm tra Module 7 — Playwright Cơ bản', 8, [
@@ -1346,7 +1352,27 @@ D.push({id:8,title:"Locator & Actions",week:"Tuần 5-6",phase:2,html:[
 '<div class="b ok"><strong>Tin vui:</strong> Playwright TỰ ĐỘNG CHỜ phần tử sẵn sàng trước khi tương tác. Không cần viết <code>sleep(3000)</code> như Selenium! Playwright đủ thông minh để biết khi nào nút đã load xong.</div>',
 
 '<p>Khi cần chờ thủ công:</p>',
-'<pre>await page.waitForURL("**/dashboard"); // chờ URL chuyển trang\nawait page.waitForSelector(".loading", { state: "hidden" }); // chờ loading biến mất</pre>',
+'<pre>await page.waitForURL("**/dashboard"); // chờ URL chuyển trang\nawait page.waitForSelector(".loading", { state: "hidden" }); // chờ loading biến mất\nawait page.waitForLoadState("networkidle");                     // chờ network im</pre>',
+
+'<hr class="sep">',
+
+'<h2>4. Tìm Locator bằng Pick Locator (Inspector)</h2>',
+'<div class="b idea">💡 <strong>Pick Locator</strong> là tool số 1 khi viết test — cho phép click chuột vào phần tử bất kỳ trên trang, Playwright tự sinh locator <strong>tốt nhất</strong> cho phần tử đó.</div>',
+
+'<h3>4.1. Cách dùng Pick Locator</h3>',
+'<pre># Bước 1: Chạy test ở chế độ debug\nnpx playwright test --debug\n\n# Bước 2: Inspector mở ra → click nút "Pick locator" (icon target 🎯)\n# Bước 3: Hover/click vào phần tử trên trang\n# Bước 4: Inspector hiển thị locator gợi ý → copy về test</pre>',
+
+'<div class="b ok"><strong>Mẹo:</strong> Pick Locator ưu tiên locator <strong>user-facing</strong> (getByRole, getByLabel, getByText) — đúng best practice. Bạn không cần ngồi viết tay từng selector nữa.</div>',
+
+'<h3>4.2. F12 DevTools — cách thủ công</h3>',
+'<pre>// Buoc 1: F12 (hoac Ctrl+Shift+I) mo DevTools\n// Buoc 2: Click bieu tuong "Inspect" (icon mui ten o goc trai)\n// Buoc 3: Click vao phan tu can test\n// Buoc 4: HTML cua phan tu hien o tab Elements\n//\n// Vi du HTML hien thi:\n//   &lt;button id="login-btn" class="btn primary"&gt;Dang nhap&lt;/button&gt;\n//\n// → locator can dung:\n//   page.getByRole("button", { name: "Dang nhap" })  ✅ tot nhat\n//   page.locator("#login-btn")                      ✅ OK\n//   page.locator(".btn.primary")                    ⚠️ co the trung</pre>',
+
+'<h3>4.3. Strict mode violation — khi locator khớp nhiều</h3>',
+'<div class="b warn"><strong>Lỗi cực phổ biến:</strong> Bạn viết <code>page.locator("button")</code> → trang có 5 nút → Playwright báo lỗi <code>strict mode violation: locator resolved to 5 elements</code>. Đây KHÔNG phải bug — Playwright bắt bạn chỉ định CHÍNH XÁC phần tử nào.</div>',
+
+'<pre>// ❌ SAI: trang co nhieu button → strict mode violation\nawait page.locator("button").click();\n\n// ✅ DUNG: chi dinh ro nut nao\nawait page.getByRole("button", { name: "Dang nhap" }).click();\nawait page.locator("button").first().click();    // nut dau tien\nawait page.locator("button").nth(2).click();      // nut thu 3 (index 2)\nawait page.locator("form button").click();        // chi nut trong form</pre>',
+
+'<hr class="sep">',
 
 '<h2>5. Xử lý Dialog (Alert/Confirm)</h2>',
 '<pre>// Đăng ký listener TRƯỚC khi dialog xuất hiện\npage.on("dialog", async function(dialog) {\n  console.log("Noi dung:", dialog.message());\n  await dialog.accept();   // nhấn OK\n  // await dialog.dismiss(); // nhấn Cancel\n});\n\nawait page.getByText("Show Alert").click();</pre>',
@@ -1374,6 +1400,30 @@ buildExercise('m8_ex2', 'yellow', 'Bài 2: Checkbox + getByRole',
   'check() tick checkbox. toBeChecked() kiểm tra đã tick. .first() lấy phần tử đầu tiên khi locator khớp nhiều.',
   null, 7),
 
+buildExercise('m8_ex3', 'yellow', 'Bài 3: getByRole — locator user-facing',
+  'Mở <code>/login</code>, dùng <strong>getByRole + getByLabel</strong> (KHÔNG dùng CSS selector) để fill username, fill password, click button login. Verify thấy "secure area".',
+  'Username/password có label → getByLabel. Nút login → getByRole("button", {name:...}).',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Login bang getByRole", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/login");\n  // TODO: dung getByLabel cho username + password\n  // TODO: dung getByRole cho button Login\n  // TODO: verify "secure area" hien\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Login bang getByRole", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/login");\n  await page.getByLabel("Username").fill("tomsmith");\n  await page.getByLabel("Password").fill("SuperSecretPassword!");\n  await page.getByRole("button", { name: "Login" }).click();\n  await expect(page.locator(".flash")).toContainText("secure area");\n});',
+  'getByRole + getByLabel = best practice. Locator giống cách user nhìn trang → bền hơn khi dev đổi class/id.',
+  null, 8),
+
+buildExercise('m8_ex4', 'yellow', 'Bài 4: Locator chaining — chọn dòng theo text',
+  'Mở <code>/tables</code>, table#table1 có nhiều dòng. Tìm dòng có chứa text "Smith", verify dòng đó có cell email "jsmith@gmail.com".<br>Pattern: <code>page.locator("tr").filter({ hasText: ... }).locator("td").nth(...)</code>',
+  'filter({hasText:"X"}) chọn dòng/khối chứa text X. Sau đó .locator("td") tìm cell trong dòng đó.',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Filter row by text", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/tables");\n  // TODO: tim row Smith trong #table1, verify email jsmith@gmail.com\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Filter row by text", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/tables");\n  const row = page.locator("#table1 tr").filter({ hasText: "Smith" });\n  await expect(row).toContainText("jsmith@gmail.com");\n});',
+  'Chaining locator là kỹ năng phải có khi test bảng/list. <code>filter({hasText})</code> + <code>filter({has})</code> là 2 pattern dùng hàng ngày.',
+  null, 9),
+
+buildExercise('m8_ex5', 'red', 'Bài 5: Hover + dynamic content',
+  'Mở <code>/hovers</code>, hover lên ảnh đầu tiên (<code>.figure</code> đầu), verify text "name: user1" hiện ra.',
+  '.first() chọn ảnh đầu. .hover() di chuột. Text "user1" chỉ hiện sau khi hover.',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Hover hien thong tin", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/hovers");\n  // TODO: hover figure dau tien, verify "user1" hien\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Hover hien thong tin", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/hovers");\n  const firstFigure = page.locator(".figure").first();\n  await firstFigure.hover();\n  await expect(firstFigure).toContainText("name: user1");\n});',
+  'Hover trigger CSS để hiện element ẩn. Sau hover, dùng assertion bình thường để verify.',
+  null, 8),
+
 '<hr class="sep">',
 buildExam('exam_m8', 'Bài kiểm tra Module 8 — Locator & Actions', 8, [
   {q:'Locator nào được ưu tiên nhất trong Playwright?', opts:['CSS Selector','XPath','getByRole','getByTestId'], answer:2, explain:'getByRole tốt nhất vì nó giống cách user nhìn trang (nút, link, heading...).'},
@@ -1399,13 +1449,35 @@ D.push({id:9,title:"Assertions & Tổ chức Test",week:"Tuần 6-7",phase:2,htm
 '<h3>Soft Assertions — không dừng test khi fail</h3>',
 '<pre>await expect.soft(page.locator(".a")).toHaveText("X");\nawait expect.soft(page.locator(".b")).toHaveText("Y");\n// Test vẫn chạy tiếp dù assertion trên fail\n// Báo cáo cuối cùng sẽ liệt kê TẤT CẢ lỗi</pre>',
 
+'<h3>Negation: <code>not.</code> — kiểm tra điều ngược lại</h3>',
+'<div class="b idea">💡 Thêm <code>.not</code> vào trước assertion để đảo ngược: kiểm tra phần tử KHÔNG hiển thị, KHÔNG có text X, KHÔNG bị tick...</div>',
+'<pre>// Kiem tra ban tin loi KHONG hien thi (login dung)\nawait expect(page.locator(".error")).not.toBeVisible();\n\n// Kiem tra checkbox KHONG bi tick\nawait expect(page.locator("#agree")).not.toBeChecked();\n\n// Kiem tra title KHONG chua text "Error"\nawait expect(page).not.toHaveTitle(/Error/);\n\n// Kiem tra button KHONG bi disable (tuc la enable)\nawait expect(page.locator("button")).not.toBeDisabled();</pre>',
+
+'<h3>Custom timeout — tăng/giảm thời gian chờ</h3>',
+'<div class="b idea">💡 Default timeout = 5 giây. Khi phần tử cần lâu hơn (mạng chậm, animation dài), truyền <code>{ timeout: ms }</code> để tăng. Hoặc giảm xuống để test fail nhanh hơn cho negative cases.</div>',
+'<pre>// Cho 10 giay (api cham, animation lau)\nawait expect(page.locator(".result")).toBeVisible({ timeout: 10000 });\n\n// Cho 1 giay thoi (test phai fail nhanh neu phan tu xuat hien)\nawait expect(page.locator(".error")).not.toBeVisible({ timeout: 1000 });\n\n// Action timeout (click, fill...)\nawait page.locator("button").click({ timeout: 8000 });</pre>',
+
 '<hr class="sep">',
 
 '<h2>2. test.describe — Nhóm test</h2>',
 '<pre>test.describe("Trang Login", function() {\n\n  test.describe("Truong hop dung", function() {\n    test("login thanh cong", async ({ page }) => { });\n    test("chuyen sang dashboard", async ({ page }) => { });\n  });\n\n  test.describe("Truong hop sai", function() {\n    test("sai password", async ({ page }) => { });\n    test("username trong", async ({ page }) => { });\n  });\n\n});</pre>',
 
-'<h2>3. Hooks — beforeEach / afterEach</h2>',
-'<div class="b idea">💡 <code>beforeEach</code> = "việc phải làm TRƯỚC mỗi test" (mở trang, login sẵn...).<br><code>afterEach</code> = "việc phải làm SAU mỗi test" (chụp ảnh, dọn dẹp...).</div>',
+'<h2>3. Hooks — beforeEach / afterEach / beforeAll / afterAll</h2>',
+'<div class="b idea">💡 4 hooks chính:<br>• <code>beforeEach</code> = TRƯỚC <strong>mỗi</strong> test (mở trang, login sẵn...)<br>• <code>afterEach</code>  = SAU <strong>mỗi</strong> test (chụp ảnh, dọn dẹp...)<br>• <code>beforeAll</code>  = TRƯỚC <strong>cả file/describe</strong> (1 lần duy nhất, dùng để setup data lớn)<br>• <code>afterAll</code>   = SAU <strong>cả file/describe</strong> (1 lần duy nhất, dùng để cleanup)</div>',
+
+'<table>',
+'<tr><th>Hook</th><th>Chạy</th><th>Use case</th></tr>',
+'<tr><td><code>beforeEach</code></td><td>Trước MỖI test</td><td>Login, mở trang, reset state</td></tr>',
+'<tr><td><code>afterEach</code></td><td>Sau MỖI test</td><td>Screenshot khi fail, log out</td></tr>',
+'<tr><td><code>beforeAll</code></td><td>1 lần đầu describe</td><td>Tạo user test, seed DB, lấy token API</td></tr>',
+'<tr><td><code>afterAll</code></td><td>1 lần cuối describe</td><td>Xóa user test, clear DB</td></tr>',
+'</table>',
+
+'<pre>test.describe("API user CRUD", function() {\n  let userId;\n\n  // beforeAll: tao 1 user lan duy nhat — dung cho ca describe\n  test.beforeAll(async ({ request }) => {\n    const res = await request.post("/api/users", { data: { name: "test" } });\n    userId = (await res.json()).id;\n  });\n\n  // afterAll: xoa user khi xong tat ca test\n  test.afterAll(async ({ request }) => {\n    await request.delete("/api/users/" + userId);\n  });\n\n  test("GET user", async ({ request }) => { /* dung userId */ });\n  test("UPDATE user", async ({ request }) => { /* dung userId */ });\n  test("USER co orders", async ({ request }) => { /* dung userId */ });\n});</pre>',
+
+'<div class="b warn"><strong>Cẩn thận với beforeAll:</strong> Data tạo trong <code>beforeAll</code> được CHIA SẺ giữa tất cả test → nếu test 1 thay đổi data, test 2 sẽ thấy thay đổi đó. Dùng <code>beforeEach</code> nếu muốn mỗi test có data sạch.</div>',
+
+'<h3>3.1. beforeEach + afterEach trong test thật</h3>',
 
 '<pre>test.describe("Login", function() {\n\n  test.beforeEach(async ({ page }) => {\n    await page.goto("https://the-internet.herokuapp.com/login");\n  });\n\n  test.afterEach(async ({ page }, testInfo) => {\n    if (testInfo.status === "failed") {\n      await page.screenshot({ path: "fail-" + testInfo.title + ".png" });\n    }\n  });\n\n  test("login dung", async ({ page }) => {\n    await page.fill("#username", "tomsmith");\n    await page.fill("#password", "SuperSecretPassword!");\n    await page.click(\'button[type="submit"]\');\n    await expect(page.locator(".flash.success")).toBeVisible();\n  });\n\n  test("login sai", async ({ page }) => {\n    await page.fill("#username", "sai");\n    await page.fill("#password", "sai");\n    await page.click(\'button[type="submit"]\');\n    await expect(page.locator(".flash.error")).toBeVisible();\n  });\n});</pre>',
 
@@ -1442,11 +1514,30 @@ buildExercise('m9_ex2', 'yellow', 'Bài 2: Parameterized Test',
   'Parameterized test: viết code 1 lần, chạy nhiều bộ data. Thêm test case = thêm 1 dòng object.',
   null, 14),
 
+buildExercise('m9_ex3', 'yellow', 'Bài 3: Negation + Custom Timeout',
+  'Viết test login SAI: fill sai password, click submit. Verify:<br>• <code>.flash.error</code> hiện trong vòng 3 giây<br>• <code>.flash.success</code> KHÔNG hiện (dùng <code>not.</code> với timeout 1 giây)',
+  'Dùng <code>{ timeout: 3000 }</code> cho assertion. Negation: <code>expect(...).not.toBeVisible()</code>.',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Login sai - check negation", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/login");\n  await page.fill("#username", "wrong");\n  await page.fill("#password", "wrong");\n  await page.click(\'button[type="submit"]\');\n  // TODO: verify .flash.error VISIBLE trong 3s\n  // TODO: verify .flash.success KHONG hien (timeout 1s)\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest("Login sai - check negation", async ({ page }) => {\n  await page.goto("https://the-internet.herokuapp.com/login");\n  await page.fill("#username", "wrong");\n  await page.fill("#password", "wrong");\n  await page.click(\'button[type="submit"]\');\n  await expect(page.locator(".flash.error")).toBeVisible({ timeout: 3000 });\n  await expect(page.locator(".flash.success")).not.toBeVisible({ timeout: 1000 });\n});',
+  'Negation tests rất quan trọng cho negative cases. Custom timeout giúp test fail nhanh khi expect "không xảy ra".',
+  null, 10),
+
+buildExercise('m9_ex4', 'red', 'Bài 4: beforeAll setup chia sẻ',
+  'Viết test suite có <code>beforeAll</code> đăng nhập 1 lần (dùng biến shared <code>storageState</code> hoặc <code>sharedPage</code>), 2 test sau dùng lại session đó.<br>Pattern: tạo browser context trong beforeAll, đóng trong afterAll.',
+  'beforeAll dùng fixture <code>browser</code> để tạo context. afterAll đóng context.',
+  'const { test, expect } = require("@playwright/test");\n\ntest.describe("Login 1 lan, dung nhieu test", function() {\n  let context, page;\n\n  test.beforeAll(async ({ browser }) => {\n    // TODO: tao context, login\n  });\n\n  test.afterAll(async () => {\n    // TODO: dong context\n  });\n\n  test("Test 1: thay secure area", async () => {\n    // TODO: dung page co san\n  });\n\n  test("Test 2: nhan logout", async () => {\n    // TODO\n  });\n});',
+  'const { test, expect } = require("@playwright/test");\n\ntest.describe("Login 1 lan, dung nhieu test", function() {\n  let context, page;\n\n  test.beforeAll(async ({ browser }) => {\n    context = await browser.newContext();\n    page = await context.newPage();\n    await page.goto("https://the-internet.herokuapp.com/login");\n    await page.fill("#username", "tomsmith");\n    await page.fill("#password", "SuperSecretPassword!");\n    await page.click(\'button[type="submit"]\');\n  });\n\n  test.afterAll(async () => {\n    await context.close();\n  });\n\n  test("Test 1: thay secure area", async () => {\n    await expect(page.locator(".flash.success")).toBeVisible();\n  });\n\n  test("Test 2: nhan logout", async () => {\n    await page.click("a.button.secondary");\n    await expect(page).toHaveURL(/\\/login/);\n  });\n});',
+  '<code>beforeAll</code> + shared context = login 1 lần, tiết kiệm thời gian khi có nhiều test cần auth. Đây là tiền đề cho <code>storageState</code> (Module 14).',
+  null, 14),
+
 '<hr class="sep">',
 buildExam('exam_m9', 'Bài kiểm tra Module 9 — Assertions & Tổ chức Test', 8, [
   {q:'<code>await expect(page).toHaveTitle(/Dashboard/)</code> kiểm tra gì?', opts:['URL chứa Dashboard','Title trang chứa "Dashboard"','Có text Dashboard trên trang','Page đã load'], answer:1, explain:'toHaveTitle kiểm tra thẻ <title> của trang, hỗ trợ regex.'},
   {q:'Soft assertion khác assertion thường ở điểm nào?', opts:['Nhanh hơn','Không dừng test khi fail','Không cần await','Chạy sau test'], answer:1, explain:'expect.soft() ghi nhận fail nhưng test vẫn chạy tiếp. Báo cáo cuối liệt kê tất cả lỗi.'},
   {q:'<code>test.beforeEach</code> chạy khi nào?', opts:['1 lần đầu tiên','Trước MỖI test trong describe','Sau mỗi test','Khi test fail'], answer:1, explain:'beforeEach chạy TRƯỚC mỗi test — dùng để setup (mở trang, login...).'},
+  {q:'Khác biệt <code>beforeAll</code> vs <code>beforeEach</code>?', opts:['Giống nhau','beforeAll chạy 1 lần đầu describe; beforeEach trước MỖI test','beforeAll chạy sau','beforeEach chỉ chạy khi fail'], answer:1, explain:'beforeAll: 1 lần duy nhất (setup user, seed DB). beforeEach: trước mỗi test (mở trang, reset state).'},
+  {q:'<code>await expect(loc).not.toBeVisible()</code> kiểm tra gì?', opts:['Phần tử KHÔNG hiển thị','Phần tử hiển thị','Phần tử bị xóa','Lỗi cú pháp'], answer:0, explain:'.not.matcher() đảo ngược assertion. Dùng cho negative test: error message KHÔNG hiện khi login đúng.'},
+  {q:'Custom timeout: <code>toBeVisible({ timeout: 10000 })</code> nghĩa là?', opts:['Phần tử biến mất sau 10s','Chờ tối đa 10s cho phần tử visible','Lỗi sau 10s','Test chạy 10s'], answer:1, explain:'Default timeout 5s. Tăng lên 10s khi mạng chậm/animation lâu. Giảm xuống cho test fail nhanh.'},
   {q:'Parameterized test dùng để làm gì?', opts:['Chạy test nhanh hơn','Test 1 flow với nhiều bộ dữ liệu khác nhau','Tạo report','Skip test'], answer:1, explain:'Lặp test với mỗi bộ data (credentials, input...) — viết code 1 lần, test nhiều case.'},
   {q:'<code>test.skip("reason")</code> làm gì?', opts:['Xóa test','Bỏ qua test, đánh dấu skipped','Chạy test 2 lần','Fail test'], answer:1, explain:'test.skip bỏ qua test, hiện "skipped" trong report. Dùng khi test chưa viết xong hoặc tạm tắt.'},
   {q:'<code>await expect(locator).toHaveCount(5)</code> kiểm tra gì?', opts:['Text có 5 ký tự','Có 5 phần tử khớp locator','Trang load 5 giây','5 test pass'], answer:1, explain:'toHaveCount đếm số phần tử khớp locator. VD: kiểm tra có 5 items trong danh sách.'}
@@ -2112,6 +2203,34 @@ buildExercise('rh_a5', 'red', 'A5: Xử lý lỗi API',
   'async function safeGetProducts() {\n  try {\n    const res = await fetch(BASE + "/products", {\n      headers: {"Authorization": "Bearer " + TOKEN}\n    });\n    if (!res.ok) {\n      const err = await res.json();\n      throw new Error("Loi " + res.status + ": " + err.message);\n    }\n    const data = await res.json();\n    console.log("OK:", data);\n  } catch(e) {\n    console.log("Da xu ly loi:", e.message);\n  }\n}\nsafeGetProducts();',
   'if (!res.ok) → throw Error → catch bắt lỗi. App không crash khi API trả về lỗi.',
   null, 10),
+
+'<hr class="sep">',
+'<h2>Phần A2: OOP với Reward Hub</h2>',
+'<p>Áp dụng Class (Module 6) + Async (Module 5) vào domain Reward Hub. Đây là pattern bạn sẽ dùng khi xây Page Object Model cho UI Test.</p>',
+
+buildExercise('rh_oop1', 'green', 'OOP-1: Class SanPham',
+  'Tạo class <code>SanPham</code>: constructor(id, ten, type, pointPrice, stock).<br>Method <code>moTa()</code>: trả về "[type] TEN - X diem".<br>Method <code>coThe(userPoints)</code>: true nếu đủ điểm VÀ còn hàng.',
+  'this.pointPrice, this.stock dùng trong method. coThe() kiểm tra 2 điều kiện cùng lúc với &&.',
+  'class SanPham {\n  // TODO: constructor + moTa() + coThe(userPoints)\n}\n\nconst sp1 = new SanPham(1, "Voucher Shopee 50k", "voucher", 500, 10);\nconst sp2 = new SanPham(2, "Voucher Grab 30k", "voucher", 300, 5);\nconsole.log(sp1.moTa());\nconsole.log("Doi sp1 (400 diem):", sp1.coThe(400));\nconsole.log("Doi sp2 (400 diem):", sp2.coThe(400));',
+  'class SanPham {\n  constructor(id, ten, type, pointPrice, stock) {\n    this.id = id;\n    this.ten = ten;\n    this.type = type;\n    this.pointPrice = pointPrice;\n    this.stock = stock;\n  }\n  moTa() {\n    return "[" + this.type + "] " + this.ten + " - " + this.pointPrice + " diem";\n  }\n  coThe(userPoints) {\n    return userPoints >= this.pointPrice && this.stock > 0;\n  }\n}\n\nconst sp1 = new SanPham(1, "Voucher Shopee 50k", "voucher", 500, 10);\nconst sp2 = new SanPham(2, "Voucher Grab 30k", "voucher", 300, 5);\nconsole.log(sp1.moTa());\nconsole.log("Doi sp1 (400 diem):", sp1.coThe(400));\nconsole.log("Doi sp2 (400 diem):", sp2.coThe(400));',
+  'SanPham phản ánh data thực từ API: type (voucher/physical), pointPrice (điểm cần), stock (tồn kho). coThe() = logic nghiệp vụ trước khi gọi POST /cart/exchange.',
+  null, 10),
+
+buildExercise('rh_oop2', 'yellow', 'OOP-2: Class GioHang',
+  'Dùng class SanPham có sẵn. Tạo class <code>GioHang</code> (userPoints):<br>• <code>them(sp, soLuong)</code>: thêm vào giỏ<br>• <code>tongDiem()</code>: tổng điểm cần (dùng reduce)<br>• <code>doiDuoc()</code>: true nếu đủ điểm<br>• <code>tomTat()</code>: in từng item + tổng',
+  'tongDiem() dùng this.items.reduce(). doiDuoc() gọi this.tongDiem() để so sánh.',
+  'class SanPham {\n  constructor(id, ten, type, pointPrice, stock) {\n    this.id = id; this.ten = ten; this.type = type;\n    this.pointPrice = pointPrice; this.stock = stock;\n  }\n}\n\nclass GioHang {\n  // TODO: constructor(userPoints)\n  // TODO: them(sp, soLuong)\n  // TODO: tongDiem()\n  // TODO: doiDuoc()\n  // TODO: tomTat()\n}\n\nconst gio = new GioHang(800);\ngio.them(new SanPham(1, "Voucher Shopee", "voucher", 500, 10), 1);\ngio.them(new SanPham(2, "Voucher Grab", "voucher", 300, 5), 1);\ngio.tomTat();\nconsole.log("Tong diem:", gio.tongDiem());\nconsole.log("Doi duoc:", gio.doiDuoc());',
+  'class SanPham {\n  constructor(id, ten, type, pointPrice, stock) {\n    this.id = id; this.ten = ten; this.type = type;\n    this.pointPrice = pointPrice; this.stock = stock;\n  }\n}\n\nclass GioHang {\n  constructor(userPoints) {\n    this.userPoints = userPoints;\n    this.items = [];\n  }\n  them(sp, soLuong) {\n    this.items.push({sp: sp, soLuong: soLuong});\n  }\n  tongDiem() {\n    return this.items.reduce(function(s, i) { return s + i.sp.pointPrice * i.soLuong; }, 0);\n  }\n  doiDuoc() {\n    return this.userPoints >= this.tongDiem();\n  }\n  tomTat() {\n    this.items.forEach(function(i) {\n      console.log(i.sp.ten + " x" + i.soLuong + " = " + (i.sp.pointPrice * i.soLuong) + " diem");\n    });\n    console.log("--- Tong:", this.tongDiem(), "diem");\n  }\n}\n\nconst gio = new GioHang(800);\ngio.them(new SanPham(1, "Voucher Shopee", "voucher", 500, 10), 1);\ngio.them(new SanPham(2, "Voucher Grab", "voucher", 300, 5), 1);\ngio.tomTat();\nconsole.log("Tong diem:", gio.tongDiem());\nconsole.log("Doi duoc:", gio.doiDuoc());',
+  'GioHang.tongDiem() → doiDuoc() là logic chạy TRƯỚC khi gọi POST /cart/exchange. Đây là pattern validate phía client — tiết kiệm 1 API call khi biết chắc sẽ lỗi.',
+  null, 14),
+
+buildExercise('rh_oop3', 'red', 'OOP-3: Class ApiService với async method',
+  'Tạo class <code>ApiService</code>(baseUrl, token):<br>• Async method <code>getProducts()</code>: GET /products, trả về data.data<br>• Async method <code>exchange(productId)</code>: POST /cart/exchange {product_id, quantity:1, address_id:1}, trả về json<br>Tạo instance, gọi getProducts(), in tên và điểm từng sản phẩm.',
+  '<code>async getProducts() { const res = await fetch(...); ... }</code>. Mỗi method là async function riêng. Dùng <code>this.baseUrl</code>, <code>this.token</code>.',
+  '// Mock fetch\nconst fetch = (url, opts) => {\n  if (opts && opts.method === "POST") return Promise.resolve({\n    ok:true, json:()=>Promise.resolve({order_id:"ORD_001", message:"Doi diem thanh cong"})\n  });\n  return Promise.resolve({\n    ok:true, json:()=>Promise.resolve({\n      data:[{id:1,name:"Voucher Shopee",point_price:500},{id:2,name:"Voucher Grab",point_price:300}]\n    })\n  });\n};\n\nclass ApiService {\n  constructor(baseUrl, token) {\n    this.baseUrl = baseUrl;\n    this.token   = token;\n  }\n\n  async getProducts() {\n    // TODO: fetch GET /products, return data.data\n  }\n\n  async exchange(productId) {\n    // TODO: fetch POST /cart/exchange, return res.json()\n  }\n}\n\nconst api = new ApiService("/api/rewardhub/v1.1", "my_token");\napi.getProducts().then(products => {\n  products.forEach(p => console.log(p.name + " — " + p.point_price + " diem"));\n});',
+  '// Mock fetch\nconst fetch = (url, opts) => {\n  if (opts && opts.method === "POST") return Promise.resolve({\n    ok:true, json:()=>Promise.resolve({order_id:"ORD_001", message:"Doi diem thanh cong"})\n  });\n  return Promise.resolve({\n    ok:true, json:()=>Promise.resolve({\n      data:[{id:1,name:"Voucher Shopee",point_price:500},{id:2,name:"Voucher Grab",point_price:300}]\n    })\n  });\n};\n\nclass ApiService {\n  constructor(baseUrl, token) {\n    this.baseUrl = baseUrl;\n    this.token   = token;\n  }\n  async getProducts() {\n    const res = await fetch(this.baseUrl + "/products", {\n      headers: {"Authorization": "Bearer " + this.token}\n    });\n    const data = await res.json();\n    return data.data;\n  }\n  async exchange(productId) {\n    const res = await fetch(this.baseUrl + "/cart/exchange", {\n      method: "POST",\n      headers: {"Authorization": "Bearer " + this.token, "Content-Type": "application/json"},\n      body: JSON.stringify({product_id: productId, quantity: 1, address_id: 1})\n    });\n    return res.json();\n  }\n}\n\nconst api = new ApiService("/api/rewardhub/v1.1", "my_token");\napi.getProducts().then(products => {\n  products.forEach(p => console.log(p.name + " — " + p.point_price + " diem"));\n});',
+  'Async method trong class = async function thông thường, nhưng có thể dùng <code>this</code>. POM (Page Object Model) là tập hợp nhiều async methods — bạn vừa tự xây POM mini của Reward Hub.',
+  null, 14),
 
 '<hr class="sep">',
 '<h2>Phần B: Playwright API Testing</h2>',

@@ -154,17 +154,99 @@ var userId = localStorage.getItem('pw-userid') || '';
 <script src="js/firebase-helpers.js"></script>
 <script src="js/init.js"></script>
 <script>
-// ===== AUTO VERSION CHECK =====
-// Tăng số này mỗi khi deploy code mới → user tự reload
-var APP_VERSION = 2;
+// ===== AUTO RELOAD KHI DEPLOY MỚI =====
+// Sau khi push lên GitHub → GitHub Pages redeploy (~60-90s) → client poll detect
+// ETag thay đổi → hiện toast countdown → auto reload. Zero admin action.
 (function() {
-  var saved = localStorage.getItem('pw-app-version');
-  if (saved && Number(saved) < APP_VERSION) {
-    localStorage.setItem('pw-app-version', APP_VERSION);
-    location.reload(true);
-    return;
+  var POLL_INTERVAL = 90000; // 90 giây
+  var COUNTDOWN_SECS = 5;
+  var initialFingerprint = null;
+  var noticeShown = false;
+  var cancelReload = false;
+
+  function getFingerprint(res) {
+    return res.headers.get('ETag') || res.headers.get('Last-Modified') || '';
   }
-  localStorage.setItem('pw-app-version', APP_VERSION);
+
+  function pollForUpdate() {
+    if (noticeShown) return;
+    var url = location.pathname + '?_v=' + Date.now();
+    fetch(url, {
+      method: 'HEAD',
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' }
+    }).then(function(res) {
+      var fp = getFingerprint(res);
+      if (!fp) return;
+      if (initialFingerprint === null) {
+        initialFingerprint = fp;
+      } else if (fp !== initialFingerprint) {
+        noticeShown = true;
+        showReloadToast();
+      }
+    }).catch(function() { /* offline, retry next tick */ });
+  }
+
+  function showReloadToast() {
+    var toast = document.createElement('div');
+    toast.id = 'auto-reload-toast';
+    toast.style.cssText = [
+      'position:fixed',
+      'bottom:20px',
+      'right:20px',
+      'background:linear-gradient(135deg,#667eea,#764ba2)',
+      'color:#fff',
+      'padding:16px 20px',
+      'border-radius:14px',
+      'box-shadow:0 12px 40px rgba(102,126,234,0.4)',
+      'z-index:99999',
+      'font-family:system-ui,-apple-system,sans-serif',
+      'font-size:14px',
+      'max-width:320px',
+      'animation:slideUpToast 0.4s ease'
+    ].join(';');
+    toast.innerHTML =
+      '<div style="font-weight:700;margin-bottom:6px;font-size:15px">🎉 Có nội dung mới!</div>' +
+      '<div style="opacity:0.92;font-size:12.5px;margin-bottom:10px">Tự reload sau <span id="rdCount" style="font-weight:700">' + COUNTDOWN_SECS + '</span>s để cập nhật...</div>' +
+      '<div style="display:flex;gap:6px">' +
+      '<button id="rdNow" style="background:#fff;color:#667eea;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px">Reload ngay</button>' +
+      '<button id="rdLater" style="background:rgba(255,255,255,0.18);color:#fff;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px">Để sau</button>' +
+      '</div>';
+
+    // Inject keyframes once
+    if (!document.getElementById('auto-reload-style')) {
+      var style = document.createElement('style');
+      style.id = 'auto-reload-style';
+      style.textContent = '@keyframes slideUpToast { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:translateY(0) } }';
+      document.head.appendChild(style);
+    }
+    document.body.appendChild(toast);
+
+    document.getElementById('rdNow').onclick = function() { location.reload(); };
+    document.getElementById('rdLater').onclick = function() {
+      cancelReload = true;
+      toast.style.animation = 'none';
+      toast.style.transition = 'opacity 0.3s';
+      toast.style.opacity = '0';
+      setTimeout(function() { toast.remove(); }, 300);
+    };
+
+    var remaining = COUNTDOWN_SECS;
+    var timer = setInterval(function() {
+      if (cancelReload) { clearInterval(timer); return; }
+      remaining--;
+      var el = document.getElementById('rdCount');
+      if (el) el.textContent = remaining;
+      if (remaining <= 0) {
+        clearInterval(timer);
+        location.reload();
+      }
+    }, 1000);
+  }
+
+  // Bắt đầu: chạy lần đầu sau 3s (để page load xong, fingerprint reflect deploy hiện tại)
+  setTimeout(pollForUpdate, 3000);
+  setInterval(pollForUpdate, POLL_INTERVAL);
 })();
 </script>
 

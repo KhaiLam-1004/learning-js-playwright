@@ -113,9 +113,9 @@ function editUserName() {
 
 function logoutUser() {
   if (!confirm('Đăng xuất khỏi ' + userName + '?\nTiến độ vẫn được lưu trên server.')) return;
-  // Save current user to Firebase before logout
-  if (_heartbeatInterval) { clearInterval(_heartbeatInterval); _heartbeatInterval = null; }
+  // Save current user + finalize session before logout
   fbSaveUser();
+  stopPresence();
   // Clear all in-memory + localStorage
   userName = '';
   userId = '';
@@ -222,22 +222,32 @@ function startPresence() {
   if (!db || !userId) return;
   console.log('[Presence] Starting for', userName, userId);
 
-  // Create a new session document
+  // Archive any leftover currentSession (e.g. user closed tab without logout last time)
+  db.collection('users').doc(userId).get().then(function(doc) {
+    if (doc.exists) {
+      var prev = doc.data().currentSession;
+      if (prev && prev.id && prev.duration > 0) {
+        db.collection('users').doc(userId).set({
+          recentSessions: firebase.firestore.FieldValue.arrayUnion(prev)
+        }, { merge: true }).catch(function(){});
+      }
+    }
+    _initNewSession();
+  }).catch(function() { _initNewSession(); });
+}
+
+function _initNewSession() {
   _sessionStartTime = new Date().toISOString();
   _lastPingTime = null;
-  var sessionRef = db.collection('sessions').doc();
-  _currentSessionId = sessionRef.id;
-  sessionRef.set({
-    userId: userId,
-    userName: userName,
-    startTime: _sessionStartTime,
-    endTime: _sessionStartTime,
-    duration: 0
-  }).catch(function(e) { console.warn('[Session] Create error:', e); });
+  _currentSessionId = 's_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
 
-  // Ping immediately
+  // Write currentSession into user doc (no separate sessions collection — avoids Firestore rule issues)
+  db.collection('users').doc(userId).set({
+    currentSession: { id: _currentSessionId, startTime: _sessionStartTime, endTime: _sessionStartTime, duration: 0 }
+  }, { merge: true }).catch(function(e) { console.warn('[Session] Create error:', e); });
+
+  // Ping immediately, then every 30s
   _pingPresence();
-  // Heartbeat every 30s
   if (_heartbeatInterval) clearInterval(_heartbeatInterval);
   _heartbeatInterval = setInterval(_pingPresence, 30000);
 }
@@ -247,35 +257,32 @@ function _pingPresence() {
   var now = new Date();
   var nowISO = now.toISOString();
 
-  // Update lastSeen + increment totalStudySeconds (30s per ping after first)
   var userUpdate = { lastSeen: nowISO };
   if (_lastPingTime) {
     userUpdate.totalStudySeconds = firebase.firestore.FieldValue.increment(30);
   }
   _lastPingTime = now;
-  db.collection('users').doc(userId).set(userUpdate, { merge: true })
-    .catch(function(e) { console.warn('[Presence] Error:', e); });
 
-  // Update session endTime + duration
   if (_currentSessionId && _sessionStartTime) {
     var elapsed = Math.floor((now - new Date(_sessionStartTime)) / 1000);
-    db.collection('sessions').doc(_currentSessionId).update({
-      endTime: nowISO,
-      duration: elapsed
-    }).catch(function(e) { console.warn('[Session] Update error:', e); });
+    userUpdate.currentSession = { id: _currentSessionId, startTime: _sessionStartTime, endTime: nowISO, duration: elapsed };
   }
+
+  db.collection('users').doc(userId).set(userUpdate, { merge: true })
+    .catch(function(e) { console.warn('[Presence] Error:', e); });
 }
 
 function stopPresence() {
   if (_heartbeatInterval) { clearInterval(_heartbeatInterval); _heartbeatInterval = null; }
-  // Finalize session on explicit logout
-  if (_currentSessionId && _sessionStartTime && db) {
+  // Archive current session to recentSessions on explicit logout
+  if (_currentSessionId && _sessionStartTime && db && userId) {
     var now = new Date();
     var elapsed = Math.floor((now - new Date(_sessionStartTime)) / 1000);
-    db.collection('sessions').doc(_currentSessionId).update({
-      endTime: now.toISOString(),
-      duration: elapsed
-    }).catch(function(){});
+    var session = { id: _currentSessionId, startTime: _sessionStartTime, endTime: now.toISOString(), duration: elapsed };
+    db.collection('users').doc(userId).set({
+      currentSession: null,
+      recentSessions: firebase.firestore.FieldValue.arrayUnion(session)
+    }, { merge: true }).catch(function(){});
   }
   _currentSessionId = null;
   _sessionStartTime = null;

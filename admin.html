@@ -352,7 +352,7 @@ function renderUsers() {
       '<td onclick="openDetail(\'' + u._id + '\')"><span class="badge badge-primary">M' + (u.currentModule||0) + '</span></td>' +
       '<td onclick="openDetail(\'' + u._id + '\')">' + (u.streak > 0 ? '🔥' + u.streak : '-') + '</td>' +
       '<td onclick="openDetail(\'' + u._id + '\')">' + (u.device||'-') + '</td>' +
-      '<td onclick="openDetail(\'' + u._id + '\')" style="color:var(--text2);font-weight:600">' + formatDuration(u.totalStudySeconds) + '</td>' +
+      '<td onclick="openDetail(\'' + u._id + '\')" style="color:var(--text2);font-weight:600">' + (function(){ var fmt = formatDuration(u.totalStudySeconds); if (fmt === '-' && isUserOnline(u)) return '<span style="color:var(--green);font-size:11px">⏳ Đang theo dõi</span>'; return fmt; })() + '</td>' +
       '<td onclick="openDetail(\'' + u._id + '\')" style="color:var(--text3)">' + (function() {
         var html = timeAgo(u.lastActive);
         if (!isUserOnline(u)) {
@@ -472,6 +472,9 @@ function openDetail(uid) {
 
   // Study time section
   var totalStudyFmt = formatDuration(u.totalStudySeconds);
+  if (totalStudyFmt === '-' && isUserOnline(u)) {
+    totalStudyFmt = '<span style="font-size:14px">⏳ Đang theo dõi</span>';
+  }
   html += '<div class="detail-section"><h4>⏱ Thời gian học</h4>' +
     '<div class="detail-stats" style="margin-bottom:12px">' +
     '<div class="detail-stat"><div class="val" style="font-size:18px;color:var(--green)">' + totalStudyFmt + '</div><div class="lbl">Tổng thời gian</div></div>' +
@@ -567,36 +570,50 @@ function closeDetail() {
 }
 
 function loadUserSessions(uid) {
-  db.collection('sessions').where('userId', '==', uid).limit(30).get().then(function(snap) {
-    var sessions = [];
-    snap.forEach(function(doc) { sessions.push(doc.data()); });
-    // Sort newest first in JS (avoids needing composite index)
-    sessions.sort(function(a, b) { return (b.startTime || '') > (a.startTime || '') ? 1 : -1; });
-    var el = document.getElementById('detailSessions');
-    if (!el) return;
-    if (!sessions.length) { el.innerHTML = '<div class="empty">Chưa có phiên học nào (tính từ khi cập nhật)</div>'; return; }
+  // Read sessions from user doc (currentSession + recentSessions array)
+  // No separate collection query — avoids Firestore rules issues
+  var el = document.getElementById('detailSessions');
+  if (!el) return;
+  var u = allUsers.find(function(x) { return x._id === uid; });
+  if (!u) { el.innerHTML = '<div class="empty">Không tải được</div>'; return; }
 
-    var totalSecs = sessions.reduce(function(s, x) { return s + (x.duration || 0); }, 0);
-    el.innerHTML = '<div style="margin-bottom:10px;font-size:12px;color:var(--text2)"><strong>' + sessions.length + '</strong> phiên · Tổng <strong style="color:var(--green)">' + formatDuration(totalSecs) + '</strong></div>' +
-      sessions.map(function(s) {
-        var start = s.startTime ? new Date(s.startTime) : null;
-        var end = s.endTime ? new Date(s.endTime) : null;
-        var dateStr = start ? start.toLocaleDateString('vi-VN', {weekday:'short', day:'2-digit', month:'2-digit'}) : '';
-        var startStr = start ? start.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12:false}) : '-';
-        var endStr = end ? end.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12:false}) : '-';
-        var dur = formatDuration(s.duration);
-        return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px">' +
-          '<span style="color:var(--text3);font-size:11px;min-width:70px">' + dateStr + '</span>' +
-          '<span style="color:var(--green);font-weight:700">▶ ' + startStr + '</span>' +
-          '<span style="color:var(--text3)">→</span>' +
-          '<span style="color:var(--text3)">■ ' + endStr + '</span>' +
-          '<span style="margin-left:auto;background:rgba(99,102,241,.15);color:var(--primary);padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700">' + dur + '</span>' +
-          '</div>';
-      }).join('');
-  }).catch(function() {
-    var el = document.getElementById('detailSessions');
-    if (el) el.innerHTML = '<div class="empty">Không tải được phiên học</div>';
-  });
+  var sessions = (u.recentSessions || []).slice();
+  if (u.currentSession && u.currentSession.id) sessions.push(u.currentSession);
+
+  // Sort newest first
+  sessions.sort(function(a, b) { return (b.startTime || '') > (a.startTime || '') ? 1 : -1; });
+  sessions = sessions.slice(0, 30);
+
+  if (!sessions.length) {
+    if (isUserOnline(u)) {
+      el.innerHTML = '<div class="empty" style="color:var(--green)">⏳ Đang theo dõi phiên hiện tại...</div>';
+    } else {
+      el.innerHTML = '<div class="empty">Chưa có phiên học nào</div>';
+    }
+    return;
+  }
+
+  var totalSecs = sessions.reduce(function(s, x) { return s + (x.duration || 0); }, 0);
+  var liveId = (u.currentSession && u.currentSession.id) || '';
+  el.innerHTML = '<div style="margin-bottom:10px;font-size:12px;color:var(--text2)"><strong>' + sessions.length + '</strong> phiên · Tổng <strong style="color:var(--green)">' + formatDuration(totalSecs) + '</strong></div>' +
+    sessions.map(function(s) {
+      var start = s.startTime ? new Date(s.startTime) : null;
+      var end = s.endTime ? new Date(s.endTime) : null;
+      var dateStr = start ? start.toLocaleDateString('vi-VN', {weekday:'short', day:'2-digit', month:'2-digit'}) : '';
+      var startStr = start ? start.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12:false}) : '-';
+      var endStr = end ? end.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12:false}) : '-';
+      var dur = formatDuration(s.duration);
+      var isLive = s.id === liveId;
+      var liveBadge = isLive ? '<span style="background:rgba(34,197,94,.2);color:var(--green);padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;margin-right:4px">● LIVE</span>' : '';
+      return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px">' +
+        '<span style="color:var(--text3);font-size:11px;min-width:70px">' + dateStr + '</span>' +
+        liveBadge +
+        '<span style="color:var(--green);font-weight:700">▶ ' + startStr + '</span>' +
+        '<span style="color:var(--text3)">→</span>' +
+        '<span style="color:var(--text3)">' + (isLive ? '⏳' : '■') + ' ' + endStr + '</span>' +
+        '<span style="margin-left:auto;background:rgba(99,102,241,.15);color:var(--primary);padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700">' + dur + '</span>' +
+        '</div>';
+    }).join('');
 }
 
 // ===== DELETE USER =====
