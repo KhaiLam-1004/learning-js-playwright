@@ -154,23 +154,6 @@ var userId = localStorage.getItem('pw-userid') || '';
 <script src="js/firebase-helpers.js"></script>
 <script src="js/init.js"></script>
 <script>
-// ===== ADMIN FORCE RELOAD (realtime push qua Firebase) =====
-// Admin click "Force reload" → ghi forceReload timestamp → onSnapshot trigger → reload ngay (silent)
-(function() {
-  if (typeof db === 'undefined' || !db) return;
-  var baseline = null;
-  db.collection('config').doc('app').onSnapshot(function(doc) {
-    if (!doc.exists) return;
-    var ts = doc.data().forceReload;
-    if (!ts) return;
-    if (baseline === null) { baseline = ts; return; } // 1st snapshot = chỉ ghi baseline
-    if (ts > baseline) {
-      baseline = ts;
-      location.reload();
-    }
-  }, function(err) { console.warn('[ForceReload] listener error:', err); });
-})();
-
 // ===== AUTO RELOAD KHI DEPLOY MỚI =====
 // Sau khi push lên GitHub → GitHub Pages redeploy (~60-90s) → client poll detect
 // ETag thay đổi → hiện toast countdown → auto reload. Zero admin action.
