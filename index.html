@@ -154,6 +154,59 @@ var userId = localStorage.getItem('pw-userid') || '';
 <script src="js/firebase-helpers.js"></script>
 <script src="js/init.js"></script>
 <script>
+// ===== ADMIN FORCE RELOAD (realtime push qua Firebase) =====
+// Admin click "Reload all users" → ghi forceReload timestamp → onSnapshot trigger → toast 3s → reload
+(function() {
+  if (typeof db === 'undefined' || !db) return;
+  var baseline = null;
+  db.collection('config').doc('app').onSnapshot(function(doc) {
+    if (!doc.exists) return;
+    var ts = doc.data().forceReload;
+    if (!ts) return;
+    if (baseline === null) { baseline = ts; return; } // 1st snapshot = chỉ ghi baseline
+    if (ts > baseline) {
+      baseline = ts;
+      showAdminReloadToast(doc.data().reloadedBy || 'Admin');
+    }
+  }, function(err) { console.warn('[ForceReload] listener error:', err); });
+})();
+
+function showAdminReloadToast(by) {
+  if (document.getElementById('admin-reload-toast')) return; // đã hiện rồi
+  var toast = document.createElement('div');
+  toast.id = 'admin-reload-toast';
+  toast.style.cssText = [
+    'position:fixed','bottom:20px','right:20px',
+    'background:linear-gradient(135deg,#ef4444,#f59e0b)',
+    'color:#fff','padding:16px 20px','border-radius:14px',
+    'box-shadow:0 12px 40px rgba(239,68,68,0.45)',
+    'z-index:99999','font-family:system-ui,-apple-system,sans-serif',
+    'font-size:14px','max-width:340px','animation:slideUpToast 0.4s ease'
+  ].join(';');
+  var COUNTDOWN = 3;
+  toast.innerHTML =
+    '<div style="font-weight:700;margin-bottom:6px;font-size:15px">🔔 ' + (by) + ' yêu cầu cập nhật</div>' +
+    '<div style="opacity:0.92;font-size:12.5px;margin-bottom:10px">Tự reload sau <span id="adminRdCount" style="font-weight:700">' + COUNTDOWN + '</span>s để lấy code mới...</div>' +
+    '<button id="adminRdNow" style="background:#fff;color:#ef4444;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px">Reload ngay</button>';
+
+  if (!document.getElementById('auto-reload-style')) {
+    var style = document.createElement('style');
+    style.id = 'auto-reload-style';
+    style.textContent = '@keyframes slideUpToast { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:translateY(0) } }';
+    document.head.appendChild(style);
+  }
+  document.body.appendChild(toast);
+  document.getElementById('adminRdNow').onclick = function() { location.reload(); };
+
+  var remaining = COUNTDOWN;
+  var timer = setInterval(function() {
+    remaining--;
+    var el = document.getElementById('adminRdCount');
+    if (el) el.textContent = remaining;
+    if (remaining <= 0) { clearInterval(timer); location.reload(); }
+  }, 1000);
+}
+
 // ===== AUTO RELOAD KHI DEPLOY MỚI =====
 // Sau khi push lên GitHub → GitHub Pages redeploy (~60-90s) → client poll detect
 // ETag thay đổi → hiện toast countdown → auto reload. Zero admin action.

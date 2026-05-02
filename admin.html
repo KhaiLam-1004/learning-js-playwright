@@ -124,6 +124,7 @@ tr { cursor: pointer; }
   <h1>📊 Admin — Quản lý học viên</h1>
   <div class="header-actions">
     <button onclick="loadData()">🔄 Làm mới</button>
+    <button onclick="forceReloadAllUsers()" id="forceReloadBtn" style="background:rgba(239,68,68,0.25);border-color:rgba(239,239,68,0.5)">📢 Force reload <span id="onlineCountBadge" style="background:rgba(255,255,255,0.25);padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px">0</span></button>
     <button onclick="window.open('index.html','_blank')">🌐 Xem trang học</button>
   </div>
 </div>
@@ -311,10 +312,45 @@ function renderStats() {
   document.getElementById('statActive').textContent = activeToday;
   document.getElementById('statAvgXp').textContent = avgXp;
   document.getElementById('statAvgProgress').textContent = avgProg + '%';
+  // Cập nhật badge số online cạnh nút Force reload
+  var badge = document.getElementById('onlineCountBadge');
+  if (badge) badge.textContent = onlineNow;
   // Count submissions
   db.collection('submissions').get().then(function(snap) {
     document.getElementById('statSubmissions').textContent = snap.size;
   }).catch(function(){ document.getElementById('statSubmissions').textContent = '0'; });
+}
+
+// ===== FORCE RELOAD ALL ONLINE USERS =====
+function forceReloadAllUsers() {
+  var onlineNow = allUsers.filter(isUserOnline).length;
+  if (onlineNow === 0) {
+    alert('Không có user nào đang online.');
+    return;
+  }
+  if (!confirm('Force reload tất cả ' + onlineNow + ' user đang online?\n\nTab của họ sẽ tự reload sau 3 giây.\nLưu ý: chỉ có tác dụng với user đã load code mới (có listener).')) return;
+
+  var btn = document.getElementById('forceReloadBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang gửi...'; }
+
+  db.collection('config').doc('app').set({
+    forceReload: Date.now(),
+    reloadedBy: 'Admin',
+    reloadedAt: new Date().toISOString()
+  }, { merge: true }).then(function() {
+    if (btn) {
+      btn.style.background = 'rgba(34,197,94,0.3)';
+      btn.innerHTML = '✅ Đã gửi! ' + onlineNow + ' user';
+      setTimeout(function() {
+        btn.disabled = false;
+        btn.style.background = 'rgba(239,68,68,0.25)';
+        btn.innerHTML = '📢 Force reload <span id="onlineCountBadge" style="background:rgba(255,255,255,0.25);padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px">' + onlineNow + '</span>';
+      }, 4000);
+    }
+  }).catch(function(err) {
+    alert('Lỗi: ' + err.message);
+    if (btn) { btn.disabled = false; btn.innerHTML = '📢 Force reload'; }
+  });
 }
 
 function renderOverview() {
