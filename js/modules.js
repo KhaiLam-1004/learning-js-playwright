@@ -914,12 +914,29 @@ defined_pg('Làm bài tập tại đây', '// Viết code bài tập tại đây
 // =============================================
 D.push({id:6,title:"Class, OOP & HTML",week:"Tuần 3-4",phase:1,html:[
 '<h2>1. Tại sao cần học phần này?</h2>',
-'<div class="b idea">💡 Ở Module 9 (Page Object Model), bạn sẽ viết <code>class LoginPage extends BasePage</code>. Nếu không hiểu class/constructor/extends, bạn sẽ bị "sốc".<br><br>Ngoài ra, để viết locator tốt trong Playwright, bạn cần hiểu HTML cơ bản.</div>',
+'<div class="b idea">💡 <strong>3 lý do cụ thể:</strong><br>1. <strong>Page Object Model (Module 10)</strong>: bạn sẽ viết <code>class LoginPage extends BasePage</code>. Không hiểu class = sao chép code không hiểu = bug rồi không fix nổi.<br>2. <strong>API Test Helper</strong>: gom code dùng chung (login, gọi API, format data) vào 1 class → tái sử dụng ở nhiều test.<br>3. <strong>Đọc HTML để viết locator</strong>: Playwright tìm phần tử qua thẻ HTML (button, input, label...). Không hiểu HTML = không biết viết <code>page.getByRole("button", {name: ...})</code> đúng.</div>',
+
+'<div class="b ok"><strong>Sau module này bạn sẽ:</strong> Đọc được POM của Playwright mà không "sốc" + tự viết được class helper cơ bản + nhìn HTML biết ngay nên dùng locator nào.</div>',
+
+'<hr class="sep">',
 
 '<h2>2. Class — "Bản thiết kế"</h2>',
 '<div class="b idea">💡 Class giống <strong>bản thiết kế nhà</strong>. Bạn vẽ bản thiết kế 1 lần, rồi xây nhiều căn nhà từ bản đó. Mỗi căn nhà (object) có cùng cấu trúc nhưng khác dữ liệu.</div>',
 
+'<table>',
+'<tr><th>Đời thực</th><th>Lập trình</th></tr>',
+'<tr><td>Bản vẽ nhà</td><td><code>class Animal { ... }</code></td></tr>',
+'<tr><td>Xây 1 căn nhà từ bản vẽ</td><td><code>const meo = new Animal(...)</code></td></tr>',
+'<tr><td>Mỗi căn có địa chỉ, chủ riêng</td><td>Mỗi instance có dữ liệu riêng</td></tr>',
+'<tr><td>Cùng có cửa, cửa sổ</td><td>Cùng có method/property như nhau</td></tr>',
+'</table>',
+
 defined_pg('Thử Class', 'class Animal {\n  // constructor = "khởi tạo" — chạy khi tạo object mới\n  constructor(ten, tuoi) {\n    this.ten = ten;   // this = chính object này\n    this.tuoi = tuoi;\n  }\n\n  // Method = hàm bên trong class\n  gioi_thieu() {\n    return `Toi la ${this.ten}, ${this.tuoi} tuoi.`;\n  }\n}\n\n// Tạo object từ class (gọi là "instance")\nconst meo = new Animal("Miu", 3);\nconst cho = new Animal("Lucky", 5);\n\nconsole.log(meo.gioi_thieu()); // "Toi la Miu, 3 tuoi."\nconsole.log(cho.gioi_thieu()); // "Toi la Lucky, 5 tuoi."\nconsole.log(meo.ten);          // "Miu"', 18),
+
+'<h3>2.0. Trace step-by-step: <code>new Animal("Miu", 3)</code> làm gì?</h3>',
+'<pre>// Khi viết:\nconst meo = new Animal("Miu", 3);\n\n// JavaScript thực hiện 4 bước:\n// Bước 1: Tạo 1 object rỗng → {}\n// Bước 2: Gọi constructor("Miu", 3) với "this" trỏ vào object rỗng đó\n//         → constructor chạy: this.ten = "Miu"; this.tuoi = 3;\n//         → object trở thành {ten: "Miu", tuoi: 3}\n// Bước 3: Gắn object đó vào "prototype" của Animal\n//         → object có thể gọi method gioi_thieu() được\n// Bước 4: Trả object về cho biến `meo`\n\n// Nên cuối cùng: meo = {ten: "Miu", tuoi: 3} + biết gọi gioi_thieu()</pre>',
+
+'<div class="b warn"><strong>Quên <code>new</code> = sai hoàn toàn:</strong><br><code>const meo = Animal("Miu", 3);</code> → <code>meo</code> là <code>undefined</code>, và <code>this</code> trong constructor sẽ trỏ vào global → bug rất khó debug.<br><strong>Quy tắc:</strong> Khi tạo instance từ class, LUÔN có <code>new</code>.</div>',
 
 '<table>',
 '<tr><th>Khái niệm</th><th>Nghĩa</th><th>Ví dụ</th></tr>',
@@ -933,9 +950,18 @@ defined_pg('Thử Class', 'class Animal {\n  // constructor = "khởi tạo" —
 '<h3>2.1. extends — Kế thừa</h3>',
 '<div class="b idea">💡 <code>extends</code> = "class con thừa hưởng mọi thứ từ class cha, rồi thêm của riêng mình".<br>Giống: Con kế thừa họ của cha, nhưng có tên riêng.</div>',
 
+'<h4>Khi nào dùng kế thừa?</h4>',
+'<p>Khi 2+ class có <strong>chung phần lớn nội dung</strong> nhưng khác 1 chút. Tách phần chung ra class cha, phần riêng ở class con.</p>',
+'<pre>// ❌ KHÔNG kế thừa — code lặp\nclass LoginPage  { constructor(page) { this.page = page; } async goto() { ... } }\nclass HomePage   { constructor(page) { this.page = page; } async goto() { ... } }\nclass CartPage   { constructor(page) { this.page = page; } async goto() { ... } }\n// Đổi 1 chỗ chung → phải sửa 3 file\n\n// ✅ Kế thừa — viết 1 lần, dùng nhiều\nclass BasePage   { constructor(page) { this.page = page; } async goto(url) { ... } }\nclass LoginPage extends BasePage { ... }\nclass HomePage  extends BasePage { ... }\nclass CartPage  extends BasePage { ... }\n// Đổi BasePage → 3 page con đều được</pre>',
+
 defined_pg('Thử extends', 'class Animal {\n  constructor(ten) {\n    this.ten = ten;\n  }\n  keu() {\n    return "...";\n  }\n}\n\n// Dog KẾ THỪA từ Animal\nclass Dog extends Animal {\n  constructor(ten, giong) {\n    super(ten);        // gọi constructor CHA\n    this.giong = giong; // thêm thuộc tính riêng\n  }\n  keu() {\n    return "Gau gau!"; // GHI ĐÈ method cha\n  }\n}\n\nconst d = new Dog("Lucky", "Corgi");\nconsole.log(d.ten);    // "Lucky" (từ cha)\nconsole.log(d.giong);  // "Corgi" (riêng)\nconsole.log(d.keu());  // "Gau gau!" (ghi đè)', 22),
 
-'<div class="b warn"><strong>super()</strong> = gọi constructor của class cha. BẮT BUỘC phải gọi <code>super()</code> trong constructor của class con TRƯỚC khi dùng <code>this</code>.</div>',
+'<h4>Hierarchy trực quan:</h4>',
+'<pre>          Animal           ← class cha (parent)\n          ├── ten\n          ├── keu()\n          │\n     ┌────┴────┐\n    Dog       Cat          ← class con (child) - kế thừa từ Animal\n    ├── giong  ├── giong   - mỗi class con có thêm property riêng\n    └── keu()  └── keu()   - và có thể GHI ĐÈ method cha</pre>',
+
+'<div class="b warn"><strong>3 quy tắc <code>super()</code>:</strong><br>1. Trong constructor của class CON, <strong>BẮT BUỘC</strong> gọi <code>super()</code> trước khi dùng <code>this</code>. Quên = ReferenceError.<br>2. <code>super(args)</code> truyền arguments cho constructor cha.<br>3. <code>super.methodName()</code> trong method = gọi method cùng tên ở cha (khi class con override nhưng vẫn muốn dùng phần cha).</div>',
+
+'<pre>// Vi du super.methodName() — class con goi method cua cha\nclass Animal {\n  keu() { return "Sound..."; }\n}\nclass Dog extends Animal {\n  keu() {\n    const parentSound = super.keu();  // "Sound..." từ Animal\n    return parentSound + " Gau gau!"; // ghép vô\n  }\n}\nnew Dog().keu(); // "Sound... Gau gau!"</pre>',
 
 '<h3>2.2. Tại sao liên quan đến Playwright?</h3>',
 '<pre>// Đây chính xác là cấu trúc Page Object Model:\nclass BasePage {\n  constructor(page) {\n    this.page = page;  // lưu page của Playwright\n  }\n  async goto(url) {\n    await this.page.goto(url);\n  }\n}\n\nclass LoginPage extends BasePage {\n  constructor(page) {\n    super(page);  // truyền page cho BasePage\n    this.username = page.locator("#username");\n    this.password = page.locator("#password");\n  }\n  async login(user, pass) {\n    await this.username.fill(user);\n    await this.password.fill(pass);\n  }\n}\n\n// Bây giờ bạn hiểu POM rồi! 🎉</pre>',
@@ -944,6 +970,16 @@ defined_pg('Thử extends', 'class Animal {\n  constructor(ten) {\n    this.ten 
 
 '<h3>2.3. Cạm bẫy: <code>this</code> bị mất trong callback</h3>',
 '<div class="b warn"><strong>Bug phổ biến nhất khi học class:</strong> Truyền method vào callback (<code>setTimeout</code>, <code>forEach</code>, event handler...) với <code>function() {}</code> → <code>this</code> bị mất, trỏ vào <code>undefined</code> hoặc <code>window</code>.<br><br><strong>Fix:</strong> Luôn dùng <strong>arrow function</strong> <code>() => {}</code> trong class. Arrow function không có <code>this</code> riêng — nó mượn <code>this</code> từ scope bên ngoài (chính xác là instance của bạn).</div>',
+
+'<h4>Tại sao? — Quy tắc <code>this</code> trong JS</h4>',
+'<p>JS quyết định <code>this</code> theo <strong>cách hàm được gọi</strong>, không phải nơi viết:</p>',
+'<table>',
+'<tr><th>Hàm</th><th><code>this</code> trong hàm trỏ vào</th></tr>',
+'<tr><td><code>obj.method()</code></td><td><code>obj</code> ✅ (gọi qua object)</td></tr>',
+'<tr><td><code>function() {}</code> (regular)</td><td>Tùy ngữ cảnh gọi → trong callback thường <code>undefined</code> hoặc <code>window</code></td></tr>',
+'<tr><td><code>() => {}</code> (arrow)</td><td>Mượn <code>this</code> từ scope ngoài cùng nơi viết</td></tr>',
+'</table>',
+'<p>→ Trong class, scope ngoài là instance → arrow function tự động "đúng" <code>this</code>.</p>',
 
 defined_pg('Thử this binding', 'class Counter {\n  constructor() { this.count = 0; }\n\n  // BUG: regular function co "this" rieng, khong phai Counter instance\n  startBug() {\n    setTimeout(function() {\n      this.count++;           // "this" = undefined (strict mode)\n      console.log("Bug:", this.count); // NaN\n    }, 100);\n  }\n\n  // FIX: arrow function muon "this" tu scope ngoai\n  startFix() {\n    setTimeout(() => {\n      this.count++;           // "this" = Counter instance\n      console.log("Fix:", this.count); // 1\n    }, 100);\n  }\n}\n\nconst c = new Counter();\nc.startFix();\n// c.startBug(); // bo comment de thay loi', 18),
 
@@ -984,6 +1020,8 @@ defined_pg('Thử instanceof', 'class Animal {}\nclass Dog extends Animal {}\ncl
 
 '<h2>3. HTML Cơ bản — Hiểu cấu trúc trang web</h2>',
 '<div class="b idea">💡 Để viết locator trong Playwright, bạn cần hiểu HTML. HTML = "bộ xương" của trang web. Mỗi thành phần trên trang (nút, ô input, text...) đều là 1 thẻ HTML.</div>',
+
+'<div class="b ok"><strong>Liên hệ trực tiếp với Playwright:</strong><br>• Thấy <code>&lt;button&gt;</code> → dùng <code>getByRole("button")</code><br>• Thấy <code>&lt;input&gt;</code> với <code>&lt;label&gt;</code> → dùng <code>getByLabel("...")</code><br>• Thấy <code>id="abc"</code> → dùng <code>page.locator("#abc")</code><br>• Thấy <code>class="btn"</code> → dùng <code>page.locator(".btn")</code></div>',
 
 '<h3>3.1. Cấu trúc thẻ HTML</h3>',
 '<pre>&lt;!-- Cú pháp: &lt;thẻ thuộc-tính="giá-trị"&gt;Nội dung&lt;/thẻ&gt; --&gt;\n\n&lt;button id="login-btn" class="btn primary"&gt;Đăng nhập&lt;/button&gt;\n│        │              │                    │\n│        │              │                    └── Nội dung (text)\n│        │              └── class = tên nhóm (CSS styling)\n│        └── id = tên DUY NHẤT (giống CMND)\n└── Tên thẻ (button = nút bấm)</pre>',
@@ -1183,6 +1221,7 @@ D.push({id:7,title:"Playwright Cơ bản",week:"Tuần 5",phase:2,html:[
 '<pre>hoc-playwright/\n├── tests/              ← viết test ở đây\n│   └── example.spec.js ← test mẫu\n├── playwright.config.js ← file cấu hình\n├── package.json\n└── node_modules/</pre>',
 
 '<h2>3. Test đầu tiên</h2>',
+'<div class="b ok"><strong>Anatomy của 1 test file:</strong> Mỗi file <code>.spec.js</code> chứa 1+ test. Mỗi test là 1 kịch bản độc lập (mở trang → tương tác → kiểm tra). Playwright chạy MỖI test trong 1 tab/context riêng — test 1 không ảnh hưởng test 2.</div>',
 '<p>Tạo file <code>tests/bai1.spec.js</code>:</p>',
 '<pre>const { test, expect } = require("@playwright/test");\n\ntest("Mo trang Google", async ({ page }) => {\n  // Bước 1: Mở Google\n  await page.goto("https://www.google.com");\n\n  // Bước 2: Kiểm tra tiêu đề có chứa "Google"\n  await expect(page).toHaveTitle(/Google/);\n});</pre>',
 
@@ -1207,13 +1246,33 @@ D.push({id:7,title:"Playwright Cơ bản",week:"Tuần 5",phase:2,html:[
 '<pre>// Cong thuc chung: expect(X).matcher(Y)\nawait expect(page).toHaveTitle(/Google/);                         // page co title chua "Google"?\nawait expect(page.locator("button")).toBeVisible();              // button hien thi?\nawait expect(page.locator("h1")).toHaveText("Welcome");          // h1 co text "Welcome"?\nawait expect(page.locator(".cart-badge")).toHaveText("3");       // gio hang co 3 san pham?\n\n// Khi assertion fail, Playwright log:\n// Expected: "Welcome"\n// Received: "Hello"\n// → ban biet ngay sai cho nao</pre>',
 
 '<h2>4. Chạy test</h2>',
-'<pre># Chạy tất cả test\nnpx playwright test\n\n# Chạy 1 file cụ thể\nnpx playwright test bai1.spec.js\n\n# Chạy và MỞ TRÌNH DUYỆT cho xem\nnpx playwright test --headed\n\n# Mở UI mode (siêu đẹp, dễ debug)\nnpx playwright test --ui\n\n# Xem báo cáo sau khi chạy\nnpx playwright show-report</pre>',
 
-'<div class="b ok"><strong>Mẹo:</strong> Luôn chạy <code>--headed</code> lần đầu để thấy robot thao tác. Sau đó chạy không headed (nhanh hơn).</div>',
+'<h3>4.1. Khi chạy <code>npx playwright test</code> — chuyện gì xảy ra?</h3>',
+'<pre>1. Playwright đọc playwright.config.js để biết cấu hình (browser, timeout, viewport...)\n2. Quét thư mục tests/ tìm tất cả file *.spec.js\n3. Với MỖI test:\n   a. Mở browser context mới (như Incognito mode — sạch, không cookie)\n   b. Tạo page mới (1 tab) — đây là `page` trong fixture\n   c. Chạy hàm test() — execute code của bạn\n   d. Đóng context\n4. In kết quả: ✓ passed / ✗ failed / ↷ skipped\n5. Sinh report HTML ở thư mục playwright-report/</pre>',
+
+'<div class="b ok"><strong>Test isolation (cô lập):</strong> Mỗi test có context riêng → cookie, localStorage, history KHÔNG chia sẻ. Bạn không cần "dọn dẹp" sau test → đỡ bug "test pass riêng nhưng fail khi chạy chung".</div>',
+
+'<h3>4.2. Các flag thường dùng</h3>',
+'<table>',
+'<tr><th>Lệnh</th><th>Khi nào dùng</th></tr>',
+'<tr><td><code>npx playwright test</code></td><td>Chạy tất cả (CI/CD, quick check)</td></tr>',
+'<tr><td><code>npx playwright test bai1.spec.js</code></td><td>Chạy 1 file (đang dev test đó)</td></tr>',
+'<tr><td><code>npx playwright test -g "Login"</code></td><td>Chạy test có tên chứa "Login" (filter theo tên)</td></tr>',
+'<tr><td><code>npx playwright test --headed</code></td><td>Mở browser xem robot làm gì (debug visual)</td></tr>',
+'<tr><td><code>npx playwright test --ui</code></td><td>UI mode — interactive, time travel, watch mode</td></tr>',
+'<tr><td><code>npx playwright test --debug</code></td><td>Debug từng dòng với Inspector</td></tr>',
+'<tr><td><code>npx playwright show-report</code></td><td>Mở HTML report sau khi chạy xong</td></tr>',
+'</table>',
+
+'<div class="b ok"><strong>Mẹo:</strong> Lần đầu viết test → <code>--headed</code> để thấy. Khi đã ổn → bỏ headed (chạy nhanh gấp 3x). Test fail → <code>--debug</code> để truy lỗi.</div>',
 
 '<h2>5. Codegen — Tự động viết code</h2>',
 '<pre>npx playwright codegen https://the-internet.herokuapp.com</pre>',
 '<div class="b idea">💡 Codegen mở trình duyệt, bạn thao tác bình thường (click, gõ, chọn...) → Playwright <strong>tự viết code cho bạn</strong>! Copy code đó vào file test. Tuyệt vời để bắt đầu.</div>',
+
+'<h3>Workflow Codegen → Test thật</h3>',
+'<pre>Bước 1. npx playwright codegen https://saucedemo.com\n        → Mở 2 cửa sổ: browser + cửa sổ "Playwright Inspector" hiện code\n\nBước 2. Trong browser: thao tác như user thật\n        - Gõ "standard_user" vào ô username\n        - Gõ "secret_sauce" vào password\n        - Click nút Login\n        → Mỗi action → 1 dòng code mới sinh tự động\n\nBước 3. Copy code từ Inspector → file tests/login.spec.js\n        → Sửa lại tên test, thêm assertion (Codegen không tự sinh assertion)\n\nBước 4. Chạy: npx playwright test login.spec.js\n        → Test xanh = xong</pre>',
+'<div class="b warn"><strong>Lưu ý:</strong> Codegen sinh code "thô" — nó chỉ ghi action (click, fill), KHÔNG sinh assertion. Bạn phải <strong>tự thêm</strong> <code>expect(...)</code> để verify kết quả. Codegen tốt cho người mới, nhưng đừng dựa hoàn toàn — code production cần locator chỉn chu hơn.</div>',
 
 '<h2>6. Ví dụ: Test Login hoàn chỉnh</h2>',
 '<pre>const { test, expect } = require("@playwright/test");\n\ntest("Login thanh cong", async ({ page }) => {\n  // Mở trang login\n  await page.goto("https://the-internet.herokuapp.com/login");\n\n  // Gõ username và password\n  await page.fill("#username", "tomsmith");\n  await page.fill("#password", "SuperSecretPassword!");\n\n  // Click nút Login\n  await page.click(\'button[type="submit"]\');\n\n  // Kiểm tra kết quả\n  await expect(page.locator(".flash.success")).toBeVisible();\n  await expect(page).toHaveURL(/\\/secure/);\n});</pre>',
@@ -1222,6 +1281,17 @@ D.push({id:7,title:"Playwright Cơ bản",week:"Tuần 5",phase:2,html:[
 
 '<h2>7. Debug — Khi test không chạy đúng</h2>',
 '<div class="b idea">💡 Test fail là bình thường. Quan trọng là biết cách <strong>debug</strong> — tìm ra lỗi ở đâu. Playwright có nhiều công cụ debug cực mạnh.</div>',
+
+'<h3>Quyết định: dùng tool nào khi nào?</h3>',
+'<table>',
+'<tr><th>Tình huống</th><th>Tool tốt nhất</th></tr>',
+'<tr><td>Muốn xem robot click/gõ thực tế</td><td><code>--headed</code></td></tr>',
+'<tr><td>Cần dừng giữa test xem trạng thái</td><td><code>page.pause()</code> + <code>--debug</code></td></tr>',
+'<tr><td>Test fail trên CI, muốn replay</td><td><code>show-trace</code> với trace.zip</td></tr>',
+'<tr><td>Cần "đi du lịch thời gian" — xem từng bước</td><td><code>--ui</code> mode</td></tr>',
+'<tr><td>Locator không tìm đúng phần tử</td><td><code>--debug</code> + Pick Locator</td></tr>',
+'<tr><td>Test pass local nhưng fail CI</td><td>Trace từ CI artifact + screenshot</td></tr>',
+'</table>',
 
 '<h3>7.1. --headed — Xem robot thao tác</h3>',
 '<pre>npx playwright test --headed\n# Mở trình duyệt, bạn thấy robot click, gõ từng bước</pre>',
@@ -1318,6 +1388,18 @@ D.push({id:8,title:"Locator & Actions",week:"Tuần 5-6",phase:2,html:[
 
 '<div class="b ok"><strong>Thứ tự ưu tiên khi chọn locator:</strong><br>getByRole → getByLabel → getByPlaceholder → getByText → getByTestId → CSS → XPath (cuối cùng)</div>',
 
+'<h3>Tại sao thứ tự này?</h3>',
+'<p>Quy tắc: <strong>"Locator nào giống cách USER thấy trang nhất, locator đó tốt nhất"</strong>. Vì:</p>',
+'<ol>',
+'<li><strong>User thấy "nút Login"</strong> → <code>getByRole("button", {name:"Login"})</code> — bền nhất. Dev có thể đổi class, đổi id, đổi cấu trúc HTML — chỉ cần text "Login" còn → test vẫn pass.</li>',
+'<li><strong>CSS Selector (<code>#login-btn</code>, <code>.btn-primary</code>)</strong> — phụ thuộc vào id/class do dev đặt. Dev refactor → đổi class → test fail dù tính năng vẫn hoạt động. Đây là <strong>flaky test</strong> nguy hiểm.</li>',
+'<li><strong>XPath</strong> — phụ thuộc cả cấu trúc HTML. Thêm 1 thẻ <code>&lt;div&gt;</code> wrapper → XPath sai. Dùng cuối cùng khi không còn cách khác.</li>',
+'</ol>',
+'<div class="b warn"><strong>Quy tắc thực tế:</strong> Nếu dev đặt <code>data-testid="login-btn"</code> → dùng <code>getByTestId("login-btn")</code> được — đây là contract giữa dev và QA, dev không tự tiện đổi. Nếu KHÔNG có testid → dùng getByRole/getByLabel/getByText.</div>',
+
+'<h3>So sánh: cùng 1 nút Login, 4 cách viết locator</h3>',
+'<pre>// HTML: &lt;button id="login" class="btn primary"&gt;Dang nhap&lt;/button&gt;\n\npage.getByRole("button", { name: "Dang nhap" })  // 🥇 Bền — text user thấy\npage.locator("#login")                            // 🥈 OK — nếu id ổn định\npage.locator(".btn.primary")                      // ⚠️ Yếu — class hay đổi\npage.locator("body > div > div > button")         // ❌ Tệ — phụ thuộc cấu trúc</pre>',
+
 '<h3>Locator Chaining — Kết hợp locator</h3>',
 '<div class="b idea">💡 Khi trang có nhiều phần tử giống nhau (VD: 2 nút "Delete"), dùng chaining để thu hẹp phạm vi tìm kiếm.</div>',
 '<pre>// Tìm nút "Delete" BÊN TRONG dòng có text "Sản phẩm A"\npage.locator("tr", { hasText: "San pham A" })\n    .getByRole("button", { name: "Delete" });\n\n// Tìm phần tử thứ 2 trong danh sách\npage.locator(".product-card").nth(1); // index từ 0\n\n// Tìm phần tử đầu tiên / cuối cùng\npage.locator(".item").first();\npage.locator(".item").last();\n\n// Filter theo text\npage.locator(".card").filter({ hasText: "Premium" });\n\n// Filter theo locator con\npage.locator(".card").filter({ has: page.locator(".badge-sale") });</pre>',
@@ -1350,6 +1432,21 @@ D.push({id:8,title:"Locator & Actions",week:"Tuần 5-6",phase:2,html:[
 
 '<h2>3. Auto-wait — Tự động chờ</h2>',
 '<div class="b ok"><strong>Tin vui:</strong> Playwright TỰ ĐỘNG CHỜ phần tử sẵn sàng trước khi tương tác. Không cần viết <code>sleep(3000)</code> như Selenium! Playwright đủ thông minh để biết khi nào nút đã load xong.</div>',
+
+'<h3>"Sẵn sàng" có nghĩa gì?</h3>',
+'<p>Trước khi <code>click()</code>, Playwright tự kiểm tra phần tử có thoả MỌI điều kiện sau:</p>',
+'<table>',
+'<tr><th>Điều kiện</th><th>Nghĩa</th></tr>',
+'<tr><td>Attached</td><td>Phần tử có trong DOM</td></tr>',
+'<tr><td>Visible</td><td>Không có <code>display:none</code> / <code>visibility:hidden</code> / size 0</td></tr>',
+'<tr><td>Stable</td><td>Không đang animation/transform — vị trí không đổi 2 frame liên tiếp</td></tr>',
+'<tr><td>Receives events</td><td>Không bị phần tử khác che lên (overlay, modal)</td></tr>',
+'<tr><td>Enabled</td><td>Không có thuộc tính <code>disabled</code></td></tr>',
+'</table>',
+'<p>Nếu sau <strong>5 giây</strong> (default timeout) phần tử vẫn không đủ điều kiện → throw error. Đây là lý do bạn không cần <code>sleep()</code>.</p>',
+
+'<h3>So sánh Selenium vs Playwright</h3>',
+'<pre>// Selenium (cũ) — phải sleep cứng\ndriver.get("https://app.com");\nThread.sleep(3000);  // chờ 3s, mong là đủ\ndriver.findElement(By.id("btn")).click();  // có thể fail nếu vẫn chưa load\n\n// Playwright (mới) — auto-wait\nawait page.goto("https://app.com");\nawait page.locator("#btn").click();  // tự chờ button visible + enabled + stable</pre>',
 
 '<p>Khi cần chờ thủ công:</p>',
 '<pre>await page.waitForURL("**/dashboard"); // chờ URL chuyển trang\nawait page.waitForSelector(".loading", { state: "hidden" }); // chờ loading biến mất\nawait page.waitForLoadState("networkidle");                     // chờ network im</pre>',
@@ -1447,7 +1544,18 @@ D.push({id:9,title:"Assertions & Tổ chức Test",week:"Tuần 6-7",phase:2,htm
 '<pre>// Kiểm tra TRANG\nawait expect(page).toHaveTitle(/Dashboard/);  // title khớp\nawait expect(page).toHaveURL("https://example.com"); // URL đúng\n\n// Kiểm tra PHẦN TỬ\nawait expect(page.locator(".msg")).toBeVisible();     // hiển thị\nawait expect(page.locator(".msg")).toBeHidden();      // ẩn\nawait expect(page.locator(".msg")).toHaveText("Xong!"); // text đúng\nawait expect(page.locator(".msg")).toContainText("ong"); // chứa text\nawait expect(page.locator("input")).toHaveValue("hello"); // giá trị\nawait expect(page.locator("li")).toHaveCount(5);       // đếm\nawait expect(page.locator(".btn")).toBeEnabled();       // bấm được\nawait expect(page.locator(".btn")).toBeDisabled();      // bị vô hiệu\nawait expect(page.locator("input")).toBeChecked();      // đã tick</pre>',
 
 '<h3>Soft Assertions — không dừng test khi fail</h3>',
+'<div class="b idea">💡 <code>expect.soft()</code> KHÔNG throw khi fail — test vẫn chạy hết, cuối cùng mới đánh dấu fail nếu có 1+ soft assertion sai.</div>',
 '<pre>await expect.soft(page.locator(".a")).toHaveText("X");\nawait expect.soft(page.locator(".b")).toHaveText("Y");\n// Test vẫn chạy tiếp dù assertion trên fail\n// Báo cáo cuối cùng sẽ liệt kê TẤT CẢ lỗi</pre>',
+
+'<h3>Khi nào dùng soft vs hard assertion?</h3>',
+'<table>',
+'<tr><th>Dùng <strong>HARD</strong> (<code>expect</code>) khi</th><th>Dùng <strong>SOFT</strong> (<code>expect.soft</code>) khi</th></tr>',
+'<tr><td>Bước trước fail = bước sau vô nghĩa</td><td>Các kiểm tra độc lập, muốn báo cáo hết một lần</td></tr>',
+'<tr><td>VD: Login fail → không xem được dashboard</td><td>VD: Trang dashboard có 5 widget → kiểm tra cả 5 dù 1 cái sai</td></tr>',
+'<tr><td>Default 95% case</td><td>Khi muốn báo bug tổng hợp</td></tr>',
+'</table>',
+
+'<pre>// VI DU SOFT: trang Profile co 5 field, kiem tra het\ntest("Profile - hien day du info", async ({ page }) => {\n  await page.goto("/profile");\n  // 5 soft assertion — neu sai 2-3 cai, vi the bao het 1 lan\n  await expect.soft(page.locator(".name")).toHaveText("An");\n  await expect.soft(page.locator(".email")).toHaveText("an@x.com");\n  await expect.soft(page.locator(".phone")).toHaveText("0901234567");\n  await expect.soft(page.locator(".address")).toBeVisible();\n  await expect.soft(page.locator(".avatar")).toBeVisible();\n  // Test fail neu co bat ky soft assertion sai. Bao cao chi ra HET cai sai.\n});</pre>',
 
 '<h3>Negation: <code>not.</code> — kiểm tra điều ngược lại</h3>',
 '<div class="b idea">💡 Thêm <code>.not</code> vào trước assertion để đảo ngược: kiểm tra phần tử KHÔNG hiển thị, KHÔNG có text X, KHÔNG bị tick...</div>',
@@ -1477,12 +1585,25 @@ D.push({id:9,title:"Assertions & Tổ chức Test",week:"Tuần 6-7",phase:2,htm
 
 '<div class="b warn"><strong>Cẩn thận với beforeAll:</strong> Data tạo trong <code>beforeAll</code> được CHIA SẺ giữa tất cả test → nếu test 1 thay đổi data, test 2 sẽ thấy thay đổi đó. Dùng <code>beforeEach</code> nếu muốn mỗi test có data sạch.</div>',
 
+'<h3>Decision tree: dùng hook nào?</h3>',
+'<pre>Setup có ảnh hưởng đến nhiều test?\n├── KHÔNG → đặt code thẳng trong test (không cần hook)\n│\n└── CÓ → setup chạy lâu hay nhanh?\n    ├── NHANH (mở trang, fill form < 1s)\n    │   → beforeEach (mỗi test 1 lần — đảm bảo isolation)\n    │\n    └── CHẬM (tạo user qua API, seed DB, lấy auth token)\n        → setup có thay đổi giữa các test không?\n        ├── CÓ thay đổi (test 1 update data, test 2 cần data mới)\n        │   → beforeEach (chấp nhận chậm để đảm bảo sạch)\n        │\n        └── KHÔNG đổi (chỉ READ data, không WRITE)\n            → beforeAll (1 lần duy nhất — tiết kiệm thời gian)</pre>',
+
 '<h3>3.1. beforeEach + afterEach trong test thật</h3>',
 
 '<pre>test.describe("Login", function() {\n\n  test.beforeEach(async ({ page }) => {\n    await page.goto("https://the-internet.herokuapp.com/login");\n  });\n\n  test.afterEach(async ({ page }, testInfo) => {\n    if (testInfo.status === "failed") {\n      await page.screenshot({ path: "fail-" + testInfo.title + ".png" });\n    }\n  });\n\n  test("login dung", async ({ page }) => {\n    await page.fill("#username", "tomsmith");\n    await page.fill("#password", "SuperSecretPassword!");\n    await page.click(\'button[type="submit"]\');\n    await expect(page.locator(".flash.success")).toBeVisible();\n  });\n\n  test("login sai", async ({ page }) => {\n    await page.fill("#username", "sai");\n    await page.fill("#password", "sai");\n    await page.click(\'button[type="submit"]\');\n    await expect(page.locator(".flash.error")).toBeVisible();\n  });\n});</pre>',
 
 '<h2>4. Parameterized Tests — Test nhiều bộ dữ liệu</h2>',
+'<div class="b idea">💡 Khi cùng 1 flow nhưng nhiều input khác nhau (login với 5 loại user, search với 10 từ khóa, validate form với 8 case sai...) → viết loop sinh test → giảm 80% code lặp.</div>',
 '<pre>const cases = [\n  { user: "tomsmith", pass: "SuperSecretPassword!", ok: true },\n  { user: "wrong", pass: "wrong", ok: false },\n  { user: "", pass: "", ok: false },\n  { user: "tomsmith", pass: "", ok: false },\n  { user: "", pass: "SuperSecretPassword!", ok: false },\n];\n\nfor (const c of cases) {\n  test("Login: " + (c.user || "(trong)") + " -> " + (c.ok ? "OK" : "Fail"),\n    async ({ page }) => {\n      await page.goto("https://the-internet.herokuapp.com/login");\n      await page.fill("#username", c.user);\n      await page.fill("#password", c.pass);\n      await page.click(\'button[type="submit"]\');\n      if (c.ok) {\n        await expect(page.locator(".flash.success")).toBeVisible();\n      } else {\n        await expect(page.locator(".flash.error")).toBeVisible();\n      }\n    });\n}</pre>',
+
+'<h3>Khi nào KHÔNG nên dùng parameterized?</h3>',
+'<div class="b warn">Parameterized không phải <em>silver bullet</em>. <strong>Tránh</strong> khi:</div>',
+'<ul>',
+'<li><strong>Mỗi case có flow khác nhau:</strong> case 1 click, case 2 hover, case 3 scroll → ép vào loop sẽ thành <code>if/else</code> chằng chịt → khó đọc hơn 5 test riêng</li>',
+'<li><strong>Khi assertion phức tạp khác nhau:</strong> case OK kiểm tra URL, case fail kiểm tra error message + button state → loop sẽ rối</li>',
+'<li><strong>Khi tên test cần mô tả khác nhau hoàn toàn:</strong> "Login với user admin có quyền edit" vs "Login với user guest chỉ xem" — viết riêng dễ hiểu hơn</li>',
+'</ul>',
+'<div class="b ok"><strong>Quy tắc:</strong> Cùng flow + chỉ data khác → parameterized. Khác flow → tách test riêng.</div>',
 
 '<h2>5. Tags &amp; Skip</h2>',
 '<pre>test("test quan trong @smoke", async ({ page }) => { });\ntest("test chi tiet @regression", async ({ page }) => { });\ntest.skip("test chua viet xong", async ({ page }) => { });\ntest.fixme("test co bug", async ({ page }) => { });</pre>',
