@@ -257,6 +257,24 @@ function _pingPresence() {
   var now = new Date();
   var nowISO = now.toISOString();
 
+  // Detect tab suspend/resume: if the gap since last ping is > 3 min, the
+  // previous session is not a continuous study session. Archive it with
+  // duration computed up to the LAST real ping (not "now"), then start a
+  // fresh session. Without this, wall-clock duration inflates across sleeps.
+  if (_lastPingTime && _currentSessionId && _sessionStartTime && (now - _lastPingTime) > 180 * 1000) {
+    var realEndIso = _lastPingTime.toISOString();
+    var realDur = Math.floor((_lastPingTime - new Date(_sessionStartTime)) / 1000);
+    if (realDur > 0) {
+      var staleSession = { id: _currentSessionId, startTime: _sessionStartTime, endTime: realEndIso, duration: realDur };
+      db.collection('users').doc(userId).set({
+        recentSessions: firebase.firestore.FieldValue.arrayUnion(staleSession)
+      }, { merge: true }).catch(function(){});
+    }
+    _sessionStartTime = nowISO;
+    _currentSessionId = 's_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
+    _lastPingTime = null; // skip totalStudy increment on the gap-resume ping
+  }
+
   var userUpdate = { lastSeen: nowISO };
   if (_lastPingTime) {
     userUpdate.totalStudySeconds = firebase.firestore.FieldValue.increment(30);

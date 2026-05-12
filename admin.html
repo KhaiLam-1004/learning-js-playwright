@@ -219,6 +219,8 @@ tr { cursor: pointer; }
 <script>
 var MODULES = ['Giới thiệu','Biến & Kiểu dữ liệu','Điều kiện & Vòng lặp','Hàm','Array & Object','Async/Await','Class/OOP & HTML','Playwright','Locator & Actions','Assertions','POM','API Testing','Config & Capstone','Test Strategy & Bug Reporting','Playwright Nâng cao','Got It Reward Hub API'];
 var allUsers = [];
+var _currentDetailUid = null;
+var _liveTickInterval = null;
 
 function timeAgo(dateStr) {
   if (!dateStr) return '-';
@@ -279,24 +281,42 @@ function loadData() {
     renderStats();
     renderOverview();
     renderUsers();
+    // Refresh open detail panel's sessions so LIVE row picks up new endTime/duration
+    if (_currentDetailUid && document.getElementById('detailSessions')) {
+      loadUserSessions(_currentDetailUid);
+    }
+  }).catch(function(err) {
+    console.error('[Admin] users query failed:', err);
+    var msg = '<tr><td colspan="5" class="empty" style="color:var(--red)">⚠️ Lỗi tải học viên: ' + err.message + '</td></tr>';
+    document.getElementById('overviewTable').innerHTML = msg;
+    document.getElementById('usersTable').innerHTML = '<tr><td colspan="11" class="empty" style="color:var(--red)">⚠️ ' + err.message + '</td></tr>';
   });
   // Activities
   db.collection('activities').orderBy('timestamp', 'desc').limit(50).get().then(function(snap) {
     var acts = [];
     snap.forEach(function(doc) { acts.push(doc.data()); });
     renderActivities(acts);
+  }).catch(function(err) {
+    console.error('[Admin] activities query failed:', err);
+    document.getElementById('activityList').innerHTML = '<div class="empty" style="color:var(--red)">⚠️ Lỗi: ' + err.message + '</div>';
   });
   // Submissions
   db.collection('submissions').orderBy('timestamp', 'desc').limit(50).get().then(function(snap) {
     var subs = [];
     snap.forEach(function(doc) { var d = doc.data(); d._id = doc.id; subs.push(d); });
     renderSubmissions(subs);
+  }).catch(function(err) {
+    console.error('[Admin] submissions query failed:', err);
+    document.getElementById('submissionsTable').innerHTML = '<tr><td colspan="8" class="empty" style="color:var(--red)">⚠️ Lỗi: ' + err.message + '</td></tr>';
   });
   // Codes
   db.collection('codes').orderBy('timestamp', 'desc').limit(30).get().then(function(snap) {
     var codes = [];
     snap.forEach(function(doc) { codes.push(doc.data()); });
     renderCodes(codes);
+  }).catch(function(err) {
+    console.error('[Admin] codes query failed:', err);
+    document.getElementById('codesList').innerHTML = '<div class="empty" style="color:var(--red)">⚠️ Lỗi: ' + err.message + '</div>';
   });
 }
 
@@ -449,6 +469,7 @@ function showSubDetail(s) {
 function openDetail(uid) {
   var u = allUsers.find(function(x) { return x._id === uid; });
   if (!u) return;
+  _currentDetailUid = uid;
   var completed = u.completedModules || [];
   var pct = Math.round((u.modulesCompleted||0)/13*100);
 
@@ -567,6 +588,8 @@ function viewDetailSub(idx) {
 
 function closeDetail() {
   document.getElementById('detailOverlay').classList.remove('open');
+  _currentDetailUid = null;
+  if (_liveTickInterval) { clearInterval(_liveTickInterval); _liveTickInterval = null; }
 }
 
 function loadUserSessions(uid) {
@@ -593,27 +616,74 @@ function loadUserSessions(uid) {
     return;
   }
 
-  var totalSecs = sessions.reduce(function(s, x) { return s + (x.duration || 0); }, 0);
   var liveId = (u.currentSession && u.currentSession.id) || '';
-  el.innerHTML = '<div style="margin-bottom:10px;font-size:12px;color:var(--text2)"><strong>' + sessions.length + '</strong> phiên · Tổng <strong style="color:var(--green)">' + formatDuration(totalSecs) + '</strong></div>' +
+  var nowMs = Date.now();
+  var totalSecs = sessions.reduce(function(s, x) {
+    if (x.id === liveId && x.startTime) {
+      return s + Math.max(0, Math.floor((nowMs - new Date(x.startTime).getTime()) / 1000));
+    }
+    return s + (x.duration || 0);
+  }, 0);
+  var liveStartIso = '';
+  el.innerHTML = '<div style="margin-bottom:10px;font-size:12px;color:var(--text2)"><strong>' + sessions.length + '</strong> phiên · Tổng <strong' + (liveId ? ' id="liveTotalDur"' : '') + ' style="color:var(--green)">' + formatDuration(totalSecs) + '</strong></div>' +
     sessions.map(function(s) {
-      var start = s.startTime ? new Date(s.startTime) : null;
-      var end = s.endTime ? new Date(s.endTime) : null;
-      var dateStr = start ? start.toLocaleDateString('vi-VN', {weekday:'short', day:'2-digit', month:'2-digit'}) : '';
-      var startStr = start ? start.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12:false}) : '-';
-      var endStr = end ? end.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', hour12:false}) : '-';
-      var dur = formatDuration(s.duration);
       var isLive = s.id === liveId;
+      var start = s.startTime ? new Date(s.startTime) : null;
+      var endDate = isLive ? new Date() : (s.endTime ? new Date(s.endTime) : null);
+      var dateStr = start ? start.toLocaleDateString('vi-VN', {weekday:'short', day:'2-digit', month:'2-digit'}) : '';
+      var timeFmt = {hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false};
+      var startStr = start ? start.toLocaleTimeString('vi-VN', timeFmt) : '-';
+      var endStr = endDate ? endDate.toLocaleTimeString('vi-VN', timeFmt) : '-';
+      var liveDurSecs = isLive && start ? Math.max(0, Math.floor((nowMs - start.getTime()) / 1000)) : (s.duration || 0);
+      var dur = formatDuration(liveDurSecs);
       var liveBadge = isLive ? '<span style="background:rgba(34,197,94,.2);color:var(--green);padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;margin-right:4px">● LIVE</span>' : '';
+      var resetBtn = isLive ? '<button onclick="resetCurrentSession(\'' + uid + '\')" title="Xóa phiên LIVE rác (duration sai do tab sleep)" style="background:transparent;border:1px solid rgba(239,68,68,.5);color:#f87171;padding:2px 8px;border-radius:8px;cursor:pointer;font-size:10px;margin-left:6px;font-weight:600">🔧 Reset</button>' : '';
+      if (isLive && start) liveStartIso = s.startTime;
       return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px">' +
         '<span style="color:var(--text3);font-size:11px;min-width:70px">' + dateStr + '</span>' +
         liveBadge +
         '<span style="color:var(--green);font-weight:700">▶ ' + startStr + '</span>' +
         '<span style="color:var(--text3)">→</span>' +
-        '<span style="color:var(--text3)">' + (isLive ? '⏳' : '■') + ' ' + endStr + '</span>' +
-        '<span style="margin-left:auto;background:rgba(99,102,241,.15);color:var(--primary);padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700">' + dur + '</span>' +
+        '<span style="color:var(--text3)"' + (isLive ? ' id="liveEndTime"' : '') + '>' + (isLive ? '⏳' : '■') + ' ' + endStr + '</span>' +
+        '<span' + (isLive ? ' id="liveDuration"' : '') + ' style="margin-left:auto;background:rgba(99,102,241,.15);color:var(--primary);padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700">' + dur + '</span>' +
+        resetBtn +
         '</div>';
     }).join('');
+
+  // Smooth 1s ticker for the LIVE row — server heartbeat is only every 30s
+  if (_liveTickInterval) { clearInterval(_liveTickInterval); _liveTickInterval = null; }
+  if (liveStartIso) {
+    var liveStartMs = new Date(liveStartIso).getTime();
+    var baseTotalSecs = sessions.reduce(function(acc, x) {
+      return x.id === liveId ? acc : acc + (x.duration || 0);
+    }, 0);
+    _liveTickInterval = setInterval(function() {
+      var endEl = document.getElementById('liveEndTime');
+      var durEl = document.getElementById('liveDuration');
+      if (!endEl || !durEl) { clearInterval(_liveTickInterval); _liveTickInterval = null; return; }
+      var n = new Date();
+      var fmt = {hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false};
+      var elapsed = Math.max(0, Math.floor((n.getTime() - liveStartMs) / 1000));
+      endEl.textContent = '⏳ ' + n.toLocaleTimeString('vi-VN', fmt);
+      durEl.textContent = formatDuration(elapsed);
+      var totEl = document.getElementById('liveTotalDur');
+      if (totEl) totEl.textContent = formatDuration(baseTotalSecs + elapsed);
+    }, 1000);
+  }
+}
+
+// Clear stale LIVE session WITHOUT archiving — used when currentSession has
+// a bogus duration (e.g. tab slept for days and pre-fix code inflated it).
+function resetCurrentSession(uid) {
+  var u = allUsers.find(function(x) { return x._id === uid; });
+  if (!u) return;
+  if (!confirm('Xóa phiên LIVE rác của "' + u.name + '"?\n\nDùng khi duration sai (vd: phiên kéo dài nhiều ngày do tab sleep).\nPhiên này sẽ KHÔNG được archive vào history.\n\nKhông thể hoàn tác.')) return;
+  db.collection('users').doc(uid).set({ currentSession: null }, { merge: true })
+    .then(function() {
+      u.currentSession = null;
+      loadUserSessions(uid);
+    })
+    .catch(function(err) { alert('Lỗi: ' + err.message); });
 }
 
 // ===== DELETE USER =====
