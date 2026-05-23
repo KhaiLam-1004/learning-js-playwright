@@ -255,6 +255,17 @@ function statusDot(u) {
   var offTime = ts ? formatOfflineTime(ts) : null;
   return '<span class="status-dot offline" title="' + (offTime ? 'Offline lúc ' + offTime : 'Offline') + '"></span>';
 }
+// Active = lastActive < 5 min ago while online. Idle = online but no real
+// action recently. Only meaningful when isUserOnline(u) is true.
+function activeStatus(u) {
+  if (!isUserOnline(u) || !u.lastActive) return '';
+  var diffMin = Math.floor((new Date() - new Date(u.lastActive)) / 60000);
+  if (diffMin < 5) {
+    return '<span style="background:rgba(34,197,94,.2);color:#4ade80;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700">⚡ Active</span>';
+  }
+  var label = diffMin < 60 ? diffMin + 'p' : Math.floor(diffMin/60) + 'g' + (diffMin%60 ? ' ' + diffMin%60 + 'p' : '');
+  return '<span style="background:rgba(234,179,8,.12);color:#fbbf24;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700">💤 Idle ' + label + '</span>';
+}
 function actionIcon(a) { return {view_module:'👁️',complete_module:'✅',uncomplete_module:'↩️',run_playground:'▶️',submit_exam:'📝'}[a] || '📌'; }
 function actionText(a) { return {view_module:'xem',complete_module:'hoàn thành',uncomplete_module:'bỏ hoàn thành',run_playground:'chạy code',submit_exam:'nộp bài'}[a] || a; }
 function formatDuration(seconds) {
@@ -347,12 +358,11 @@ function renderOverview() {
       '<td><div class="progress-bar"><div class="fill" style="width:' + pct + '%"></div></div>' + pct + '%</td>' +
       '<td><strong>' + (u.xp||0) + '</strong> XP</td>' +
       '<td style="color:var(--text3)">' + (function() {
+        if (isUserOnline(u)) return activeStatus(u);
         var html = timeAgo(u.lastActive);
-        if (!isUserOnline(u)) {
-          var offTs = u.lastSeen || u.lastActive;
-          var offTime = offTs ? formatOfflineTime(offTs) : null;
-          if (offTime) html += '<span class="offline-time-tag">🕐 ' + offTime + '</span>';
-        }
+        var offTs = u.lastSeen || u.lastActive;
+        var offTime = offTs ? formatOfflineTime(offTs) : null;
+        if (offTime) html += '<span class="offline-time-tag">🕐 ' + offTime + '</span>';
         return html;
       })() + '</td></tr>';
   }).join('');
@@ -374,12 +384,11 @@ function renderUsers() {
       '<td onclick="openDetail(\'' + u._id + '\')">' + (u.device||'-') + '</td>' +
       '<td onclick="openDetail(\'' + u._id + '\')" style="color:var(--text2);font-weight:600">' + (function(){ var fmt = formatDuration(u.totalStudySeconds); if (fmt === '-' && isUserOnline(u)) return '<span style="color:var(--green);font-size:11px">⏳ Đang theo dõi</span>'; return fmt; })() + '</td>' +
       '<td onclick="openDetail(\'' + u._id + '\')" style="color:var(--text3)">' + (function() {
+        if (isUserOnline(u)) return activeStatus(u);
         var html = timeAgo(u.lastActive);
-        if (!isUserOnline(u)) {
-          var offTs = u.lastSeen || u.lastActive;
-          var offTime = offTs ? formatOfflineTime(offTs) : null;
-          if (offTime) html += '<span class="offline-time-tag">🕐 ' + offTime + '</span>';
-        }
+        var offTs = u.lastSeen || u.lastActive;
+        var offTime = offTs ? formatOfflineTime(offTs) : null;
+        if (offTime) html += '<span class="offline-time-tag">🕐 ' + offTime + '</span>';
         return html;
       })() + '</td>' +
       '<td onclick="event.stopPropagation()"><button onclick="deleteUser(\'' + u._id + '\',\'' + escHtml(u.name).replace(/'/g,"\\'") + '\')" title="Xóa" style="border:none;background:none;color:var(--red);cursor:pointer;font-size:15px;padding:4px">🗑</button></td></tr>';
@@ -476,7 +485,7 @@ function openDetail(uid) {
   var html = '<div class="detail-header">' +
     '<div class="big-avatar">' + (u.name||'?').charAt(0).toUpperCase() + '</div>' +
     '<div class="user-meta"><h3>' + statusDot(u) + escHtml(u.name) + '</h3><p>' + (function() {
-      if (isUserOnline(u)) return '<span style="color:#4ade80;font-weight:700">● Online</span>';
+      if (isUserOnline(u)) return '<span style="color:#4ade80;font-weight:700">● Online</span> · ' + activeStatus(u);
       var offTs = u.lastSeen || u.lastActive;
       var offTime = offTs ? formatOfflineTime(offTs) : null;
       return 'Offline' + (offTime ? ' · <span style="color:#fff;font-weight:700">🕐 ' + offTime + '</span>' : '');
