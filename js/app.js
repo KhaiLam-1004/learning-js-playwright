@@ -128,7 +128,38 @@ function render() {
     document.getElementById('ct').innerHTML = heroHtml + contentHtml + '<div class="nav-buttons">' + prev + next + '</div>';
   }
   addCodeFeatures();
+  _setupSectionTracking(active, window._tocItems || []);
 }
+
+var _sectionObserver = null;
+var _lastSavedSection = null;
+var _sectionSaveTimer = null;
+
+function _setupSectionTracking(moduleId, tocItems) {
+  if (_sectionObserver) { _sectionObserver.disconnect(); _sectionObserver = null; }
+  _lastSavedSection = null;
+  if (!tocItems.length || !db || !userId) return;
+  _sectionObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (!entry.isIntersecting) return;
+      var text = entry.target.textContent.trim();
+      if (text === _lastSavedSection) return;
+      _lastSavedSection = text;
+      clearTimeout(_sectionSaveTimer);
+      _sectionSaveTimer = setTimeout(function() {
+        db.collection('users').doc(userId).update({
+          lastSection: text,
+          lastSectionModule: moduleId
+        }).catch(function(){});
+      }, 1500);
+    });
+  }, { rootMargin: '-10% 0px -60% 0px', threshold: 0 });
+  tocItems.forEach(function(item) {
+    var el = document.getElementById(item.id);
+    if (el) _sectionObserver.observe(el);
+  });
+}
+
 function addCodeFeatures() {
   // Add copy buttons to pre blocks
   document.querySelectorAll('#ct pre').forEach(function(pre) {

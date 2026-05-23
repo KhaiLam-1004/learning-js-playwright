@@ -343,7 +343,7 @@ function renderOverview() {
     var pct = Math.round((u.modulesCompleted||0)/13*100);
     return '<tr onclick="openDetail(\'' + u._id + '\')">' +
       '<td>' + statusDot(u) + '<span class="avatar">' + (u.name||'?').charAt(0).toUpperCase() + '</span><strong>' + escHtml(u.name) + '</strong></td>' +
-      '<td><span class="badge badge-primary">M' + (u.currentModule||0) + '</span> ' + escHtml(u.currentModuleTitle||'') + '</td>' +
+      '<td><span class="badge badge-primary">M' + (u.currentModule||0) + '</span> ' + escHtml(u.currentModuleTitle||'') + (u.lastSection && u.lastSectionModule === u.currentModule ? '<br><span style="font-size:10px;color:var(--text3)">🔖 ' + escHtml(u.lastSection) + '</span>' : '') + '</td>' +
       '<td><div class="progress-bar"><div class="fill" style="width:' + pct + '%"></div></div>' + pct + '%</td>' +
       '<td><strong>' + (u.xp||0) + '</strong> XP</td>' +
       '<td style="color:var(--text3)">' + (function() {
@@ -513,7 +513,10 @@ function openDetail(uid) {
       '<span class="module-name ' + (isDone ? 'done' : (isCurrent ? 'current' : '')) + '">M' + i + ': ' + name + '</span>' +
       (isCurrent ? '<span class="badge badge-primary">Đang học</span>' : '') +
       (isDone ? '<span class="badge badge-green">Xong</span>' : '') +
-      '</div>';
+      '</div>' +
+      (isCurrent && u.lastSection && u.lastSectionModule === i
+        ? '<div style="padding:2px 0 6px 36px;font-size:11px;color:var(--text3)">🔖 ' + escHtml(u.lastSection) + '</div>'
+        : '');
   });
   html += '</div>';
 
@@ -616,7 +619,12 @@ function loadUserSessions(uid) {
     return;
   }
 
-  var liveId = (u.currentSession && u.currentSession.id) || '';
+  // Only treat as LIVE if user is actually online (lastSeen < 2 min). Stale
+  // currentSession lingers when the user closes a tab without logging out.
+  var userIsLive = isUserOnline(u);
+  var liveId = (userIsLive && u.currentSession && u.currentSession.id) || '';
+  // Show stale currentSession as a regular row (with server's last endTime/duration)
+  var staleId = (!userIsLive && u.currentSession && u.currentSession.id) || '';
   var nowMs = Date.now();
   var totalSecs = sessions.reduce(function(s, x) {
     if (x.id === liveId && x.startTime) {
@@ -628,6 +636,7 @@ function loadUserSessions(uid) {
   el.innerHTML = '<div style="margin-bottom:10px;font-size:12px;color:var(--text2)"><strong>' + sessions.length + '</strong> phiên · Tổng <strong' + (liveId ? ' id="liveTotalDur"' : '') + ' style="color:var(--green)">' + formatDuration(totalSecs) + '</strong></div>' +
     sessions.map(function(s) {
       var isLive = s.id === liveId;
+      var isStale = s.id === staleId;
       var start = s.startTime ? new Date(s.startTime) : null;
       var endDate = isLive ? new Date() : (s.endTime ? new Date(s.endTime) : null);
       var dateStr = start ? start.toLocaleDateString('vi-VN', {weekday:'short', day:'2-digit', month:'2-digit'}) : '';
@@ -637,7 +646,8 @@ function loadUserSessions(uid) {
       var liveDurSecs = isLive && start ? Math.max(0, Math.floor((nowMs - start.getTime()) / 1000)) : (s.duration || 0);
       var dur = formatDuration(liveDurSecs);
       var liveBadge = isLive ? '<span style="background:rgba(34,197,94,.2);color:var(--green);padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;margin-right:4px">● LIVE</span>' : '';
-      var resetBtn = isLive ? '<button onclick="resetCurrentSession(\'' + uid + '\')" title="Xóa phiên LIVE rác (duration sai do tab sleep)" style="background:transparent;border:1px solid rgba(239,68,68,.5);color:#f87171;padding:2px 8px;border-radius:8px;cursor:pointer;font-size:10px;margin-left:6px;font-weight:600">🔧 Reset</button>' : '';
+      // Stale currentSession (user went offline without logout) — let admin reset it
+      var resetBtn = (isLive || isStale) ? '<button onclick="resetCurrentSession(\'' + uid + '\')" title="Xóa phiên rác (duration sai do tab sleep / user đóng tab không logout)" style="background:transparent;border:1px solid rgba(239,68,68,.5);color:#f87171;padding:2px 8px;border-radius:8px;cursor:pointer;font-size:10px;margin-left:6px;font-weight:600">🔧 Reset</button>' : '';
       if (isLive && start) liveStartIso = s.startTime;
       return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px">' +
         '<span style="color:var(--text3);font-size:11px;min-width:70px">' + dateStr + '</span>' +
