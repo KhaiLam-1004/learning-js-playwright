@@ -217,10 +217,65 @@ var _heartbeatInterval = null;
 var _currentSessionId = null;
 var _sessionStartTime = null;
 var _lastPingTime = null;
+var _hiddenAt = null;           // timestamp when tab went hidden
+var _visibilityBound = false;   // guard against double-registering the listener
+
+// Tab hidden for longer than this → archive current session and start fresh
+var VISIBILITY_GRACE_MS = 2 * 60 * 1000; // 2 minutes
+
+function _onVisibilityChange() {
+  if (!db || !userId) return;
+
+  if (document.visibilityState === 'hidden') {
+    // Pause heartbeat and snapshot the session end time
+    _hiddenAt = new Date();
+    if (_heartbeatInterval) { clearInterval(_heartbeatInterval); _heartbeatInterval = null; }
+    if (_currentSessionId && _sessionStartTime) {
+      var elapsed = Math.floor((_hiddenAt - new Date(_sessionStartTime)) / 1000);
+      db.collection('users').doc(userId).set({
+        currentSession: { id: _currentSessionId, startTime: _sessionStartTime, endTime: _hiddenAt.toISOString(), duration: elapsed }
+      }, { merge: true }).catch(function(){});
+    }
+  } else if (document.visibilityState === 'visible') {
+    var now = new Date();
+    var hiddenAt = _hiddenAt;
+    var hiddenDur = hiddenAt ? (now - hiddenAt) : 0;
+    _hiddenAt = null;
+
+    if (hiddenDur > VISIBILITY_GRACE_MS) {
+      // Long absence — archive session up to when tab went hidden, start fresh
+      if (_currentSessionId && _sessionStartTime && hiddenAt) {
+        var oldElapsed = Math.max(0, Math.floor((hiddenAt - new Date(_sessionStartTime)) / 1000));
+        if (oldElapsed > 0) {
+          db.collection('users').doc(userId).set({
+            recentSessions: firebase.firestore.FieldValue.arrayUnion({
+              id: _currentSessionId,
+              startTime: _sessionStartTime,
+              endTime: hiddenAt.toISOString(),
+              duration: oldElapsed
+            })
+          }, { merge: true }).catch(function(){});
+        }
+      }
+      _initNewSession();
+    } else {
+      // Short absence — just resume heartbeat
+      if (!_heartbeatInterval) {
+        _pingPresence();
+        _heartbeatInterval = setInterval(_pingPresence, 30000);
+      }
+    }
+  }
+}
 
 function startPresence() {
   if (!db || !userId) return;
   console.log('[Presence] Starting for', userName, userId);
+
+  if (!_visibilityBound) {
+    document.addEventListener('visibilitychange', _onVisibilityChange);
+    _visibilityBound = true;
+  }
 
   // Archive any leftover currentSession (e.g. user closed tab without logout last time)
   db.collection('users').doc(userId).get().then(function(doc) {
